@@ -14,6 +14,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -26,7 +27,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Check, ExternalLink, Zap, X, AlertTriangle } from "lucide-react";
+import { Check, Zap, X, AlertTriangle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -39,6 +40,11 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
+
+// Import the downloaded icons
+import StarterIcon from "@/assets/icons/starter-icon.svg";
+import ProIcon from "@/assets/icons/pro-icon.svg";
+import PremiumIcon from "@/assets/icons/premium-icon.svg";
 
 // Define interfaces for better type safety
 interface Plan {
@@ -244,10 +250,6 @@ export function SubscriptionPage() {
     }
   };
 
-  const handleContactForEnterprise = () => {
-    window.open("https://pythagora.io/contact", "_blank");
-  };
-
   if (loading) {
     return (
       <div className="flex justify-center items-center h-[calc(100vh-4rem)]">
@@ -297,12 +299,42 @@ export function SubscriptionPage() {
   const startDate = subscription.startDate ?? "-"; // Use actual data if available
   const nextBillingDate = subscription.nextBillingDate ?? "-"; // Use actual data if available
 
+  // --- Helper to get plan-specific data ---
+  const getPlanUIData = (planName: string, isCurrent: boolean) => {
+    const lowerCaseName = planName.toLowerCase();
+
+    // 1. Determine Icon based *only* on plan name
+    let icon = StarterIcon; // Default
+    if (lowerCaseName.includes("pro")) {
+      icon = ProIcon;
+    } else if (lowerCaseName.includes("premium")) {
+      icon = PremiumIcon;
+    }
+
+    // 2. Determine Background Color
+    let bgColor = "bg-plan-starter"; // Default to Starter background
+    if (isCurrent) {
+      // Force Starter background for the current plan
+      bgColor = "bg-plan-starter";
+    } else {
+      // For non-current plans:
+      if (lowerCaseName.includes("pro")) {
+        bgColor = "bg-plan-pro";
+      } else if (lowerCaseName.includes("premium")) {
+        bgColor = "bg-plan-premium";
+      } else {
+        // Non-current Starter/Free plan gets Premium background
+        bgColor = "bg-plan-premium";
+      }
+    }
+
+    return { bgColor, icon };
+  };
+
   return (
-    <div className="space-y-10 p-4 md:p-8 max-w-5xl mx-auto">
+    <div className="space-y-10 p-4 md:p-8 md:pt-12 md:px-12 w-full mx-auto">
       <div className="flex flex-col gap-2">
-        <h1 className="text-2xl font-medium tracking-tight text-foreground">
-          Subscription
-        </h1>
+        <h1 className="text-2xl font-medium text-foreground">Subscription</h1>
         <p className="text-sm text-muted-foreground">
           Manage your subscription and token usage
         </p>
@@ -324,8 +356,8 @@ export function SubscriptionPage() {
         </Alert>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-5">
+      <div className="flex flex-col gap-10">
+        <div className="w-full space-y-5">
           <div className="flex items-center gap-2">
             <h2 className="text-base font-normal text-foreground">
               Plan Summary
@@ -334,244 +366,236 @@ export function SubscriptionPage() {
               {subscription.plan} Plan
             </Badge>
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-6">
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-foreground/60">
-                Price/month
-              </p>
-              <p className="text-sm font-medium text-foreground">
-                {subscription.amount > 0
-                  ? formatCurrency(subscription.amount, subscription.currency)
-                  : "Free"}
-              </p>
-            </div>
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-foreground/60">
-                Start date
-              </p>
-              <p className="text-sm font-medium text-foreground">{startDate}</p>
-            </div>
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-foreground/60">
-                Next Billing date
-              </p>
-              <p className="text-sm font-medium text-foreground">
-                {nextBillingDate}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex justify-start">
-            <Button
-              size="sm"
-              className={cn(
-                "bg-btn-primary hover:bg-btn-primary-hover text-btn-primary-foreground",
-                "disabled:bg-btn-primary-disabled disabled:text-btn-primary-foreground-disabled"
-              )}
-              onClick={() => setChangePlanOpen(true)}
-              aria-label="Change subscription plan"
-            >
-              Change plan
-            </Button>
-          </div>
-        </div>
-
-        <Separator
-          orientation="vertical"
-          className="hidden lg:block bg-border h-auto mx-auto data-[orientation=vertical]:h-full data-[orientation=vertical]:w-[1px]"
-        />
-
-        <div className="space-y-5">
-          <h2 className="text-base font-normal text-foreground">Token Usage</h2>
-
-          <div className="space-y-4">
-            <div className="flex flex-col gap-2">
-              <div className="flex justify-between items-center">
+          <div className="flex justify-between">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-6">
+              <div className="space-y-1">
                 <p className="text-sm font-medium text-foreground/60">
-                  Available tokens
+                  Price/month
                 </p>
                 <p className="text-sm font-medium text-foreground">
-                  {formatTokens(subscription.tokens)} /{" "}
-                  {formatTokens(totalPlanTokens)}
+                  {subscription.amount > 0
+                    ? formatCurrency(subscription.amount, subscription.currency)
+                    : "Free"}
                 </p>
               </div>
-              <Progress
-                value={tokenProgress}
-                className="h-1.5 rounded-full bg-destructive/20 [&>*]:bg-destructive"
-              />
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-foreground/60">
+                  Start date
+                </p>
+                <p className="text-sm font-medium text-foreground">
+                  {startDate}
+                </p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-foreground/60">
+                  Next Billing date
+                </p>
+                <p className="text-sm font-medium text-foreground">
+                  {nextBillingDate}
+                </p>
+              </div>
             </div>
 
             <div className="flex justify-start">
               <Button
-                variant="outline"
                 size="sm"
                 className={cn(
-                  "border-btn-outline-border text-btn-outline-foreground hover:bg-btn-outline-hover hover:text-btn-outline-foreground-hover",
-                  "disabled:border-btn-outline-borderDisabled disabled:text-btn-outline-foreground-disabled",
-                  "gap-2"
+                  "bg-btn-primary hover:bg-btn-primary-hover text-btn-primary-foreground",
+                  "disabled:bg-btn-primary-disabled disabled:text-btn-primary-foreground-disabled"
                 )}
-                onClick={() => setTopUpOpen(true)}
-                aria-label="Top up tokens"
+                onClick={() => setChangePlanOpen(true)}
+                aria-label="Change subscription plan"
               >
-                <Zap className="h-4 w-4 stroke-current" />
-                Top Up
+                Change plan
               </Button>
+            </div>
+          </div>
+        </div>
+        <Separator />
+
+        {/* <Separator
+          orientation="vertical"
+          className="hidden lg:flex bg-border h-auto mx-auto data-[orientation=vertical]:h-full data-[orientation=vertical]:w-[1px]"
+        /> */}
+
+        <div className="space-y-5">
+          <h2 className="text-base font-normal text-foreground">Token Usage</h2>
+
+          <div className="space-y-4 ">
+            <div className="flex items-start flex-col gap-2">
+              <div className="flex justify-between w-full gap-4">
+                <div className="flex flex-col w-full items-start gap-2">
+                  <p className="text-sm font-medium text-foreground/60">
+                    Available tokens
+                  </p>
+                  <p className="text-sm font-medium text-foreground">
+                    {formatTokens(subscription.tokens)} /{" "}
+                    {formatTokens(totalPlanTokens)}
+                  </p>
+                  <Progress
+                    value={tokenProgress}
+                    className="h-1.5 rounded-full bg-btn-destructive/20 [&>*]:bg-btn-destructive"
+                  />
+                </div>
+                <div className="flex justify-start">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={cn(
+                      "border-btn-outline-border text-btn-outline-foreground hover:bg-btn-outline-hover hover:text-btn-outline-foreground-hover",
+                      "disabled:border-btn-outline-borderDisabled disabled:text-btn-outline-foreground-disabled",
+                      "gap-2"
+                    )}
+                    onClick={() => setTopUpOpen(true)}
+                    aria-label="Top up tokens"
+                  >
+                    <Zap className="h-4 w-4 stroke-current" />
+                    Top Up
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       <Dialog open={changePlanOpen} onOpenChange={setChangePlanOpen}>
-        <DialogContent className="sm:max-w-3xl bg-background text-foreground border-border">
-          <DialogHeader className="relative pr-10">
-            <DialogTitle className="text-lg font-medium">
-              Change Subscription Plan
+        <DialogContent className="max-w-5xl overflow-y-auto bg-dialog border-plan-border rounded-2xl backdrop-blur-lg text-foreground">
+          <DialogHeader className="flex flex-row justify-between items-center mb-2 pb-0">
+            <DialogTitle className="text-xl font-medium tracking-tight">
+              Change Plan
             </DialogTitle>
-            <DialogDescription className="text-sm text-muted-foreground">
-              Select a new plan. Your billing cycle will update immediately.
-            </DialogDescription>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-2 top-2 rounded-full text-muted-foreground"
-              onClick={() => setChangePlanOpen(false)}
-              aria-label="Close change plan dialog"
-            >
-              <X className="h-4 w-4" />
-            </Button>
           </DialogHeader>
-          <div className="py-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {plans.map((plan) => {
+          <div className="flex flex-row items-stretch gap-6 px-6 pb-6 pt-4 overflow-x-auto">
+            {plans
+              .filter((plan) => !plan.isEnterprise)
+              .map((plan) => {
                 const isCurrentPlan =
                   plan.name.toLowerCase() === subscription.plan.toLowerCase();
-                const isEnterprisePlan = plan.isEnterprise;
-                const isFreePlan = plan.price === 0;
-                const buttonLabel = isCurrentPlan
-                  ? "Current Plan"
-                  : isEnterprisePlan
-                  ? "Contact Us"
-                  : isFreePlan && subscription.amount > 0
-                  ? "Downgrade to Free"
-                  : `Switch to ${plan.name}`;
+                const { bgColor, icon: PlanIcon } = getPlanUIData(
+                  plan.name,
+                  isCurrentPlan
+                );
 
                 return (
                   <div
                     key={plan.id}
-                    className={`rounded-lg border p-4 flex flex-col h-full transition-colors duration-150 ${
-                      selectedPlan === plan.id
-                        ? "border-primary bg-primary/10 ring-1 ring-primary"
-                        : "border-border hover:border-muted-foreground/50"
-                    } ${isEnterprisePlan ? "border-dashed" : ""} ${
-                      !isEnterprisePlan ? "cursor-pointer" : ""
-                    }`}
-                    onClick={() =>
-                      !isEnterprisePlan && setSelectedPlan(plan.id)
-                    }
+                    className={cn(
+                      "w-[285px] h-auto flex flex-col justify-between rounded-2xl p-6 flex-shrink-0",
+                      bgColor,
+                      "border border-transparent",
+                      "hover:border-muted-foreground/50 transition-all duration-150",
+                      !isCurrentPlan && "cursor-pointer"
+                    )}
+                    onClick={() => !isCurrentPlan && setSelectedPlan(plan.id)}
                     onKeyDown={(e) =>
-                      !isEnterprisePlan &&
+                      !isCurrentPlan &&
                       (e.key === "Enter" || e.key === " ") &&
                       setSelectedPlan(plan.id)
                     }
-                    tabIndex={isEnterprisePlan ? -1 : 0}
+                    tabIndex={isCurrentPlan ? -1 : 0}
                     role="radio"
                     aria-checked={selectedPlan === plan.id}
                     aria-label={`Select ${plan.name} plan`}
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-base font-medium text-foreground">
-                        {plan.name}
-                      </span>
-                      <span className="font-semibold text-foreground">
-                        {plan.price === 0 ? (
-                          "Free"
-                        ) : plan.price === null ? (
-                          "Custom"
-                        ) : (
-                          <>
-                            {formatCurrency(plan.price, plan.currency)}
-                            <span className="text-xs font-normal text-muted-foreground">
-                              /month
-                            </span>
-                          </>
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-start">
+                        <img
+                          src={PlanIcon}
+                          alt={`${plan.name} plan icon`}
+                          className="h-8 w-8"
+                        />
+                        {isCurrentPlan && (
+                          <Badge className="bg-plan-starter-tagBg hover:bg-plan-starter-tagBg text-foreground font-normal text-sm rounded-lg px-3 py-1 h-[30px]">
+                            Current plan
+                          </Badge>
                         )}
-                      </span>
+                      </div>
+                      <div className="space-y-6">
+                        <div className="space-y-3">
+                          <p className="text-base font-normal text-foreground">
+                            {plan.name}
+                          </p>
+                          <p className="text-2xl font-medium text-foreground">
+                            {plan.price === 0
+                              ? "Free"
+                              : plan.price === null
+                              ? "Custom"
+                              : formatCurrency(plan.price, plan.currency)}
+                          </p>
+                        </div>
+                        <Separator className="bg-white/10" />
+                        <p className="text-sm font-medium text-foreground/80 min-h-[40px]">
+                          {plan.name === "Starter"
+                            ? "Just getting started? Try building your first app with AI."
+                            : plan.name === "Pro"
+                            ? "For individuals and small teams ready to ship real products."
+                            : plan.name === "Premium"
+                            ? "More power, more projects, more room to grow."
+                            : ""}
+                        </p>
+                      </div>
                     </div>
 
-                    {plan.tokens !== null && (
-                      <div className="text-sm text-muted-foreground mb-4">
-                        {plan.tokens === 0
-                          ? "No tokens included"
-                          : `${formatTokens(plan.tokens)} tokens/mo`}
-                      </div>
-                    )}
-
-                    <div className="flex-grow space-y-2 mb-6">
+                    <div className="space-y-2 flex-grow pt-4 pb-4">
+                      <p className="text-sm font-medium text-foreground py-2">
+                        {plan.name === "Starter"
+                          ? "Starter includes:"
+                          : plan.name === "Pro"
+                          ? "Everything in Starter, plus:"
+                          : plan.name === "Premium"
+                          ? "Everything in Pro, plus:"
+                          : "Features:"}
+                      </p>
                       {plan.features.map((feature, index) => (
-                        <div key={index} className="flex items-start gap-2">
-                          <Check className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
-                          <span className="text-sm text-muted-foreground">
+                        <div
+                          key={index}
+                          className="flex items-center gap-2 py-1"
+                        >
+                          <Check
+                            className="h-3.5 w-3.5 text-foreground flex-shrink-0"
+                            strokeWidth={2.5}
+                          />
+                          <span className="text-sm font-medium text-foreground/80">
                             {feature}
                           </span>
                         </div>
                       ))}
                     </div>
 
-                    <div className="mt-auto">
-                      {isEnterprisePlan ? (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className={cn(
-                            "border-btn-outline-border text-btn-outline-foreground hover:bg-btn-outline-hover hover:text-btn-outline-foreground-hover",
-                            "disabled:border-btn-outline-borderDisabled disabled:text-btn-outline-foreground-disabled",
-                            "w-full"
-                          )}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleContactForEnterprise();
-                          }}
-                          aria-label="Contact us for Enterprise plan"
-                        >
-                          <ExternalLink className="h-4 w-4 mr-2" />
-                          Get in Touch
-                        </Button>
-                      ) : isCurrentPlan ? (
+                    <div className="mt-auto pt-4">
+                      {isCurrentPlan ? (
                         <Button
                           variant="secondary"
-                          size="sm"
-                          className="w-full"
+                          size="lg"
+                          className={cn("w-full", "disabled:opacity-60")}
                           disabled
                         >
                           Current Plan
                         </Button>
                       ) : (
                         <Button
-                          size="sm"
+                          size="lg"
                           className={cn(
-                            "bg-btn-primary hover:bg-btn-primary-hover text-btn-primary-foreground",
-                            "disabled:bg-btn-primary-disabled disabled:text-btn-primary-foreground-disabled",
-                            "w-full"
+                            "w-full bg-btn-primary hover:bg-btn-primary-hover text-btn-primary-foreground",
+                            "disabled:bg-btn-primary-disabled disabled:text-btn-primary-foreground-disabled"
                           )}
                           onClick={(e) => {
-                            e.stopPropagation();
-                            if (plan.id === selectedPlan) {
-                              handleInitiatePlanChange(plan);
-                            } else {
-                              setSelectedPlan(plan.id);
-                            }
+                            e.stopPropagation(); // Prevent card div onClick from firing again
+                            // Directly initiate change confirmation on button click
+                            handleInitiatePlanChange(plan);
                           }}
-                          aria-label={buttonLabel}
+                          aria-label={`Switch to ${plan.name}`}
                         >
-                          {buttonLabel}
+                          {plan.price === 0
+                            ? "Downgrade to Free"
+                            : `Upgrade to ${plan.name}`}
                         </Button>
                       )}
                     </div>
                   </div>
                 );
               })}
-            </div>
           </div>
         </DialogContent>
       </Dialog>
@@ -580,7 +604,7 @@ export function SubscriptionPage() {
         open={confirmPlanChangeOpen}
         onOpenChange={setConfirmPlanChangeOpen}
       >
-        <AlertDialogContent className="bg-background text-foreground border-border">
+        <AlertDialogContent className="bg-dialog text-foreground border-plan-border rounded-2xl backdrop-blur-lg max-h-[85vh] overflow-y-auto">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-lg font-medium">
               {planToChange?.price === 0 && subscription.amount > 0
@@ -596,7 +620,7 @@ export function SubscriptionPage() {
           <AlertDialogFooter>
             <AlertDialogCancel
               onClick={() => setConfirmPlanChangeOpen(false)}
-              className="h-9 px-3 py-2"
+              className="h-9 px-3 py-2 bg-transparent border border-btn-outline-border text-btn-outline-foreground hover:bg-btn-outline-hover hover:text-btn-outline-foreground-hover disabled:border-btn-outline-borderDisabled disabled:text-btn-outline-foreground-disabled"
             >
               Cancel
             </AlertDialogCancel>
@@ -615,7 +639,7 @@ export function SubscriptionPage() {
       </AlertDialog>
 
       <Dialog open={topUpOpen} onOpenChange={setTopUpOpen}>
-        <DialogContent className="sm:max-w-md bg-background text-foreground border-border">
+        <DialogContent className="sm:max-w-md bg-dialog text-foreground border-plan-border rounded-2xl backdrop-blur-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader className="relative pr-10">
             <DialogTitle className="text-lg font-medium">
               Top Up Tokens
@@ -623,15 +647,15 @@ export function SubscriptionPage() {
             <DialogDescription className="text-sm text-muted-foreground">
               Select a token package to add to your account.
             </DialogDescription>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-2 top-2 rounded-full text-muted-foreground"
-              onClick={() => setTopUpOpen(false)}
-              aria-label="Close top up dialog"
-            >
-              <X className="h-4 w-4" />
-            </Button>
+            <DialogClose asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-2 top-2 rounded-full text-foreground"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </DialogClose>
           </DialogHeader>
           <div className="py-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -641,8 +665,8 @@ export function SubscriptionPage() {
                   className={`rounded-lg border p-4 text-center transition-colors duration-150 ${
                     selectedTopUp === pkg.id
                       ? "border-primary bg-primary/10 ring-1 ring-primary"
-                      : "border-border hover:border-muted-foreground/50"
-                  } cursor-pointer`}
+                      : "border-plan-border hover:border-muted-foreground/50"
+                  } cursor-pointer bg-white/5 hover:bg-white/10`}
                   onClick={() => setSelectedTopUp(pkg.id)}
                   onKeyDown={(e) =>
                     (e.key === "Enter" || e.key === " ") &&
@@ -698,7 +722,7 @@ export function SubscriptionPage() {
                   Continue
                 </Button>
               </AlertDialogTrigger>
-              <AlertDialogContent className="bg-background text-foreground border-border">
+              <AlertDialogContent className="bg-dialog text-foreground border-plan-border rounded-2xl backdrop-blur-lg">
                 <AlertDialogHeader>
                   <AlertDialogTitle className="text-lg font-medium">
                     Confirm Token Purchase
@@ -711,7 +735,7 @@ export function SubscriptionPage() {
                 <AlertDialogFooter>
                   <AlertDialogCancel
                     onClick={() => setConfirmTopUpOpen(false)}
-                    className="h-9 px-3 py-2"
+                    className="h-9 px-3 py-2 bg-transparent border border-btn-outline-border text-btn-outline-foreground hover:bg-btn-outline-hover hover:text-btn-outline-foreground-hover disabled:border-btn-outline-borderDisabled disabled:text-btn-outline-foreground-disabled"
                   >
                     Cancel
                   </AlertDialogCancel>

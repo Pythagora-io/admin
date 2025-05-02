@@ -1,90 +1,97 @@
-import * as React from "react"
-import { createContext, useContext, useEffect, useState } from "react"
-import { cn } from "@/lib/utils"
-import { Menu } from "lucide-react"
+import * as React from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
+import { Menu } from "lucide-react";
 
 interface SidebarContextProps {
-  isOpen: boolean
-  toggle: () => void
-  isMobile: boolean
-  setIsOpen: (isOpen: boolean) => void
+  isOpen: boolean;
+  toggle: () => void;
+  isMobile: boolean;
+  setIsOpen: (isOpen: boolean) => void;
 }
 
-const SidebarContext = createContext<SidebarContextProps | undefined>(undefined)
+const SidebarContext = createContext<SidebarContextProps | undefined>(
+  undefined
+);
 
 interface SidebarProviderProps {
-  defaultOpen?: boolean
-  children: React.ReactNode
+  defaultOpen?: boolean;
+  children: React.ReactNode;
 }
 
 export function SidebarProvider({
   defaultOpen = false,
   children,
 }: SidebarProviderProps) {
-  const [isOpen, setIsOpen] = useState(defaultOpen)
-  const [isMobile, setIsMobile] = useState(false)
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     const checkScreenSize = () => {
-      setIsMobile(window.innerWidth < 768)
+      setIsMobile(window.innerWidth < 768);
       if (window.innerWidth < 768) {
-        setIsOpen(false)
+        setIsOpen(false);
       } else {
-        setIsOpen(defaultOpen)
+        setIsOpen(defaultOpen);
       }
-    }
+    };
 
     // Initial check
-    checkScreenSize()
+    checkScreenSize();
 
     // Add event listener for window resize
-    window.addEventListener('resize', checkScreenSize)
+    window.addEventListener("resize", checkScreenSize);
 
     // Cleanup
-    return () => window.removeEventListener('resize', checkScreenSize)
-  }, [defaultOpen])
+    return () => window.removeEventListener("resize", checkScreenSize);
+  }, [defaultOpen]);
 
   const toggle = () => {
-    setIsOpen(!isOpen)
-  }
+    setIsOpen(!isOpen);
+  };
 
   return (
     <SidebarContext.Provider value={{ isOpen, toggle, isMobile, setIsOpen }}>
       {children}
     </SidebarContext.Provider>
-  )
+  );
 }
 
 export function useSidebar() {
-  const context = useContext(SidebarContext)
+  const context = useContext(SidebarContext);
   if (!context) {
-    throw new Error("useSidebar must be used within a SidebarProvider")
+    throw new Error("useSidebar must be used within a SidebarProvider");
   }
-  return context
+  return context;
 }
 
 interface SidebarProps extends React.HTMLAttributes<HTMLElement> {
-  className?: string
-  open?: boolean
-  onOpenChange?: (open: boolean) => void
+  className?: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function Sidebar({ className, open, onOpenChange, ...props }: SidebarProps) {
-  const { isOpen, isMobile, setIsOpen } = useSidebar()
-  
+export function Sidebar({
+  className,
+  open,
+  onOpenChange,
+  ...props
+}: SidebarProps) {
+  const { isOpen, isMobile, setIsOpen } = useSidebar();
+
   // Sync the controlled state with context if provided
   React.useEffect(() => {
     if (open !== undefined && open !== isOpen) {
-      setIsOpen(open)
+      setIsOpen(open);
     }
-  }, [open, isOpen, setIsOpen])
+  }, [open, isOpen, setIsOpen]);
 
   // Notify parent of changes
   React.useEffect(() => {
     if (onOpenChange) {
-      onOpenChange(isOpen)
+      onOpenChange(isOpen);
     }
-  }, [isOpen, onOpenChange])
+  }, [isOpen, onOpenChange]);
 
   return (
     <aside
@@ -93,21 +100,21 @@ export function Sidebar({ className, open, onOpenChange, ...props }: SidebarProp
         isOpen
           ? "w-80 translate-x-0"
           : isMobile
-            ? "-translate-x-full w-80"
-            : "w-20 translate-x-0",
+          ? "-translate-x-full w-80"
+          : "w-20 translate-x-0",
         className
       )}
       {...props}
     />
-  )
+  );
 }
 
 interface SidebarHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
-  className?: string
+  className?: string;
 }
 
 export function SidebarHeader({ className, ...props }: SidebarHeaderProps) {
-  const { isOpen } = useSidebar()
+  const { isOpen } = useSidebar();
 
   return (
     <div
@@ -118,22 +125,27 @@ export function SidebarHeader({ className, ...props }: SidebarHeaderProps) {
       )}
       {...props}
     />
-  )
+  );
 }
 
-interface SidebarTriggerProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  className?: string
+interface SidebarTriggerProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  className?: string;
 }
 
-export function SidebarTrigger({ className, onClick, ...props }: SidebarTriggerProps) {
-  const { toggle } = useSidebar()
+export function SidebarTrigger({
+  className,
+  onClick,
+  ...props
+}: SidebarTriggerProps) {
+  const { toggle } = useSidebar();
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    toggle()
+    toggle();
     if (onClick) {
-      onClick(e)
+      onClick(e);
     }
-  }
+  };
 
   return (
     <button
@@ -143,45 +155,46 @@ export function SidebarTrigger({ className, onClick, ...props }: SidebarTriggerP
     >
       <Menu className="h-5 w-5" />
     </button>
-  )
+  );
 }
 
 interface SidebarContentProps extends React.HTMLAttributes<HTMLDivElement> {
-  className?: string
+  className?: string;
 }
 
 export function SidebarContent({ className, ...props }: SidebarContentProps) {
-  return <div className={cn("flex-1 overflow-auto", className)} {...props} />
+  return <div className={cn("flex-1 overflow-auto", className)} {...props} />;
 }
 
 interface SidebarFooterProps extends React.HTMLAttributes<HTMLDivElement> {
-  className?: string
+  className?: string;
 }
 
 export function SidebarFooter({ className, ...props }: SidebarFooterProps) {
-  return <div className={cn("", className)} {...props} />
+  return <div className={cn("", className)} {...props} />;
 }
 
 interface SidebarMenuProps extends React.HTMLAttributes<HTMLDivElement> {
-  className?: string
+  className?: string;
 }
 
 export function SidebarMenu({ className, ...props }: SidebarMenuProps) {
-  return <div className={cn("py-2", className)} {...props} />
+  return <div className={cn("py-2", className)} {...props} />;
 }
 
 interface SidebarMenuItemProps extends React.HTMLAttributes<HTMLDivElement> {
-  className?: string
+  className?: string;
 }
 
 export function SidebarMenuItem({ className, ...props }: SidebarMenuItemProps) {
-  return <div className={cn("py-1", className)} {...props} />
+  return <div className={cn("py-1", className)} {...props} />;
 }
 
-interface SidebarMenuButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
-  isActive?: boolean
-  tooltip?: string
-  className?: string
+interface SidebarMenuButtonProps
+  extends React.HTMLAttributes<HTMLButtonElement> {
+  isActive?: boolean;
+  tooltip?: string;
+  className?: string;
 }
 
 export function SidebarMenuButton({
@@ -190,8 +203,6 @@ export function SidebarMenuButton({
   className,
   ...props
 }: SidebarMenuButtonProps) {
-  const { isOpen } = useSidebar()
-
   return (
     <button
       data-tooltip-content={tooltip}
@@ -205,14 +216,17 @@ export function SidebarMenuButton({
       )}
       {...props}
     />
-  )
+  );
 }
 
 interface SidebarMenuBadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
-  className?: string
+  className?: string;
 }
 
-export function SidebarMenuBadge({ className, ...props }: SidebarMenuBadgeProps) {
+export function SidebarMenuBadge({
+  className,
+  ...props
+}: SidebarMenuBadgeProps) {
   return (
     <span
       className={cn(
@@ -221,14 +235,18 @@ export function SidebarMenuBadge({ className, ...props }: SidebarMenuBadgeProps)
       )}
       {...props}
     />
-  )
+  );
 }
 
-interface SidebarMenuActionProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  className?: string
+interface SidebarMenuActionProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  className?: string;
 }
 
-export function SidebarMenuAction({ className, ...props }: SidebarMenuActionProps) {
+export function SidebarMenuAction({
+  className,
+  ...props
+}: SidebarMenuActionProps) {
   return (
     <button
       className={cn(
@@ -237,28 +255,32 @@ export function SidebarMenuAction({ className, ...props }: SidebarMenuActionProp
       )}
       {...props}
     />
-  )
+  );
 }
 
 interface SidebarMenuSubProps extends React.HTMLAttributes<HTMLDivElement> {
-  className?: string
+  className?: string;
 }
 
 export function SidebarMenuSub({ className, ...props }: SidebarMenuSubProps) {
-  return <div className={cn("pl-8 mt-2", className)} {...props} />
+  return <div className={cn("pl-8 mt-2", className)} {...props} />;
 }
 
 interface SidebarMenuSubItemProps extends React.HTMLAttributes<HTMLDivElement> {
-  className?: string
+  className?: string;
 }
 
-export function SidebarMenuSubItem({ className, ...props }: SidebarMenuSubItemProps) {
-  return <div className={cn("py-1", className)} {...props} />
+export function SidebarMenuSubItem({
+  className,
+  ...props
+}: SidebarMenuSubItemProps) {
+  return <div className={cn("py-1", className)} {...props} />;
 }
 
-interface SidebarMenuSubButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
-  isActive?: boolean
-  className?: string
+interface SidebarMenuSubButtonProps
+  extends React.HTMLAttributes<HTMLButtonElement> {
+  isActive?: boolean;
+  className?: string;
 }
 
 export function SidebarMenuSubButton({
@@ -277,15 +299,15 @@ export function SidebarMenuSubButton({
       )}
       {...props}
     />
-  )
+  );
 }
 
 interface SidebarInsetProps extends React.HTMLAttributes<HTMLDivElement> {
-  className?: string
+  className?: string;
 }
 
 export function SidebarInset({ className, ...props }: SidebarInsetProps) {
-  const { isOpen, isMobile } = useSidebar()
+  const { isOpen, isMobile } = useSidebar();
 
   return (
     <div
@@ -296,11 +318,12 @@ export function SidebarInset({ className, ...props }: SidebarInsetProps) {
       )}
       {...props}
     />
-  )
+  );
 }
 
-interface SidebarInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  className?: string
+interface SidebarInputProps
+  extends React.InputHTMLAttributes<HTMLInputElement> {
+  className?: string;
 }
 
 export function SidebarInput({ className, ...props }: SidebarInputProps) {
@@ -312,7 +335,7 @@ export function SidebarInput({ className, ...props }: SidebarInputProps) {
       )}
       {...props}
     />
-  )
+  );
 }
 
 export function SidebarMenuSkeleton() {
@@ -321,10 +344,13 @@ export function SidebarMenuSkeleton() {
       <div className="h-4 w-4 rounded-full bg-muted" />
       <div className="h-4 w-24 rounded bg-muted" />
     </div>
-  )
+  );
 }
 
-export function SidebarGroupLabel({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+export function SidebarGroupLabel({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
       className={cn(
@@ -333,15 +359,21 @@ export function SidebarGroupLabel({ className, ...props }: React.HTMLAttributes<
       )}
       {...props}
     />
-  )
+  );
 }
 
-export function SidebarGroup({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("", className)} {...props} />
+export function SidebarGroup({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+  return <div className={cn("", className)} {...props} />;
 }
 
-export function SidebarGroupContent({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("", className)} {...props} />
+export function SidebarGroupContent({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+  return <div className={cn("", className)} {...props} />;
 }
 
 export function SidebarGroupAction({
@@ -356,14 +388,14 @@ export function SidebarGroupAction({
       )}
       {...props}
     />
-  )
+  );
 }
 
-export function SidebarSeparator({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+export function SidebarSeparator({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div
-      className={cn("mx-3 my-2 h-px bg-border", className)}
-      {...props}
-    />
-  )
+    <div className={cn("mx-3 my-2 h-px bg-border", className)} {...props} />
+  );
 }

@@ -10,6 +10,7 @@ module.exports = {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        "2xl": "1rem", // Ensure 16px is available (already default for xl, adding 2xl for clarity)
       },
       colors: {
         btn: {
@@ -43,6 +44,27 @@ module.exports = {
             borderDisabled: "rgba(247, 248, 248, 0.6)",
           },
           // Add other variants like white, transparent (ghost) if needed
+        },
+        plan: {
+          // Add colors for plan cards
+          starter: {
+            DEFAULT: "#393744",
+            tagBg: "rgba(247, 248, 252, 0.15)",
+            icon: "#FFD11A", // Not used directly if icon is SVG
+          },
+          pro: {
+            DEFAULT: "rgba(11, 9, 18, 0.6)",
+            icon: "#FC8DDD",
+          },
+          premium: {
+            DEFAULT: "rgba(11, 9, 18, 0.6)", // Same as pro?
+            icon: "#07998A",
+          },
+          border: "rgba(247, 248, 248, 0.1)",
+        },
+        dialog: {
+          // Add color for dialog background
+          DEFAULT: "#222029",
         },
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
@@ -94,6 +116,11 @@ module.exports = {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+      },
+      backdropBlur: {
+        // Add specific value from Figma if needed, or use closest default like lg
+        // '70px': '70px', // Example for arbitrary value
+        lg: "16px", // Default lg might be sufficient visually
       },
       keyframes: {
         "accordion-down": {
