@@ -191,7 +191,6 @@ export function PaymentsPage() {
                     <TableHead>Date</TableHead>
                     <TableHead>Description</TableHead>
                     <TableHead>Amount</TableHead>
-                    <TableHead>Status</TableHead>
                     <TableHead className="text-right">Receipt</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -201,15 +200,6 @@ export function PaymentsPage() {
                       <TableCell>{formatDate(payment.date)}</TableCell>
                       <TableCell>{payment.description}</TableCell>
                       <TableCell>{formatCurrency(payment.amount, payment.currency)}</TableCell>
-                      <TableCell>
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          payment.status === 'succeeded'
-                            ? 'bg-green-100 text-green-800 dark:bg-green-800/20 dark:text-green-400'
-                            : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800/20 dark:text-yellow-400'
-                        }`}>
-                          {payment.status === 'succeeded' ? 'Paid' : 'Pending'}
-                        </span>
-                      </TableCell>
                       <TableCell className="text-right">
                         <Button
                           variant="ghost"

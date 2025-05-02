@@ -3,7 +3,7 @@ import api from './api';
 // Description: Get the current user data
 // Endpoint: GET /api/user
 // Request: {}
-// Response: { user: { email: string, name: string } }
+// Response: { user: { email: string, name: string, receiveUpdates: boolean } }
 export const getCurrentUser = () => {
     // Mocking the response
     return new Promise((resolve) => {
@@ -12,7 +12,8 @@ export const getCurrentUser = () => {
                 user: {
                     _id: '123456789',
                     email: 'user@example.com',
-                    name: 'John Doe'
+                    name: 'John Doe',
+                    receiveUpdates: false
                 }
             });
         }, 500);
@@ -116,19 +117,41 @@ export const updateUserPassword = (data: { currentPassword: string, newPassword:
     // }
 };
 
+// Description: Update email preferences
+// Endpoint: PUT /api/user/preferences/email
+// Request: { receiveUpdates: boolean }
+// Response: { success: boolean, message: string }
+export const updateEmailPreferences = (data: { receiveUpdates: boolean }) => {
+    // Mocking the response
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            resolve({
+                success: true,
+                message: 'Email preferences updated successfully'
+            });
+        }, 500);
+    });
+    // Uncomment the below lines to make an actual API call
+    // try {
+    //   return await api.put('/api/user/preferences/email', data);
+    // } catch (error) {
+    //   throw new Error(error?.response?.data?.message || error.message);
+    // }
+};
+
 // Description: Update billing information
 // Endpoint: PUT /api/user/billing
 // Request: { billingInfo: { name: string, address: string, city: string, state: string, zip: string, country: string } }
 // Response: { success: boolean, message: string, billingInfo: object }
-export const updateBillingInfo = (data: { 
-    billingInfo: { 
-        name: string, 
-        address: string, 
-        city: string, 
-        state: string, 
-        zip: string, 
-        country: string 
-    } 
+export const updateBillingInfo = (data: {
+    billingInfo: {
+        name: string,
+        address: string,
+        city: string,
+        state: string,
+        zip: string,
+        country: string
+    }
 }) => {
     // Mocking the response
     return new Promise((resolve) => {

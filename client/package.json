@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "start": "npm run dev",
-    "dev": "concurrently \"cd ../design && npm run watch\" \"vite\"",
-    "build": "cd ../design && npm run build && cd ../client && vite build",
+    "dev": "concurrently \"cd design && npm run watch\" \"vite\"",
+    "build": "cd design && npm run build && cd ../ && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },

@@ -1,10 +1,13 @@
 import * as React from "react"
 import { createContext, useContext, useEffect, useState } from "react"
 import { cn } from "@/lib/utils"
+import { Menu } from "lucide-react"
 
 interface SidebarContextProps {
   isOpen: boolean
   toggle: () => void
+  isMobile: boolean
+  setIsOpen: (isOpen: boolean) => void
 }
 
 const SidebarContext = createContext<SidebarContextProps | undefined>(undefined)
@@ -19,13 +22,34 @@ export function SidebarProvider({
   children,
 }: SidebarProviderProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 768)
+      if (window.innerWidth < 768) {
+        setIsOpen(false)
+      } else {
+        setIsOpen(defaultOpen)
+      }
+    }
+
+    // Initial check
+    checkScreenSize()
+
+    // Add event listener for window resize
+    window.addEventListener('resize', checkScreenSize)
+
+    // Cleanup
+    return () => window.removeEventListener('resize', checkScreenSize)
+  }, [defaultOpen])
 
   const toggle = () => {
     setIsOpen(!isOpen)
   }
 
   return (
-    <SidebarContext.Provider value={{ isOpen, toggle }}>
+    <SidebarContext.Provider value={{ isOpen, toggle, isMobile, setIsOpen }}>
       {children}
     </SidebarContext.Provider>
   )
@@ -41,16 +65,36 @@ export function useSidebar() {
 
 interface SidebarProps extends React.HTMLAttributes<HTMLElement> {
   className?: string
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
-export function Sidebar({ className, ...props }: SidebarProps) {
-  const { isOpen } = useSidebar()
+export function Sidebar({ className, open, onOpenChange, ...props }: SidebarProps) {
+  const { isOpen, isMobile, setIsOpen } = useSidebar()
+  
+  // Sync the controlled state with context if provided
+  React.useEffect(() => {
+    if (open !== undefined && open !== isOpen) {
+      setIsOpen(open)
+    }
+  }, [open, isOpen, setIsOpen])
+
+  // Notify parent of changes
+  React.useEffect(() => {
+    if (onOpenChange) {
+      onOpenChange(isOpen)
+    }
+  }, [isOpen, onOpenChange])
 
   return (
     <aside
       className={cn(
-        "w-80 flex-shrink-0 h-screen flex flex-col overflow-hidden z-20 bg-background transition-all duration-300 ease-in-out",
-        isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0 md:w-20",
+        "h-screen flex-shrink-0 flex flex-col overflow-hidden z-20 bg-background transition-all duration-300 ease-in-out",
+        isOpen
+          ? "w-80 translate-x-0"
+          : isMobile
+            ? "-translate-x-full w-80"
+            : "w-20 translate-x-0",
         className
       )}
       {...props}
@@ -81,32 +125,23 @@ interface SidebarTriggerProps extends React.ButtonHTMLAttributes<HTMLButtonEleme
   className?: string
 }
 
-export function SidebarTrigger({ className, ...props }: SidebarTriggerProps) {
+export function SidebarTrigger({ className, onClick, ...props }: SidebarTriggerProps) {
   const { toggle } = useSidebar()
+
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    toggle()
+    if (onClick) {
+      onClick(e)
+    }
+  }
 
   return (
     <button
-      onClick={toggle}
+      onClick={handleClick}
       className={cn("p-2 rounded-md hover:bg-accent", className)}
       {...props}
     >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
-        <line x1="9" x2="15" y1="3" y2="3" />
-        <line x1="9" x2="15" y1="21" y2="21" />
-        <line x1="3" x2="3" y1="9" y2="15" />
-        <line x1="21" x2="21" y1="9" y2="15" />
-      </svg>
+      <Menu className="h-5 w-5" />
     </button>
   )
 }
@@ -116,9 +151,7 @@ interface SidebarContentProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export function SidebarContent({ className, ...props }: SidebarContentProps) {
-  return (
-    <div className={cn("flex-1 overflow-auto", className)} {...props} />
-  )
+  return <div className={cn("flex-1 overflow-auto", className)} {...props} />
 }
 
 interface SidebarFooterProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -252,13 +285,13 @@ interface SidebarInsetProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export function SidebarInset({ className, ...props }: SidebarInsetProps) {
-  const { isOpen } = useSidebar()
+  const { isOpen, isMobile } = useSidebar()
 
   return (
     <div
       className={cn(
         "flex-1 overflow-auto",
-        isOpen ? "ml-0" : "ml-0 md:ml-20",
+        isOpen && isMobile ? "ml-0" : !isOpen && !isMobile ? "ml-20" : "ml-0",
         className
       )}
       {...props}

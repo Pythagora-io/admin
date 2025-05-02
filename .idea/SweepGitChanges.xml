@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SweepGitChangeService">
+    <option name="recentCommitSummaries">
+      <list>
+        <option value="Integrated external design system into the client application. Updated package.json to run design system build and watch commands alongside Vite using concurrently, and added the design system's compiled CSS import in main.tsx to apply shared styles. Also updated .gitignore to exclude the design directory from version control." />
+        <option value="Initialized the project structure for the Pythagora design system. Added core configuration files including `package.json` and `package-lock.json` to define project metadata and manage dependencies, notably adding `sass` for SCSS compilation. Created `main.scss` as the entry point for styling, importing foundational SCSS modules. Added multiple SCSS partials (`_colors.scss`, `_typography.scss`, `_spacing.scss`, `_mixins.scss`, `_reset.scss`, `_grid.scss`, `_buttons.scss`, `_forms.scss`, `_cards.scss`) to organize variables, utilities, base styles, layout, and components. Updated `.gitignore` to exclude `dist/` and `node_modules/` directories from version control." />
+      </list>
+    </option>
+  </component>
+</project>

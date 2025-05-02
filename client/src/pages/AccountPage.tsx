@@ -6,19 +6,19 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/useToast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { getCurrentUser, updateUserEmail, updateUserName, updateUserPassword } from "@/api/user";
+import { getCurrentUser, updateUserEmail, updateUserPassword } from "@/api/user";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export function AccountPage() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [nameChangeLoading, setNameChangeLoading] = useState(false);
   const [emailChangeOpen, setEmailChangeOpen] = useState(false);
   const [passwordChangeOpen, setPasswordChangeOpen] = useState(false);
-  const [newName, setNewName] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [receiveUpdates, setReceiveUpdates] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -26,7 +26,9 @@ export function AccountPage() {
       try {
         const { user } = await getCurrentUser();
         setUser(user);
-        setNewName(user.name || "");
+        // Assuming the user object might have a receiveUpdates field
+        // If not, it will default to false
+        setReceiveUpdates(user.receiveUpdates || false);
       } catch (error) {
         toast({
           variant: "destructive",
@@ -40,35 +42,6 @@ export function AccountPage() {
 
     fetchUserData();
   }, [toast]);
-
-  const handleNameUpdate = async () => {
-    if (!newName.trim()) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Name cannot be empty",
-      });
-      return;
-    }
-
-    try {
-      setNameChangeLoading(true);
-      const response = await updateUserName({ name: newName });
-      setUser({ ...user, name: newName });
-      toast({
-        title: "Success",
-        description: response.message || "Name updated successfully",
-      });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message || "Failed to update name",
-      });
-    } finally {
-      setNameChangeLoading(false);
-    }
-  };
 
   const handleEmailUpdate = async () => {
     if (!newEmail.trim() || !newEmail.includes("@")) {
@@ -138,6 +111,18 @@ export function AccountPage() {
     }
   };
 
+  const handleReceiveUpdatesChange = (checked: boolean) => {
+    setReceiveUpdates(checked);
+    // Here you would typically call an API to update this preference
+    // For now, we'll just show a toast notification
+    toast({
+      title: "Preference Updated",
+      description: checked
+        ? "You will now receive email updates"
+        : "You will no longer receive email updates",
+    });
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-[calc(100vh-4rem)]">
@@ -149,7 +134,7 @@ export function AccountPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Account Settings</h1>
+        <h1 className="text-3xl font-bold">Account</h1>
         <p className="text-muted-foreground">Manage your account details and password</p>
       </div>
 
@@ -162,7 +147,7 @@ export function AccountPage() {
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <div className="flex items-center gap-2">
-              <Input id="email" value={user.email} readOnly className="flex-1" />
+              <Input id="email" value={user.email} readOnly className="flex-1 bg-muted" />
               <Dialog open={emailChangeOpen} onOpenChange={setEmailChangeOpen}>
                 <DialogTrigger asChild>
                   <Button variant="outline">Change Email</Button>
@@ -196,19 +181,13 @@ export function AccountPage() {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
-            <div className="flex items-center gap-2">
-              <Input
-                id="name"
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                className="flex-1"
-              />
-              <Button onClick={handleNameUpdate} disabled={nameChangeLoading}>
-                {nameChangeLoading ? "Saving..." : "Save"}
-              </Button>
-            </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="receive-updates"
+              checked={receiveUpdates}
+              onCheckedChange={handleReceiveUpdatesChange}
+            />
+            <Label htmlFor="receive-updates">Receive updates via email</Label>
           </div>
         </CardContent>
       </Card>
