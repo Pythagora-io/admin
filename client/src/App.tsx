@@ -17,23 +17,23 @@ import { TeamPage } from "./pages/TeamPage"
 function App() {
   return (
     <AuthProvider>
-        <ThemeProvider defaultTheme="light" storageKey="ui-theme">
+        <ThemeProvider defaultTheme="dark" storageKey="ui-theme">
           <Router>
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-                <Route index element={<AccountPage />} />
-                <Route path="subscription" element={<SubscriptionPage />} />
-                <Route path="payments" element={<PaymentsPage />} />
-                <Route path="domains" element={<DomainsPage />} />
-                <Route path="settings" element={<SettingsPage />} />
                 <Route path="projects">
                   <Route index element={<Navigate to="/projects/drafts" replace />} />
                   <Route path="drafts" element={<ProjectsPage type="drafts" />} />
                   <Route path="deployed" element={<ProjectsPage type="deployed" />} />
                 </Route>
                 <Route path="team" element={<TeamPage />} />
+                <Route path="domains" element={<DomainsPage />} />
+                <Route path="subscription" element={<SubscriptionPage />} />
+                <Route path="payments" element={<PaymentsPage />} />
+                <Route index element={<AccountPage />} />
+                <Route path="settings" element={<SettingsPage />} />
               </Route>
             </Routes>
           </Router>

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/useToast";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Check, CreditCard, ExternalLink, Zap, X, AlertTriangle } from "lucide-react";
+import { Check, CreditCard, ExternalLink, Zap, X, AlertCircle } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
@@ -16,6 +16,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export function SubscriptionPage() {
   const [subscription, setSubscription] = useState<any>(null);
+  // Total tokens available, for demonstration only (try 60000000 to see the green state)
+  const [totalTokens, setTotalTokens] = useState<number>(400000000);
   const [plans, setPlans] = useState<any[]>([]);
   const [topUpPackages, setTopUpPackages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -166,66 +168,97 @@ export function SubscriptionPage() {
   };
 
   // Check if user is out of tokens
-  const isOutOfTokens = subscription.tokens === 0;
+  // const isOutOfTokens = subscription.tokens === 0;
+  // Temporarily set to true for demonstration
+  const isOutOfTokens = true;
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Subscription</h1>
+        <h1 className="text-2xl mt-10 md:mt-0 mb-2">Subscription</h1>
         <p className="text-muted-foreground">Manage your subscription and token usage</p>
       </div>
 
       {isOutOfTokens && (
-        <Alert variant="destructive" className="bg-red-50 dark:bg-red-950/30 border-red-300 dark:border-red-800 text-red-800 dark:text-red-300">
-          <AlertTriangle className="h-5 w-5" />
-          <AlertTitle className="font-semibold">You've run out of tokens!</AlertTitle>
+        <Alert variant="destructive" className="text-sm">
+          <AlertCircle className="h-6 w-6" />
           <AlertDescription>
-            To continue building your apps, please top up your tokens or upgrade your plan.
+            You've run out of tokens. To continue building your apps, please top up your tokens or upgrade your plan.
           </AlertDescription>
         </Alert>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Current Plan <Badge className="ml-2 bg-yellow-500 hover:bg-yellow-600">{subscription.plan} Plan</Badge></CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
+        <div className="text-base font-light">Plan Summary <Badge className="ml-2 bg-yellow-500 hover:bg-yellow-600 text-background">{subscription.plan} Plan</Badge></div>
+
+        <div className="space-y-6 font-light">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h3 className="text-xl font-semibold">Price</h3>
-              <p className="text-muted-foreground">
-                {subscription.amount > 0 ? (
-                  `${formatCurrency(subscription.amount, subscription.currency)} / month`
-                ) : (
-                  "Free"
-                )}
-              </p>
+            <div className="flex flex-col md:flex-row gap-4 lg:gap-24 text-sm">
+              <div>
+                <h3 className="mb-2 font-semibold text-muted-foreground">Price/month</h3>
+                <p className="">
+                  {subscription.amount > 0 ? (
+                    `${formatCurrency(subscription.amount, subscription.currency)}`
+                  ) : (
+                    "Free"
+                  )}
+                </p>
+              </div>
+              <div>
+                <h3 className="mb-2 font-semibold text-muted-foreground">Start date</h3>
+                <p className="">
+                  {subscription.startDate}
+                </p>
+              </div>
+              <div>
+                <h3 className="mb-2 font-semibold text-muted-foreground">Next billing date</h3>
+                <p className="">
+                  {subscription.nextBillingDate}
+                </p>
+              </div>
             </div>
             <Button onClick={() => setChangePlanOpen(true)}>Change Plan</Button>
           </div>
 
-          <Separator />
+          <Separator className="!my-12" />
 
-          <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <div className="space-y-1">
-                <h4 className="font-medium">Token Usage</h4>
-                <p className="text-sm text-muted-foreground">
-                  {formatTokens(subscription.tokens)} tokens available
-                </p>
+          <div className="w-full flex gap-8">
+            <div className="w-full space-y-2">
+              <div className="flex justify-between items-center">
+                <div className="space-y-1">
+                  <h4 className="mb-4">Token Usage</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Available tokens
+                  </p>
+                  <p className="text-sm">
+                    
+                    {formatTokens(subscription.tokens)}  / {formatTokens(totalTokens)} tokens
+                  </p>
+                </div>
+
               </div>
-              <Button variant="outline" onClick={() => setTopUpOpen(true)}>
-                <Zap className="mr-2 h-4 w-4" />
-                Top Up
-              </Button>
+              <Progress
+                value={subscription.tokens > 0 ? (subscription.tokens / totalTokens) * 100 : 0}
+                className="h-2"
+                indicatorClassName={
+                  subscription.tokens / totalTokens >= 0.25 
+                    ? "bg-success-foreground" 
+                    : "bg-destructive-foreground"
+                }
+                trackClassName={
+                  subscription.tokens / totalTokens >= 0.25 
+                    ? "bg-success"
+                    : "bg-destructive"    
+                }
+              /> 
             </div>
-            <Progress value={subscription.tokens > 0 ? 50 : 0} className="h-2" />
-            <p className="text-xs text-muted-foreground text-right">
-              {subscription.tokens} / 600,000 tokens
-            </p>
+            <Button variant="outline" onClick={() => setTopUpOpen(true)}>
+              <Zap className="mr-2 h-4 w-4" />
+              Top Up
+            </Button>
           </div>
-        </CardContent>
-      </Card>
+
+
+        </div>
 
       {/* Change Plan Dialog */}
       <Dialog open={changePlanOpen} onOpenChange={setChangePlanOpen}>

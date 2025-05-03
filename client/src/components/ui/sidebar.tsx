@@ -175,7 +175,7 @@ interface SidebarMenuItemProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export function SidebarMenuItem({ className, ...props }: SidebarMenuItemProps) {
-  return <div className={cn("py-1", className)} {...props} />
+  return <div className={cn("", className)} {...props} />
 }
 
 interface SidebarMenuButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
@@ -197,7 +197,7 @@ export function SidebarMenuButton({
       data-tooltip-content={tooltip}
       data-tooltip-id="sidebar-tooltip"
       className={cn(
-        "relative group flex items-center rounded-md p-2 w-full transition-colors",
+        "relative group flex items-center rounded-md p-2 w-full transition-colors text-sm",
         isActive
           ? "bg-accent text-accent-foreground font-medium"
           : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground",
@@ -245,7 +245,7 @@ interface SidebarMenuSubProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export function SidebarMenuSub({ className, ...props }: SidebarMenuSubProps) {
-  return <div className={cn("pl-8 mt-2", className)} {...props} />
+  return <div className={cn("", className)} {...props} />
 }
 
 interface SidebarMenuSubItemProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -290,7 +290,7 @@ export function SidebarInset({ className, ...props }: SidebarInsetProps) {
   return (
     <div
       className={cn(
-        "flex-1 overflow-auto",
+        "z-10 flex-1 overflow-auto",
         isOpen && isMobile ? "ml-0" : !isOpen && !isMobile ? "ml-20" : "ml-0",
         className
       )}
