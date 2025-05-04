@@ -1,16 +1,43 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/useToast";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Check, CreditCard, ExternalLink, Zap, X, AlertTriangle } from "lucide-react";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+  Check,
+  ExternalLink,
+  Zap,
+  X,
+  AlertTriangle,
+  MoveRight,
+} from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { Input } from "@/components/ui/input";
-import { getUserSubscription, getSubscriptionPlans, updateSubscription, getTopUpPackages, purchaseTopUp } from "@/api/subscription";
+import {
+  getUserSubscription,
+  getSubscriptionPlans,
+  updateSubscription,
+  getTopUpPackages,
+  purchaseTopUp,
+} from "@/api/subscription";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -27,12 +54,12 @@ export function SubscriptionPage() {
   const [creditCardInfo, setCreditCardInfo] = useState({
     cardNumber: "",
     expiry: "",
-    cvc: ""
+    cvc: "",
   });
   // Add state for confirmation dialog
   const [confirmPlanChangeOpen, setConfirmPlanChangeOpen] = useState(false);
   const [planToChange, setPlanToChange] = useState<any>(null);
-  
+
   const { toast } = useToast();
 
   useEffect(() => {
@@ -41,7 +68,7 @@ export function SubscriptionPage() {
         const [subscriptionData, plansData, packagesData] = await Promise.all([
           getUserSubscription(),
           getSubscriptionPlans(),
-          getTopUpPackages()
+          getTopUpPackages(),
         ]);
 
         setSubscription(subscriptionData.subscription);
@@ -51,7 +78,9 @@ export function SubscriptionPage() {
         // Set the current plan as selected by default
         if (subscriptionData.subscription?.plan) {
           const currentPlanId = plansData.plans.find(
-            p => p.name.toLowerCase() === subscriptionData.subscription.plan.toLowerCase()
+            (p) =>
+              p.name.toLowerCase() ===
+              subscriptionData.subscription.plan.toLowerCase()
           )?.id;
           if (currentPlanId) {
             setSelectedPlan(currentPlanId);
@@ -119,7 +148,7 @@ export function SubscriptionPage() {
       // Update the token count in the current subscription
       setSubscription({
         ...subscription,
-        tokens: (subscription.tokens || 0) + response.tokens
+        tokens: (subscription.tokens || 0) + response.tokens,
       });
 
       toast({
@@ -138,7 +167,7 @@ export function SubscriptionPage() {
   };
 
   const handleContactForEnterprise = () => {
-    window.open('https://pythagora.io/contact', '_blank');
+    window.open("https://pythagora.io/contact", "_blank");
   };
 
   if (loading) {
@@ -149,16 +178,17 @@ export function SubscriptionPage() {
     );
   }
 
-  const formatCurrency = (amount: number | null, currency: string = 'USD') => {
-    if (amount === null) return 'Custom';
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency
+  const formatCurrency = (amount: number | null, currency: string = "USD") => {
+    if (amount === null) return "Custom";
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: currency,
+      minimumFractionDigits: 0,
     }).format(amount);
   };
 
   const formatTokens = (tokens: number | null) => {
-    if (tokens === null) return 'Custom';
+    if (tokens === null) return "Custom";
     if (tokens >= 1000000) {
       return `${(tokens / 1000000).toLocaleString()}M`;
     }
@@ -168,40 +198,61 @@ export function SubscriptionPage() {
   // Check if user is out of tokens
   const isOutOfTokens = subscription.tokens === 0;
 
+  const isFreePlan = planToChange?.price === 0 && subscription.amount > 0;
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Subscription</h1>
-        <p className="text-muted-foreground">Manage your subscription and token usage</p>
+        <p className="text-muted-foreground">
+          Manage your subscription and token usage
+        </p>
       </div>
 
       {isOutOfTokens && (
-        <Alert variant="destructive" className="bg-red-50 dark:bg-red-950/30 border-red-300 dark:border-red-800 text-red-800 dark:text-red-300">
+        <Alert
+          variant="destructive"
+          className="bg-red-50 dark:bg-red-950/30 border-red-300 dark:border-red-800 text-red-800 dark:text-red-300"
+        >
           <AlertTriangle className="h-5 w-5" />
-          <AlertTitle className="font-semibold">You've run out of tokens!</AlertTitle>
+          <AlertTitle className="font-semibold">
+            You've run out of tokens!
+          </AlertTitle>
           <AlertDescription>
-            To continue building your apps, please top up your tokens or upgrade your plan.
+            To continue building your apps, please top up your tokens or upgrade
+            your plan.
           </AlertDescription>
         </Alert>
       )}
 
       <Card>
         <CardHeader>
-          <CardTitle>Current Plan <Badge className="ml-2 bg-yellow-500 hover:bg-yellow-600">{subscription.plan} Plan</Badge></CardTitle>
+          <CardTitle>
+            Current Plan{" "}
+            <Badge className="ml-2 bg-yellow-500 hover:bg-yellow-600">
+              {subscription.plan} Plan
+            </Badge>
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <h3 className="text-xl font-semibold">Price</h3>
               <p className="text-muted-foreground">
-                {subscription.amount > 0 ? (
-                  `${formatCurrency(subscription.amount, subscription.currency)} / month`
-                ) : (
-                  "Free"
-                )}
+                {subscription.amount > 0
+                  ? `${formatCurrency(
+                      subscription.amount,
+                      subscription.currency
+                    )} / month`
+                  : "Free"}
               </p>
             </div>
-            <Button onClick={() => setChangePlanOpen(true)}>Change Plan</Button>
+            <Button
+              onClick={() => setChangePlanOpen(true)}
+              className="btn-primary"
+            >
+              Change Plan
+            </Button>
           </div>
 
           <Separator />
@@ -214,12 +265,19 @@ export function SubscriptionPage() {
                   {formatTokens(subscription.tokens)} tokens available
                 </p>
               </div>
-              <Button variant="outline" onClick={() => setTopUpOpen(true)}>
+              <Button
+                variant="outline"
+                onClick={() => setTopUpOpen(true)}
+                className="btn-brija"
+              >
                 <Zap className="mr-2 h-4 w-4" />
                 Top Up
               </Button>
             </div>
-            <Progress value={subscription.tokens > 0 ? 50 : 0} className="h-2" />
+            <Progress
+              value={subscription.tokens > 0 ? 50 : 0}
+              className="h-2"
+            />
             <p className="text-xs text-muted-foreground text-right">
               {subscription.tokens} / 600,000 tokens
             </p>
@@ -229,72 +287,109 @@ export function SubscriptionPage() {
 
       {/* Change Plan Dialog */}
       <Dialog open={changePlanOpen} onOpenChange={setChangePlanOpen}>
-        <DialogContent className="sm:max-w-3xl">
+        <DialogContent className="sm:max-w-6xl p-14" noClose>
           <DialogHeader className="relative">
-            <DialogTitle>Change Subscription Plan</DialogTitle>
-            <DialogDescription>
-              Select a new plan. Your billing cycle will update immediately.
-            </DialogDescription>
+            <DialogTitle>Change Plan</DialogTitle>
             <Button
               variant="ghost"
               size="icon"
-              className="absolute right-0 top-0"
+              className="absolute right-0 top-0 h-6 w-6 no-margin"
               onClick={() => setChangePlanOpen(false)}
             >
-              <X className="h-4 w-4" />
+              <X className="h-6 w-6" />
             </Button>
           </DialogHeader>
           <div className="py-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {plans.map((plan) => {
-                const isCurrentPlan = plan.name.toLowerCase() === subscription.plan.toLowerCase();
+                const isCurrentPlan =
+                  plan.name.toLowerCase() === subscription.plan.toLowerCase();
                 const isEnterprisePlan = plan.isEnterprise;
                 const isFreePlan = plan.price === 0;
-                const buttonLabel = isCurrentPlan 
+                const buttonLabel = isCurrentPlan
                   ? "Current Plan"
                   : isFreePlan && subscription.amount > 0
-                    ? "Downgrade to Free"
-                    : `Upgrade to ${plan.name}`;
+                  ? "Switch to Free"
+                  : `Upgrade to ${plan.name}`;
 
                 return (
                   <div
                     key={plan.id}
-                    className={`rounded-lg border p-4 flex flex-col h-full ${
-                      selectedPlan === plan.id
-                        ? "border-primary bg-primary/5"
-                        : "border-border"
-                    } ${isEnterprisePlan ? "border-dashed" : ""}`}
-                    onClick={() => !isEnterprisePlan && setSelectedPlan(plan.id)}
+                    className={`
+                      "w-[285px] h-auto flex flex-col justify-between rounded-2xl p-6 flex-shrink-0
+                      border border-transparent
+                      hover:border-muted-foreground/50 transition-all duration-150
+                      ${isCurrentPlan ? "current-plan" : "plan-to-choose"}`}
+                    onClick={() => !isCurrentPlan && setSelectedPlan(plan.id)}
+                    onKeyDown={(e) =>
+                      !isCurrentPlan &&
+                      (e.key === "Enter" || e.key === " ") &&
+                      setSelectedPlan(plan.id)
+                    }
+                    tabIndex={isCurrentPlan ? -1 : 0}
+                    role="radio"
+                    aria-checked={selectedPlan === plan.id}
+                    aria-label={`Select ${plan.name} plan`}
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-lg font-semibold">{plan.name}</span>
-                      <span className="font-bold">
-                        {plan.price === 0 ? (
-                          "Free"
-                        ) : plan.price === null ? (
-                          "Custom"
-                        ) : (
-                          <>
-                            {formatCurrency(plan.price, plan.currency)}
-                            <span className="text-sm font-normal text-muted-foreground">
-                              /month
-                            </span>
-                          </>
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-start">
+                        <div>Icon</div>
+                        {isCurrentPlan && (
+                          <Badge className="bg-plan-starter-tagBg hover:bg-plan-starter-tagBg text-foreground font-normal text-sm rounded-lg px-3 py-1 h-[30px]">
+                            Current plan
+                          </Badge>
                         )}
-                      </span>
+                      </div>
+                      <div className="space-y-6">
+                        <div className="space-y-3">
+                          <p className="text-base font-normal text-foreground">
+                            {plan.name === "Free" ? "Starter" : plan.name}
+                          </p>
+                          <p className="text-2xl font-medium text-foreground">
+                            {plan.price === 0
+                              ? "Free"
+                              : plan.price === null
+                              ? "Custom"
+                              : `${formatCurrency(
+                                  plan.price,
+                                  plan.currency
+                                )}/month`}
+                          </p>
+                        </div>
+                        <Separator className="bg-white/10" />
+                        <p className="text-sm font-medium text-foreground/80 min-h-[40px]">
+                          {plan.name === "Free"
+                            ? "Just getting started? Try building your first app with AI."
+                            : plan.name === "Pro"
+                            ? "For individuals and small teams ready to ship real products."
+                            : "More power, more projects, more room to grow."}
+                        </p>
+                        <Separator className="bg-white/10" />
+                      </div>
                     </div>
 
-                    {plan.tokens !== null && (
-                      <div className="text-sm text-muted-foreground mb-4">
-                        {plan.tokens === 0 ? "No tokens included" : `${formatTokens(plan.tokens)} tokens included`}
-                      </div>
-                    )}
-
-                    <div className="flex-grow space-y-2 mb-6">
+                    <div className="space-y-2 flex-grow pt-4 pb-4">
+                      <p className="text-sm font-medium text-foreground py-2">
+                        {plan.name === "Free"
+                          ? "Starter includes:"
+                          : plan.name === "Pro"
+                          ? "Everything in Starter, plus:"
+                          : plan.name === "Premium"
+                          ? "Everything in Pro, plus:"
+                          : "Features:"}
+                      </p>
                       {plan.features.map((feature, index) => (
-                        <div key={index} className="flex items-start gap-2">
-                          <Check className="h-4 w-4 text-primary flex-shrink-0 mt-1" />
-                          <span className="text-sm">{feature}</span>
+                        <div
+                          key={index}
+                          className="flex items-center gap-2 py-1"
+                        >
+                          <Check
+                            className="h-3.5 w-3.5 text-foreground flex-shrink-0"
+                            strokeWidth={2.5}
+                          />
+                          <span className="text-sm font-medium text-foreground/80">
+                            {feature}
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -302,7 +397,7 @@ export function SubscriptionPage() {
                     <div className="mt-auto">
                       {isEnterprisePlan ? (
                         <Button
-                          className="w-full"
+                          className="btn-primary"
                           variant="outline"
                           onClick={(e) => {
                             e.stopPropagation();
@@ -314,7 +409,7 @@ export function SubscriptionPage() {
                         </Button>
                       ) : isCurrentPlan ? (
                         <Button
-                          className="w-full"
+                          className="btn-primary"
                           variant="secondary"
                           disabled
                         >
@@ -322,13 +417,13 @@ export function SubscriptionPage() {
                         </Button>
                       ) : (
                         <Button
-                          className="w-full"
+                          className="btn-primary"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleInitiatePlanChange(plan);
                           }}
                         >
-                          {buttonLabel}
+                          {buttonLabel} <MoveRight />
                         </Button>
                       )}
                     </div>
@@ -341,17 +436,20 @@ export function SubscriptionPage() {
       </Dialog>
 
       {/* Plan Change Confirmation Dialog */}
-      <AlertDialog open={confirmPlanChangeOpen} onOpenChange={setConfirmPlanChangeOpen}>
+      <AlertDialog
+        open={confirmPlanChangeOpen}
+        onOpenChange={setConfirmPlanChangeOpen}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {planToChange?.price === 0 && subscription.amount > 0
-                ? "Downgrade to Free Plan"
+              {isFreePlan
+                ? "Switch to Free Plan?"
                 : `Upgrade to ${planToChange?.name} Plan`}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {planToChange?.price === 0 && subscription.amount > 0
-                ? "Are you sure you want to downgrade to the Free plan? You'll lose access to premium features and your current token allocation."
+              {isFreePlan
+                ? "You will be switched to our Free plan on {DATE}. You’ll still be able to access your projects after that. If you change your mind, you can always renew your subscription."
                 : `Are you sure you want to upgrade to the ${planToChange?.name} plan? Your billing cycle will update immediately.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -359,7 +457,10 @@ export function SubscriptionPage() {
             <AlertDialogCancel onClick={() => setConfirmPlanChangeOpen(false)}>
               Cancel
             </AlertDialogCancel>
-            <AlertDialogAction onClick={handlePlanChange}>
+            <AlertDialogAction
+              onClick={handlePlanChange}
+              className={isFreePlan ? "btn-red" : "btn-primary"}
+            >
               Confirm
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -368,30 +469,30 @@ export function SubscriptionPage() {
 
       {/* Top Up Dialog */}
       <Dialog open={topUpOpen} onOpenChange={setTopUpOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md p-8 pt-20">
           <DialogHeader>
-            <DialogTitle>Top Up Tokens</DialogTitle>
+            <DialogTitle>Top up Pythagora</DialogTitle>
             <DialogDescription>
-              Select a token package to add to your account.
+              Choose a one-time token top up or upgrade your plan.
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
+          <div className="py-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {topUpPackages.map((pkg) => (
                 <div
                   key={pkg.id}
-                  className={`rounded-lg border p-4 cursor-pointer transition-colors hover:border-primary ${
+                  className={`rounded-lg border p-4 cursor-pointer transition-colors hover:border-primary top-up-token ${
                     selectedTopUp === pkg.id
-                      ? "border-primary bg-primary/5"
+                      ? "border-border bg-primary/5 token-active"
                       : "border-border"
-                  }`}
+                  } `}
                   onClick={() => setSelectedTopUp(pkg.id)}
                 >
                   <div className="text-center">
                     <div className="text-xl font-bold">
                       {formatCurrency(pkg.price, pkg.currency)}
                     </div>
-                    <div className="mt-2 text-sm font-medium">
+                    <div className="mt-1 text-xs font-medium">
                       {formatTokens(pkg.tokens)} tokens
                     </div>
                   </div>
@@ -400,30 +501,38 @@ export function SubscriptionPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setTopUpOpen(false)}>
+            <Button variant="ghost" onClick={() => setTopUpOpen(false)}>
               Cancel
             </Button>
-            <AlertDialog open={confirmTopUpOpen} onOpenChange={setConfirmTopUpOpen}>
+            <AlertDialog
+              open={confirmTopUpOpen}
+              onOpenChange={setConfirmTopUpOpen}
+            >
               <AlertDialogTrigger asChild>
                 <Button
+                  className="btn-primary"
                   disabled={!selectedTopUp}
                   onClick={() => selectedTopUp && setConfirmTopUpOpen(true)}
                 >
-                  Continue
+                  Save changes
                 </Button>
               </AlertDialogTrigger>
-              <AlertDialogContent>
+              <AlertDialogContent className="p-8 ">
                 <AlertDialogHeader>
                   <AlertDialogTitle>Confirm Token Purchase</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Are you sure you want to purchase this token package? Your payment method on file will be charged immediately.
+                    Are you sure you want to purchase this token package? Your
+                    payment method on file will be charged immediately.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel onClick={() => setConfirmTopUpOpen(false)}>
-                    Cancel
+                    Back
                   </AlertDialogCancel>
-                  <AlertDialogAction onClick={handleTopUpPurchase}>
+                  <AlertDialogAction
+                    onClick={handleTopUpPurchase}
+                    className="btn-primary"
+                  >
                     Confirm Purchase
                   </AlertDialogAction>
                 </AlertDialogFooter>
