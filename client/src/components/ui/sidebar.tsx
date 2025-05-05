@@ -71,7 +71,7 @@ interface SidebarProps extends React.HTMLAttributes<HTMLElement> {
 
 export function Sidebar({ className, open, onOpenChange, ...props }: SidebarProps) {
   const { isOpen, isMobile, setIsOpen } = useSidebar()
-  
+
   // Sync the controlled state with context if provided
   React.useEffect(() => {
     if (open !== undefined && open !== isOpen) {
