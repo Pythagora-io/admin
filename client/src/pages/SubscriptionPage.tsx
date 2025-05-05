@@ -210,7 +210,7 @@ export function SubscriptionPage() {
               />
 
             </div>
-            <Button onClick={() => setChangePlanOpen(true)}>Change Plan</Button>
+            <Button variant="primary" onClick={() => setChangePlanOpen(true)}>Change Plan</Button>
           </div>
 
           <Separator />
