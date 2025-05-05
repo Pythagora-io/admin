@@ -13,6 +13,8 @@ import { Input } from "@/components/ui/input";
 import { getUserSubscription, getSubscriptionPlans, updateSubscription, getTopUpPackages, purchaseTopUp } from "@/api/subscription";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import PlanSummaryItem from "@/components/subscription/PlanSummaryItem";
+import { format } from "date-fns";
 
 export function SubscriptionPage() {
   const [subscription, setSubscription] = useState<any>(null);
@@ -32,7 +34,7 @@ export function SubscriptionPage() {
   // Add state for confirmation dialog
   const [confirmPlanChangeOpen, setConfirmPlanChangeOpen] = useState(false);
   const [planToChange, setPlanToChange] = useState<any>(null);
-  
+
   const { toast } = useToast();
 
   useEffect(() => {
@@ -169,10 +171,10 @@ export function SubscriptionPage() {
   const isOutOfTokens = subscription.tokens === 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 md:space-y-12">
       <div>
-        <h1 className="text-3xl font-bold">Subscription</h1>
-        <p className="text-muted-foreground">Manage your subscription and token usage</p>
+        <h1 className="text-2xl font-bold">Subscription</h1>
+        <p className="text-muted-foreground text-sm">Manage your subscription and token usage</p>
       </div>
 
       {isOutOfTokens && (
@@ -187,19 +189,26 @@ export function SubscriptionPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Current Plan <Badge className="ml-2 bg-yellow-500 hover:bg-yellow-600">{subscription.plan} Plan</Badge></CardTitle>
+          <CardTitle className="text-sm">Plan Summary <Badge className="ml-2 bg-yellow-500 hover:bg-yellow-600">{subscription.plan} Plan</Badge></CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h3 className="text-xl font-semibold">Price</h3>
-              <p className="text-muted-foreground">
-                {subscription.amount > 0 ? (
-                  `${formatCurrency(subscription.amount, subscription.currency)} / month`
-                ) : (
-                  "Free"
-                )}
-              </p>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 md:gap-8">
+            <div className="flex flex-col md:flex-row md:items-center gap-6 md:gp-8 lg:gap-10 flex-wrap">
+              <PlanSummaryItem
+                title="Price/month"
+                value={subscription.amount > 0
+                  ? formatCurrency(subscription.amount, subscription.currency)
+                  : "Free"}
+              />
+              <PlanSummaryItem
+                title="Start date"
+                value={subscription.startDate ? format(new Date(subscription.startDate), "MMMM d, yyyy") : undefined}
+              />
+              <PlanSummaryItem
+                title="Next billing date"
+                value={subscription.nextBillingDate ? format(new Date(subscription.nextBillingDate), "MMMM d, yyyy") : undefined}
+              />
+
             </div>
             <Button onClick={() => setChangePlanOpen(true)}>Change Plan</Button>
           </div>
@@ -250,7 +259,7 @@ export function SubscriptionPage() {
                 const isCurrentPlan = plan.name.toLowerCase() === subscription.plan.toLowerCase();
                 const isEnterprisePlan = plan.isEnterprise;
                 const isFreePlan = plan.price === 0;
-                const buttonLabel = isCurrentPlan 
+                const buttonLabel = isCurrentPlan
                   ? "Current Plan"
                   : isFreePlan && subscription.amount > 0
                     ? "Downgrade to Free"
@@ -259,11 +268,10 @@ export function SubscriptionPage() {
                 return (
                   <div
                     key={plan.id}
-                    className={`rounded-lg border p-4 flex flex-col h-full ${
-                      selectedPlan === plan.id
-                        ? "border-primary bg-primary/5"
-                        : "border-border"
-                    } ${isEnterprisePlan ? "border-dashed" : ""}`}
+                    className={`rounded-lg border p-4 flex flex-col h-full ${selectedPlan === plan.id
+                      ? "border-primary bg-primary/5"
+                      : "border-border"
+                      } ${isEnterprisePlan ? "border-dashed" : ""}`}
                     onClick={() => !isEnterprisePlan && setSelectedPlan(plan.id)}
                   >
                     <div className="flex items-center justify-between mb-2">
@@ -380,11 +388,10 @@ export function SubscriptionPage() {
               {topUpPackages.map((pkg) => (
                 <div
                   key={pkg.id}
-                  className={`rounded-lg border p-4 cursor-pointer transition-colors hover:border-primary ${
-                    selectedTopUp === pkg.id
-                      ? "border-primary bg-primary/5"
-                      : "border-border"
-                  }`}
+                  className={`rounded-lg border p-4 cursor-pointer transition-colors hover:border-primary ${selectedTopUp === pkg.id
+                    ? "border-primary bg-primary/5"
+                    : "border-border"
+                    }`}
                   onClick={() => setSelectedTopUp(pkg.id)}
                 >
                   <div className="text-center">
