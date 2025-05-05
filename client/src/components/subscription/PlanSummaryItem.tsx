@@ -5,8 +5,8 @@ type planSummaryItemProps = {
 
 const PlanSummaryItem = ({ title, value }: planSummaryItemProps) => {
     return (
-        <div className="text-sm">
-            <h3 className="font-semibold text-muted-foreground">{title}</h3>
+        <div>
+            <h3 className="plan-summary-item-header">{title}</h3>
             <p>{value || '-'}</p>
         </div>
     );

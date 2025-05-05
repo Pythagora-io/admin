@@ -193,10 +193,10 @@ export function SubscriptionPage() {
           <CardTitle className="text-sm">Plan Summary
             <Badge
               className={cn(
-                "ml-2",
-                subscription.plan.toLowerCase() === "free" && "bg-plan-free",
-                subscription.plan.toLowerCase() === "pro" && "bg-plan-pro",
-                subscription.plan.toLowerCase() === "premium" && "bg-plan-premium"
+                "badge",
+                subscription.plan.toLowerCase() === "free" && "badge--free",
+                subscription.plan.toLowerCase() === "pro" && "badge--pro",
+                subscription.plan.toLowerCase() === "premium" && "badge--premium"
               )}
             >
               {subscription.plan} Plan
@@ -204,8 +204,8 @@ export function SubscriptionPage() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 md:gap-8">
-            <div className="flex flex-col md:flex-row md:items-center gap-6 md:gp-8 lg:gap-10 flex-wrap">
+          <div className="sub-layout">
+            <div className="sub-layout">
               <PlanSummaryItem
                 title="Price/month"
                 value={subscription.amount > 0
@@ -222,7 +222,7 @@ export function SubscriptionPage() {
               />
 
             </div>
-            <Button variant="primary" onClick={() => setChangePlanOpen(true)}>Change Plan</Button>
+            <Button className="btn-primary" onClick={() => setChangePlanOpen(true)}>Change Plan</Button>
           </div>
 
           <Separator />
