@@ -53,7 +53,7 @@ export const getSubscriptionPlans = () => {
                         price: 49,
                         currency: 'USD',
                         tokens: 10000000,
-                        features: ['Build full-stack applications', 'Front-end + Back-end', 'Set up and connect databases', 'Deploy without watermark', '10M tokens included']
+                        features: ['Build full-stack apps(frontend + backend', 'Set up and connect databases', 'Deploy without watermark', '10M tokens included']
                     },
                     {
                         id: 'premium',
@@ -61,7 +61,7 @@ export const getSubscriptionPlans = () => {
                         price: 89,
                         currency: 'USD',
                         tokens: 20000000,
-                        features: ['Everything in Pro', '20M tokens included', 'Priority support', 'Advanced integrations']
+                        features: ['20M tokens included']
                     },
                     {
                         id: 'enterprise',

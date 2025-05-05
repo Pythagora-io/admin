@@ -26,7 +26,7 @@ export default defineConfig({
       '.pythagora.ai'
     ],
     watch: {
-      ignored: ['**/node_modules/**', '**/dist/**', '**/public/**', '**/log/**']
+      ignored: ['**/node_modules/**', '**/public/**', '**/log/**'] //remove '**/dist/**' to make sure vite hot reloads upon changing styles in the /design repo
     }
   },
 })
