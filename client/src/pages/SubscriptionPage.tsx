@@ -238,20 +238,9 @@ export function SubscriptionPage() {
 
       {/* Change Plan Dialog */}
       <Dialog open={changePlanOpen} onOpenChange={setChangePlanOpen}>
-        <DialogContent className="sm:max-w-3xl">
+        <DialogContent className="sm:max-w-3xl border-none dark:bg-popover">
           <DialogHeader className="relative">
-            <DialogTitle>Change Subscription Plan</DialogTitle>
-            <DialogDescription>
-              Select a new plan. Your billing cycle will update immediately.
-            </DialogDescription>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-0 top-0"
-              onClick={() => setChangePlanOpen(false)}
-            >
-              <X className="h-4 w-4" />
-            </Button>
+            <DialogTitle className="text-xl">Change Plan</DialogTitle>
           </DialogHeader>
           <div className="py-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -268,9 +257,9 @@ export function SubscriptionPage() {
                 return (
                   <div
                     key={plan.id}
-                    className={`rounded-lg border p-4 flex flex-col h-full ${selectedPlan === plan.id
-                      ? "border-primary bg-primary/5"
-                      : "border-border"
+                    className={`cursor-default rounded-lg border p-4 flex flex-col h-full ${selectedPlan === plan.id
+                      ? "bg-primary/5 dark:bg-popover-highlight"
+                      : "border-border dark:border-none dark:bg-popover-overlay"
                       } ${isEnterprisePlan ? "border-dashed" : ""}`}
                     onClick={() => !isEnterprisePlan && setSelectedPlan(plan.id)}
                   >

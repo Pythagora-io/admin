@@ -19,7 +19,9 @@ module.exports = {
   			},
   			popover: {
   				DEFAULT: 'hsl(var(--popover))',
-  				foreground: 'hsl(var(--popover-foreground))'
+  				foreground: 'hsl(var(--popover-foreground))',
+				highlight: 'hsl(var(--highlight))',
+				overlay: 'hsl(var(--overlay))'
   			},
   			primary: {
   				DEFAULT: 'hsl(var(--primary))',
