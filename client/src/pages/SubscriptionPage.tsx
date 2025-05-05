@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import PlanSummaryItem from "@/components/subscription/PlanSummaryItem";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 export function SubscriptionPage() {
   const [subscription, setSubscription] = useState<any>(null);
@@ -189,7 +190,18 @@ export function SubscriptionPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Plan Summary <Badge className="ml-2 bg-yellow-500 hover:bg-yellow-600">{subscription.plan} Plan</Badge></CardTitle>
+          <CardTitle className="text-sm">Plan Summary
+            <Badge
+              className={cn(
+                "ml-2",
+                subscription.plan.toLowerCase() === "free" && "bg-plan-free",
+                subscription.plan.toLowerCase() === "pro" && "bg-plan-pro",
+                subscription.plan.toLowerCase() === "premium" && "bg-plan-premium"
+              )}
+            >
+              {subscription.plan} Plan
+            </Badge>
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 md:gap-8">

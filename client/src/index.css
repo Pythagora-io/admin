@@ -30,6 +30,9 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
+    --plan-free: 48 100% 60%;  /* #FFD11A */
+    --plan-pro: 320 94% 76%;      /* #FC8DDD */
+    --plan-premium: 173 88% 33%;  /* #07998A */
   }
   .dark {
     --background: 0 0% 3.9%;

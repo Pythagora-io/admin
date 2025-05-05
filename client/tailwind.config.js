@@ -62,7 +62,12 @@ module.exports = {
   				'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
   				border: 'hsl(var(--sidebar-border))',
   				ring: 'hsl(var(--sidebar-ring))'
-  			}
+  			},
+			plan: {
+				free: 'hsl(var(--plan-free))',
+				pro: 'hsl(var(--plan-pro))',
+				premium: 'hsl(var(--plan-premium))',
+			}
   		},
   		keyframes: {
   			'accordion-down': {
