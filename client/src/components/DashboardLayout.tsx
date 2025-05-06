@@ -131,7 +131,7 @@ export function DashboardLayout() {
                       fill="#FFD11A"
                     />
                   </svg>
-                  <span className="ml-3 text-[16.883px] font-bold tracking-[-0.169px] text-app-white">
+                  <span className="ml-3 text-base font-bold tracking-[-0.169px] text-app-white">
                     Pythagora
                   </span>
                 </div>
@@ -148,7 +148,7 @@ export function DashboardLayout() {
                     isActive={location.pathname === "/"}
                     tooltip="Account"
                     onClick={() => navigateTo("/")}
-                    className={`w-full h-[40px] px-[16px] flex items-center text-[14px] font-medium tracking-[-0.28px] text-app-white ${
+                    className={`w-full h-[40px] px-[16px] flex items-center text-sm font-medium tracking-[-0.28px] text-app-white ${
                       location.pathname === "/"
                         ? "bg-app-blue rounded-app-sm"
                         : "hover:bg-app-white-opacity-05 hover:text-app-white"
@@ -165,7 +165,7 @@ export function DashboardLayout() {
                     isActive={location.pathname === "/subscription"}
                     tooltip="Subscription"
                     onClick={() => navigateTo("/subscription")}
-                    className={`w-full h-[40px] px-[16px] flex items-center text-[14px] font-medium tracking-[-0.28px] text-app-white ${
+                    className={`w-full h-[40px] px-[16px] flex items-center text-sm font-medium tracking-[-0.28px] text-app-white ${
                       location.pathname === "/subscription"
                         ? "bg-app-blue rounded-app-sm"
                         : "hover:bg-app-white-opacity-05 hover:text-app-white"
@@ -182,7 +182,7 @@ export function DashboardLayout() {
                     isActive={location.pathname === "/payments"}
                     tooltip="Payments"
                     onClick={() => navigateTo("/payments")}
-                    className={`w-full h-[40px] px-[16px] flex items-center text-[14px] font-medium tracking-[-0.28px] text-app-white ${
+                    className={`w-full h-[40px] px-[16px] flex items-center text-sm font-medium tracking-[-0.28px] text-app-white ${
                       location.pathname === "/payments"
                         ? "bg-app-blue rounded-app-sm"
                         : "hover:bg-app-white-opacity-05 hover:text-app-white"
@@ -199,7 +199,7 @@ export function DashboardLayout() {
                     isActive={location.pathname === "/domains"}
                     tooltip="Domains"
                     onClick={() => navigateTo("/domains")}
-                    className={`w-full h-[40px] px-[16px] flex items-center text-[14px] font-medium tracking-[-0.28px] text-app-white ${
+                    className={`w-full h-[40px] px-[16px] flex items-center text-sm font-medium tracking-[-0.28px] text-app-white ${
                       location.pathname === "/domains"
                         ? "bg-app-blue rounded-app-sm"
                         : "hover:bg-app-white-opacity-05 hover:text-app-white"
@@ -221,7 +221,7 @@ export function DashboardLayout() {
                         navigateTo("/projects/drafts");
                       }
                     }}
-                    className={`w-full h-[40px] px-[16px] flex items-center text-[14px] font-medium tracking-[-0.28px] text-app-white ${
+                    className={`w-full h-[40px] px-[16px] flex items-center text-sm font-medium tracking-[-0.28px] text-app-white ${
                       isProjectsPage
                         ? "bg-app-blue rounded-app-sm"
                         : "hover:bg-app-white-opacity-05 hover:text-app-white"
@@ -236,7 +236,7 @@ export function DashboardLayout() {
                         <SidebarMenuSubButton
                           isActive={isProjectsDraftsPage}
                           onClick={() => navigateTo("/projects/drafts")}
-                          className={`w-full h-[36px] px-[16px] flex items-center text-[14px] font-medium tracking-[-0.28px] text-app-white ${
+                          className={`w-full h-[36px] px-[16px] flex items-center text-sm font-medium tracking-[-0.28px] text-app-white ${
                             isProjectsDraftsPage
                               ? "bg-app-blue rounded-app-sm"
                               : "hover:bg-app-white-opacity-05 hover:text-app-white"
@@ -250,7 +250,7 @@ export function DashboardLayout() {
                         <SidebarMenuSubButton
                           isActive={isProjectsDeployedPage}
                           onClick={() => navigateTo("/projects/deployed")}
-                          className={`w-full h-[36px] px-[16px] flex items-center text-[14px] font-medium tracking-[-0.28px] text-app-white ${
+                          className={`w-full h-[36px] px-[16px] flex items-center text-sm font-medium tracking-[-0.28px] text-app-white ${
                             isProjectsDeployedPage
                               ? "bg-app-blue rounded-app-sm"
                               : "hover:bg-app-white-opacity-05 hover:text-app-white"
@@ -270,7 +270,7 @@ export function DashboardLayout() {
                     isActive={location.pathname === "/settings"}
                     tooltip="Settings"
                     onClick={() => navigateTo("/settings")}
-                    className={`w-full h-[40px] px-[16px] flex items-center text-[14px] font-medium tracking-[-0.28px] text-app-white ${
+                    className={`w-full h-[40px] px-[16px] flex items-center text-sm font-medium tracking-[-0.28px] text-app-white ${
                       location.pathname === "/settings"
                         ? "bg-app-blue rounded-app-sm"
                         : "hover:bg-app-white-opacity-05 hover:text-app-white"
@@ -287,7 +287,7 @@ export function DashboardLayout() {
                     isActive={location.pathname === "/team"}
                     tooltip="Team"
                     onClick={() => navigateTo("/team")}
-                    className={`w-full h-[40px] px-[16px] flex items-center text-[14px] font-medium tracking-[-0.28px] text-app-white ${
+                    className={`w-full h-[40px] px-[16px] flex items-center text-sm font-medium tracking-[-0.28px] text-app-white ${
                       location.pathname === "/team"
                         ? "bg-app-blue rounded-app-sm"
                         : "hover:bg-app-white-opacity-05 hover:text-app-white"
@@ -302,10 +302,10 @@ export function DashboardLayout() {
             <SidebarFooter className="mt-auto px-4">
               <div className="flex items-center">
                 <div className="flex items-center">
-                  <div className="h-8 w-8 text-[14px] rounded-full bg-pink-400 flex items-center justify-center font-bold">
+                  <div className="h-8 w-8 text-sm rounded-full bg-pink-400 flex items-center justify-center font-bold">
                     M
                   </div>
-                  <span className="ml-2 text-[14px] text-app-white font-medium">
+                  <span className="ml-2 text-sm text-app-white font-medium">
                     Log out
                   </span>
                 </div>

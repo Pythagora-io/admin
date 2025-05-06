@@ -3,6 +3,13 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Menu } from "lucide-react";
 
+// Extend Window interface to include resizeTimer
+declare global {
+  interface Window {
+    resizeTimer: ReturnType<typeof setTimeout>;
+  }
+}
+
 interface SidebarContextProps {
   isOpen: boolean;
   toggle: () => void;
@@ -26,13 +33,21 @@ export function SidebarProvider({
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const [isMobile, setIsMobile] = useState(false);
 
+  // Ref to track if we've already set isOpen to true in desktop mode
+  const desktopModeInitialized = React.useRef(false);
+
   useEffect(() => {
     const checkScreenSize = () => {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth < 768) {
-        setIsOpen(false);
-      } else {
-        setIsOpen(defaultOpen);
+      const isMobileView = window.innerWidth < 768;
+      setIsMobile(isMobileView);
+
+      // In desktop mode, always set isOpen to true, but only once
+      if (!isMobileView && !desktopModeInitialized.current) {
+        setIsOpen(true);
+        desktopModeInitialized.current = true;
+      } else if (isMobileView) {
+        // Reset the ref when switching back to mobile
+        desktopModeInitialized.current = false;
       }
     };
 
@@ -40,11 +55,22 @@ export function SidebarProvider({
     checkScreenSize();
 
     // Add event listener for window resize
-    window.addEventListener("resize", checkScreenSize);
+    const resizeHandler = () => {
+      // Use a timeout to avoid rapid state changes during resize
+      clearTimeout(window.resizeTimer);
+      window.resizeTimer = setTimeout(() => {
+        checkScreenSize();
+      }, 100);
+    };
+
+    window.addEventListener("resize", resizeHandler);
 
     // Cleanup
-    return () => window.removeEventListener("resize", checkScreenSize);
-  }, [defaultOpen]);
+    return () => {
+      window.removeEventListener("resize", resizeHandler);
+      clearTimeout(window.resizeTimer);
+    };
+  }, []);
 
   const toggle = () => {
     setIsOpen(!isOpen);
@@ -93,15 +119,18 @@ export function Sidebar({
     }
   }, [isOpen, onOpenChange]);
 
+  // Use fixed width class to prevent layout shifts
+  const openWidth = "w-[170px]";
+
   return (
     <aside
       className={cn(
-        "h-screen sticky left-0 top-0 bg-app-background flex-shrink-0 flex flex-col overflow-y-auto z-20 transition-all duration-300 ease-in-out",
-        isOpen
-          ? "w-[170px] translate-x-0"
-          : isMobile
-          ? "-translate-x-full w-[170px]"
-          : "w-[80px] translate-x-0",
+        "h-screen sticky left-0 top-0 bg-app-background flex-shrink-0 flex flex-col overflow-y-auto z-20 transition-transform duration-300 ease-in-out will-change-transform w-[170px]",
+        isMobile
+          ? isOpen
+            ? `${openWidth} translate-x-0`
+            : `-translate-x-full ${openWidth}`
+          : `${openWidth} translate-x-0`, // Always open in desktop mode
         className
       )}
       {...props}
@@ -114,13 +143,10 @@ interface SidebarHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export function SidebarHeader({ className, ...props }: SidebarHeaderProps) {
-  const { isOpen } = useSidebar();
-
   return (
     <div
       className={cn(
-        "w-full flex items-center h-16",
-        isOpen ? "justify-between px-4" : "justify-center px-0",
+        "w-full flex items-center h-16 justify-between px-4",
         className
       )}
       {...props}
@@ -312,10 +338,13 @@ interface SidebarInsetProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export function SidebarInset({ className, ...props }: SidebarInsetProps) {
+  const { isMobile } = useSidebar();
+
   return (
     <div
       className={cn(
-        "flex-1 overflow-auto transition-all duration-300 ease-in-out",
+        "flex-1 overflow-auto transition-transform duration-300 ease-in-out will-change-transform",
+        isMobile ? "absolute inset-0 w-full" : "",
         className
       )}
       {...props}

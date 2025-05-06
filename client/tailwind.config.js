@@ -12,8 +12,10 @@ const tokens = {
     windowBlur: "rgba(17, 16, 22, 0.80)",
     strokeDark: "rgba(247, 248, 248, 0.10)",
     highlightDark: "#393744",
+    overlay: "rgba(11,9,18,0.60)",
     redOpacity20: "rgba(243, 66, 34, 0.20)",
     whiteOpacity05: "rgba(247, 248, 248, 0.05)",
+    white50A: "rgba(247, 248, 252, 0.15)",
   },
   borderRadius: {
     sm: "8px",
@@ -30,6 +32,10 @@ const tokens = {
     8: "32px",
     10: "40px",
     15: "60px",
+  },
+  letterSpacing: {
+    title: "-0.4px",
+    body: "-0.28px",
   },
   effects: {
     blur: "blur(16px)",
@@ -54,10 +60,12 @@ module.exports = {
         "app-yellow": tokens.colors.yellow,
         "app-red": tokens.colors.red,
         "app-background": tokens.colors.background,
+        "app-overlay": tokens.colors.overlay,
         "app-window-blur": tokens.colors.windowBlur,
         "app-stroke-dark": tokens.colors.strokeDark,
         "app-highlight-dark": tokens.colors.highlightDark,
         "app-red-opacity-20": tokens.colors.redOpacity20,
+        "app-white-50-a": tokens.colors.white50A,
         "app-white-opacity-05": tokens.colors.whiteOpacity05,
 
         // Original theme colors
@@ -136,6 +144,12 @@ module.exports = {
         "app-8": tokens.spacing[8],
         "app-10": tokens.spacing[10],
         "app-15": tokens.spacing[15],
+      },
+
+      // Custom letter spacing from design tokens
+      letterSpacing: {
+        "app-title": tokens.letterSpacing.title,
+        "app-body": tokens.letterSpacing.body,
       },
 
       // Custom backdrop blur from design tokens

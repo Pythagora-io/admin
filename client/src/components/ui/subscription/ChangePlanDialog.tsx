@@ -110,9 +110,9 @@ interface PlanFeatureProps {
 }
 
 const PlanFeature: React.FC<PlanFeatureProps> = ({ text }) => (
-  <div className="flex items-start gap-2">
+  <div className="flex items-start gap-app-2">
     <CheckIcon />
-    <span className="text-app-white text-[14px] font-medium tracking-[-0.28px]">
+    <span className="text-app-white text-sm font-medium tracking-app-body">
       {text}
     </span>
   </div>
@@ -143,15 +143,15 @@ const PlanCard: React.FC<PlanCardProps> = ({
 }) => (
   <div
     className={cn(
-      "flex w-full md:w-[285px] h-auto md:h-[512px] p-[16px] md:p-[24px] flex-col justify-between items-start rounded-app-md",
-      isInactive ? "bg-[rgba(11,9,18,0.60)]" : "bg-[#393744]"
+      "flex w-full md:w-[285px] h-auto md:h-[512px] p-app-4 md:p-app-6 flex-col justify-between items-start rounded-app-md",
+      isInactive ? "bg-app-overlay" : "bg-app-highlight-dark"
     )}
   >
     <div className="space-y-6 w-full">
       <div className="flex items-center justify-between w-full">
         {icon}
         {isCurrentPlan && (
-          <span className="text-app-white bg-[rgba(247,248,248,0.1)] px-2 py-1 rounded-md">
+          <span className="text-app-white bg-app-white-50-a px-2 py-1 rounded-md">
             Current plan
           </span>
         )}
@@ -160,14 +160,14 @@ const PlanCard: React.FC<PlanCardProps> = ({
       <div className="space-y-3">
         <div className="space-y-3">
           <h3 className="text-app-white font-normal leading-[140%]">{name}</h3>
-          <p className="text-app-white text-2xl font-medium leading-[125%] tracking-[-0.48px]">
+          <p className="text-app-white text-2xl font-medium leading-[125%] tracking-app-title">
             {price}
           </p>
         </div>
 
         <div className="w-full space-y-4">
-          <div className="py-4 border border-l-0 border-r-0 border-t-app-stroke-dark border-b-app-stroke-dark">
-            <p className="text-app-white text-[14px] font-medium tracking-[-0.28px]">
+          <div className="py-app-4 border border-l-0 border-r-0 border-t-app-stroke-dark border-b-app-stroke-dark">
+            <p className="text-app-white text-sm font-medium tracking-app-body">
               {description}
             </p>
           </div>
@@ -175,7 +175,7 @@ const PlanCard: React.FC<PlanCardProps> = ({
       </div>
 
       <div className="space-y-3">
-        <p className="text-app-white text-[14px] font-medium tracking-[-0.28px]">
+        <p className="text-app-white text-sm font-medium tracking-app-body">
           {name === "Starter"
             ? "Starter includes:"
             : name === "Pro"
@@ -192,7 +192,7 @@ const PlanCard: React.FC<PlanCardProps> = ({
 
     <Button
       onClick={buttonAction}
-      className="py-3 px-4 rounded-app-sm flex items-center justify-center gap-2 bg-app-blue text-app-white hover:bg-app-blue/90"
+      className="py-app-3 px-app-3 rounded-app-sm flex items-center justify-center gap-app-2 bg-app-blue text-app-white hover:bg-app-blue/90"
     >
       {isCurrentPlan ? "Current Plan" : buttonText}
       {!isCurrentPlan && <ArrowIcon />}
@@ -238,18 +238,18 @@ export function ChangePlanDialog({
   };
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <CustomDialogContent className="p-[24px] md:p-[60px] flex flex-col gap-[24px] md:gap-[40px] rounded-app-md border border-app-stroke-dark bg-[#222029] backdrop-blur-[35px]">
-        <DialogClose className="absolute right-[24px] md:right-[60px] top-[24px] md:top-[60px] p-0 opacity-100 hover:opacity-80 focus:ring-0">
+      <CustomDialogContent className="p-app-6 md:p-app-15 flex flex-col gap-app-6 md:gap-app-10 rounded-app-md border border-app-stroke-dark bg-app-window-blur backdrop-blur-app">
+        <DialogClose className="absolute right-app-6 md:right-app-15 top-app-6 md:top-app-15 p-0 opacity-100 hover:opacity-80 focus:ring-0">
           <X className="h-6 w-6 text-app-white" />
           <span className="sr-only">Close</span>
         </DialogClose>
         <div className="flex items-center">
-          <h2 className="text-app-white text-[20px] font-medium leading-[130%] tracking-[-0.4px]">
+          <h2 className="text-app-white text-xl font-medium leading-[130%] tracking-app-title">
             Change Plan
           </h2>
         </div>
 
-        <div className="flex flex-col md:flex-row gap-6 justify-center md:justify-between">
+        <div className="flex flex-col md:flex-row gap-app-6 justify-center md:justify-between">
           <PlanCard
             icon={<StarterIcon />}
             name="Starter"
