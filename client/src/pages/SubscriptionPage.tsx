@@ -193,9 +193,9 @@ export function SubscriptionPage() {
         </Alert>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="plan-summary-card-title">Plan Summary
+      <Card className="plan-summary-card">
+        <CardHeader className="plan-summary-card-header">
+          <CardTitle className="plan-summary-card-title px-0">Plan Summary
             <Badge
               className={cn(
                 "plan-badge",
@@ -227,7 +227,9 @@ export function SubscriptionPage() {
               />
 
             </div>
-            <Button className="btn-primary" onClick={() => setChangePlanOpen(true)}>Change Plan</Button>
+            <div>
+              <Button className="btn-primary" onClick={() => setChangePlanOpen(true)}>Change Plan</Button>
+            </div>
           </div>
 
           <Separator />
