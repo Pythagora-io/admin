@@ -11,6 +11,7 @@ const tokens = {
     background: "#0B0912",
     windowBlur: "rgba(17, 16, 22, 0.80)",
     strokeDark: "rgba(247, 248, 248, 0.10)",
+    highlightDark: "#393744",
     redOpacity20: "rgba(243, 66, 34, 0.20)",
     whiteOpacity05: "rgba(247, 248, 248, 0.05)",
   },
@@ -55,6 +56,7 @@ module.exports = {
         "app-background": tokens.colors.background,
         "app-window-blur": tokens.colors.windowBlur,
         "app-stroke-dark": tokens.colors.strokeDark,
+        "app-highlight-dark": tokens.colors.highlightDark,
         "app-red-opacity-20": tokens.colors.redOpacity20,
         "app-white-opacity-05": tokens.colors.whiteOpacity05,
 

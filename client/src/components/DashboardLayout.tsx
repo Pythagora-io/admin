@@ -313,7 +313,7 @@ export function DashboardLayout() {
                   onClick={handleLogout}
                   className="ml-auto text-app-white h-10 w-10 bg-transparent border-none flex items-center justify-center cursor-pointer"
                 >
-                  <LogOut className="h-5 w-5 transition-colors hover:text-app-stroke-dark" />
+                  <LogOut className="h-5 w-5 transition-colors hover:opacity-80" />
                 </button>
               </div>
             </SidebarFooter>

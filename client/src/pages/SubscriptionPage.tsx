@@ -8,6 +8,8 @@ import { PageContainer, PageHeader, Section } from "@/components/layout";
 import { PlanTag } from "@/components/ui/subscription/PlanTag";
 import { TokenProgressBar } from "@/components/ui/subscription/TokenProgressBar";
 import { LabelValue } from "@/components/ui/subscription/LabelValue";
+import { ChangePlanDialog } from "@/components/ui/subscription/ChangePlanDialog";
+import { TopUpDialog } from "@/components/ui/subscription/TopUpDialog";
 
 export function SubscriptionPage() {
   const [subscription, setSubscription] = useState<{
@@ -20,6 +22,8 @@ export function SubscriptionPage() {
     tokens: number;
   } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [changePlanOpen, setChangePlanOpen] = useState(false);
+  const [topUpOpen, setTopUpOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -95,13 +99,7 @@ export function SubscriptionPage() {
           <div className="md:absolute md:right-0 md:top-0 mb-4 md:mb-0 flex md:justify-end col-span-1 md:col-span-3">
             <Button
               className="h-auto py-[9px] px-[12px] rounded-app-sm bg-app-blue hover:bg-app-blue/90 text-[14px] font-medium tracking-[-0.28px] text-app-white"
-              onClick={() => {
-                toast({
-                  title: "Feature coming soon",
-                  description:
-                    "Plan change functionality will be available soon.",
-                });
-              }}
+              onClick={() => setChangePlanOpen(true)}
             >
               Change plan
             </Button>
@@ -134,13 +132,7 @@ export function SubscriptionPage() {
             <Button
               variant="outline"
               className="h-[36px] py-[9px] px-[12px] rounded-app-sm border-app-stroke-dark bg-transparent hover:bg-app-white-opacity-05 hover:border-app-white text-[14px] font-medium tracking-[-0.28px] text-app-white hover:text-app-white mt-2 md:mt-0 transition-colors"
-              onClick={() => {
-                toast({
-                  title: "Feature coming soon",
-                  description:
-                    "Token top-up functionality will be available soon.",
-                });
-              }}
+              onClick={() => setTopUpOpen(true)}
             >
               <Zap className="h-4 w-4 text-app-white" />
               Top Up
@@ -150,6 +142,32 @@ export function SubscriptionPage() {
           <TokenProgressBar value={usedTokens} max={totalTokens} />
         </div>
       </Section>
+
+      {/* Change Plan Dialog */}
+      <ChangePlanDialog
+        open={changePlanOpen}
+        onOpenChange={setChangePlanOpen}
+        currentPlan={subscription.plan.toLowerCase()}
+        onUpgrade={(plan) => {
+          setChangePlanOpen(false);
+          toast({
+            title: "Plan upgrade initiated",
+            description: `You are upgrading to the ${plan} plan. This feature will be fully implemented soon.`,
+          });
+        }}
+      />
+
+      {/* Top Up Dialog */}
+      <TopUpDialog
+        open={topUpOpen}
+        onOpenChange={setTopUpOpen}
+        onTopUp={(amount) => {
+          toast({
+            title: "Token purchase initiated",
+            description: `You are purchasing $${amount} worth of tokens. This feature will be fully implemented soon.`,
+          });
+        }}
+      />
     </PageContainer>
   );
 }
