@@ -6,6 +6,15 @@ const session = require("express-session");
 const MongoStore = require('connect-mongo');
 const basicRoutes = require("./routes/index");
 const authRoutes = require("./routes/authRoutes");
+const userRoutes = require("./routes/userRoutes");
+const subscriptionRoutes = require("./routes/subscriptionRoutes");
+const stripeRoutes = require("./routes/stripeRoutes");
+const paymentRoutes = require("./routes/paymentRoutes");
+const billingRoutes = require("./routes/billingRoutes");
+const domainRoutes = require("./routes/domainRoutes");
+const projectRoutes = require("./routes/projectRoutes");
+const teamRoutes = require("./routes/teamRoutes");
+const settingsRoutes = require("./routes/settingsRoutes");
 const { connectDB } = require("./config/database");
 const cors = require("cors");
 
@@ -37,6 +46,24 @@ app.on("error", (error) => {
 app.use(basicRoutes);
 // Authentication Routes
 app.use('/api/auth', authRoutes);
+// User Routes
+app.use('/api/user', userRoutes);
+// Subscription Routes
+app.use('/api/subscription', subscriptionRoutes);
+// Stripe Routes
+app.use('/api/stripe', stripeRoutes);
+// Payment Routes
+app.use('/api/payments', paymentRoutes);
+// Billing Routes
+app.use('/api/billing', billingRoutes);
+// Domain Routes
+app.use('/api/domains', domainRoutes);
+// Project Routes
+app.use('/api/projects', projectRoutes);
+// Team Routes
+app.use('/api/team', teamRoutes);
+// Settings Routes
+app.use('/api/settings', settingsRoutes);
 
 // If no routes handled the request, it's a 404
 app.use((req, res, next) => {

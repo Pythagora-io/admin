@@ -71,12 +71,10 @@ class UserService {
     const existingUser = await UserService.getByEmail(email);
     if (existingUser) throw new Error('User with this email already exists');
 
-    const hash = await generatePasswordHash(password);
-
     try {
       const user = new User({
         email,
-        password: hash,
+        password, // No longer pre-hashing the password
         name,
       });
 

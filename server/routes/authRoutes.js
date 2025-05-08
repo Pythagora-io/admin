@@ -30,15 +30,32 @@ router.post('/login', async (req, res) => {
 });
 
 router.post('/register', async (req, res, next) => {
-  if (req.user) {
-    return res.json({ user: req.user });
-  }
   try {
-    const user = await UserService.create(req.body);
-    return res.status(200).json(user);
+    // Extract name from request body
+    const { name, email, password } = req.body;
+    
+    // Validate required fields
+    if (!name || !email || !password) {
+      return res.status(400).json({ 
+        message: 'Name, email and password are required' 
+      });
+    }
+
+    // Create user with name field
+    const user = await UserService.create({ name, email, password });
+    
+    // Generate access token
+    const accessToken = generateAccessToken(user);
+    
+    // Return user data and token
+    return res.status(200).json({
+      email: user.email,
+      name: user.name,
+      accessToken
+    });
   } catch (error) {
     console.error(`Error while registering user: ${error}`);
-    return res.status(400).json({ error });
+    return res.status(400).json({ message: error.message });
   }
 });
 
