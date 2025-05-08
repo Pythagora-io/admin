@@ -341,7 +341,7 @@ export function DashboardLayout() {
           </SheetTrigger>
           <SheetContent side="left" className="w-60 bg-black p-0 flex flex-col">
             <SidebarProvider>
-              <SheetHeader className="pt-6 pb-4 px-4 border-b">
+              <SheetHeader className="pt-6 pb-4 px-4">
                 <div className="flex items-center justify-between">
                   <div
                     onClick={handleLogoClick}
@@ -374,7 +374,7 @@ export function DashboardLayout() {
               <div className="flex-1 overflow-y-auto py-4">
                 {renderSidebarContent()}
               </div>
-              <SheetFooter className="mt-auto py-4 px-4 border-t">
+              <SheetFooter className="mt-auto py-4 px-4">
                 <div className="flex items-center justify-between">
                   <ThemeToggle />
                   <SheetClose asChild>
