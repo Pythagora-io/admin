@@ -1,3 +1,5 @@
+const plugin = require("tailwindcss/plugin"); // Import plugin function
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: ["class"],
@@ -8,8 +10,62 @@ module.exports = {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        "2xl": "1rem", // Ensure 16px is available (already default for xl, adding 2xl for clarity)
       },
       colors: {
+        btn: {
+          primary: {
+            DEFAULT: "#3057E1",
+            hover: "#2545B4", // Added darker shade for hover
+            disabled: "#4575EC",
+            foreground: {
+              DEFAULT: "#F7F8F8",
+              disabled: "rgba(247, 248, 248, 0.6)",
+            },
+          },
+          destructive: {
+            DEFAULT: "#F34222", // Maps roughly to theme destructive
+            hover: "#D93115", // Added darker shade for hover
+            disabled: "#F66541",
+            foreground: {
+              DEFAULT: "#060218",
+              disabled: "rgba(6, 2, 24, 0.6)",
+            },
+          },
+          outline: {
+            DEFAULT: "transparent",
+            border: "#F7F8F8",
+            hover: "hsl(var(--accent))", // Use accent for hover background
+            foreground: {
+              DEFAULT: "#F7F8F8",
+              hover: "hsl(var(--accent-foreground))",
+              disabled: "rgba(247, 248, 248, 0.6)",
+            },
+            borderDisabled: "rgba(247, 248, 248, 0.6)",
+          },
+          // Add other variants like white, transparent (ghost) if needed
+        },
+        plan: {
+          // Add colors for plan cards
+          starter: {
+            DEFAULT: "#393744",
+            tagBg: "rgba(247, 248, 252, 0.15)",
+            icon: "#FFD11A", // Not used directly if icon is SVG
+          },
+          pro: {
+            DEFAULT: "rgba(11, 9, 18, 0.6)",
+            icon: "#FC8DDD",
+          },
+          premium: {
+            DEFAULT: "rgba(11, 9, 18, 0.6)", // Same as pro?
+            icon: "#07998A",
+          },
+          border: "rgba(247, 248, 248, 0.1)",
+        },
+        dialog: {
+          // Add color for dialog background
+          DEFAULT: "#222029",
+        },
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {
@@ -60,6 +116,11 @@ module.exports = {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+      },
+      backdropBlur: {
+        // Add specific value from Figma if needed, or use closest default like lg
+        // '70px': '70px', // Example for arbitrary value
+        lg: "16px", // Default lg might be sufficient visually
       },
       keyframes: {
         "accordion-down": {
