@@ -190,8 +190,6 @@ export function SidebarMenuButton({
   className,
   ...props
 }: SidebarMenuButtonProps) {
-  const { isOpen } = useSidebar()
-
   return (
     <button
       data-tooltip-content={tooltip}
