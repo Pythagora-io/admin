@@ -16,7 +16,7 @@ export const getUserSubscription = () => {
                     nextBillingDate: '2023-06-15',
                     amount: 49.99,
                     currency: 'USD',
-                    tokens: 50000000
+                    tokens: 1500000
                 }
             });
         }, 500);
@@ -208,7 +208,7 @@ export const purchaseTopUp = (data: { packageId: string }) => {
             resolve({
                 success: true,
                 message: 'Token top-up purchased successfully',
-                tokens
+                tokens,
             });
         }, 500);
     });
