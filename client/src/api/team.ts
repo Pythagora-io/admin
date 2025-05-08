@@ -1,4 +1,4 @@
-import api from './api';
+import api from "./api";
 
 // Description: Get team members
 // Endpoint: GET /api/team
@@ -7,7 +7,7 @@ import api from './api';
 export const getTeamMembers = async () => {
   try {
     console.log("Making getTeamMembers API call");
-    const response = await api.get('/api/team');
+    const response = await api.get("/api/team");
     console.log("getTeamMembers API response:", response.data);
     return response.data;
   } catch (error) {
@@ -22,7 +22,7 @@ export const getTeamMembers = async () => {
 // Response: { success: boolean, message: string }
 export const inviteTeamMember = async (data: { email: string }) => {
   try {
-    const response = await api.post('/api/team/invite', data);
+    const response = await api.post("/api/team/invite", data);
     return response.data;
   } catch (error) {
     throw new Error(error?.response?.data?.error || error.message);
@@ -46,7 +46,10 @@ export const removeTeamMember = async (memberId: string) => {
 // Endpoint: PUT /api/team/:id/role
 // Request: { role: 'admin' | 'developer' | 'viewer' }
 // Response: { success: boolean, message: string }
-export const updateTeamMemberRole = async (memberId: string, data: { role: 'admin' | 'developer' | 'viewer' }) => {
+export const updateTeamMemberRole = async (
+  memberId: string,
+  data: { role: "admin" | "developer" | "viewer" },
+) => {
   try {
     const response = await api.put(`/api/team/${memberId}/role`, data);
     return response.data;
@@ -72,7 +75,10 @@ export const getMemberAccess = async (memberId: string) => {
 // Endpoint: PUT /api/team/:id/access
 // Request: { projects: Array<{ id: string, access: 'view' | 'edit' }> }
 // Response: { success: boolean, message: string }
-export const updateMemberAccess = async (memberId: string, data: { projects: Array<{ id: string, access: 'view' | 'edit' }> }) => {
+export const updateMemberAccess = async (
+  memberId: string,
+  data: { projects: Array<{ id: string; access: "view" | "edit" }> },
+) => {
   try {
     const response = await api.put(`/api/team/${memberId}/access`, data);
     return response.data;
@@ -87,7 +93,9 @@ export const updateMemberAccess = async (memberId: string, data: { projects: Arr
 // Response: { projects: Array<{ _id: string, name: string }> }
 export const searchProjects = async (query: string) => {
   try {
-    const response = await api.get(`/api/team/projects/search?query=${encodeURIComponent(query)}`);
+    const response = await api.get(
+      `/api/team/projects/search?query=${encodeURIComponent(query)}`,
+    );
     return response.data;
   } catch (error) {
     throw new Error(error?.response?.data?.error || error.message);
@@ -104,29 +112,50 @@ export const searchUsers = async (query: string) => {
   return new Promise((resolve) => {
     setTimeout(() => {
       const mockUsers = [
-        { _id: 'user_123456', name: 'John Doe', email: 'john@example.com' },
-        { _id: 'user_123457', name: 'Jane Smith', email: 'jane@example.com' },
-        { _id: 'user_123458', name: 'Robert Johnson', email: 'robert@example.com' },
-        { _id: 'user_123459', name: 'Sarah Williams', email: 'sarah@example.com' },
-        { _id: 'user_123460', name: 'Michael Brown', email: 'michael@example.com' },
-        { _id: 'user_123461', name: 'Emily Davis', email: 'emily@example.com' },
-        { _id: 'user_123462', name: 'David Wilson', email: 'david@example.com' },
-        { _id: 'user_123463', name: 'Lisa Martinez', email: 'lisa@example.com' }
+        { _id: "user_123456", name: "John Doe", email: "john@example.com" },
+        { _id: "user_123457", name: "Jane Smith", email: "jane@example.com" },
+        {
+          _id: "user_123458",
+          name: "Robert Johnson",
+          email: "robert@example.com",
+        },
+        {
+          _id: "user_123459",
+          name: "Sarah Williams",
+          email: "sarah@example.com",
+        },
+        {
+          _id: "user_123460",
+          name: "Michael Brown",
+          email: "michael@example.com",
+        },
+        { _id: "user_123461", name: "Emily Davis", email: "emily@example.com" },
+        {
+          _id: "user_123462",
+          name: "David Wilson",
+          email: "david@example.com",
+        },
+        {
+          _id: "user_123463",
+          name: "Lisa Martinez",
+          email: "lisa@example.com",
+        },
       ];
 
       const filteredUsers = query
-        ? mockUsers.filter(u =>
-          u.name.toLowerCase().includes(query.toLowerCase()) ||
-          u.email.toLowerCase().includes(query.toLowerCase())
-        )
+        ? mockUsers.filter(
+            (u) =>
+              u.name.toLowerCase().includes(query.toLowerCase()) ||
+              u.email.toLowerCase().includes(query.toLowerCase()),
+          )
         : mockUsers;
 
       resolve({
-        users: filteredUsers
+        users: filteredUsers,
       });
     }, 500);
   });
-  
+
   // When backend implements this endpoint, uncomment the code below
   // try {
   //   const response = await api.get(`/api/users/search?query=${encodeURIComponent(query)}`);

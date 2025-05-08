@@ -1,4 +1,4 @@
-import api from './api';
+import api from "./api";
 
 // Description: Get user domains
 // Endpoint: GET /api/domains
@@ -6,12 +6,12 @@ import api from './api';
 // Response: { domains: Array<{ _id: string, domain: string, verified: boolean, createdAt: string }> }
 export const getUserDomains = async () => {
   try {
-    const response = await api.get('/api/domains');
+    const response = await api.get("/api/domains");
     return response.data;
   } catch (error) {
     throw new Error(error?.response?.data?.error || error.message);
   }
-  
+
   // Mocking code removed
 };
 
@@ -21,12 +21,12 @@ export const getUserDomains = async () => {
 // Response: { success: boolean, message: string, domain: { _id: string, domain: string, verified: boolean, createdAt: string } }
 export const addDomain = async (data: { domain: string }) => {
   try {
-    const response = await api.post('/api/domains', data);
+    const response = await api.post("/api/domains", data);
     return response.data;
   } catch (error) {
     throw new Error(error?.response?.data?.error || error.message);
   }
-  
+
   // Mocking code removed
 };
 
@@ -41,7 +41,7 @@ export const deleteDomain = async (domainId: string) => {
   } catch (error) {
     throw new Error(error?.response?.data?.error || error.message);
   }
-  
+
   // Mocking code removed
 };
 

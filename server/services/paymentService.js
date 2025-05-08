@@ -1,5 +1,5 @@
-const Payment = require('../models/Payment');
-const User = require('../models/User');
+const Payment = require("../models/Payment");
+const User = require("../models/User");
 
 /**
  * Service for managing payment records
@@ -12,10 +12,10 @@ class PaymentService {
    */
   static async getPaymentHistory(userId) {
     try {
-      console.log(`PaymentService: Querying database for payments with userId: ${userId}`);
-      const payments = await Payment.find({ userId })
-        .sort({ date: -1 })
-        .lean();
+      console.log(
+        `PaymentService: Querying database for payments with userId: ${userId}`,
+      );
+      const payments = await Payment.find({ userId }).sort({ date: -1 }).lean();
       console.log(`PaymentService: Found ${payments.length} payment records`);
       return payments;
     } catch (err) {
@@ -48,7 +48,7 @@ class PaymentService {
       // This would typically involve generating a PDF receipt or fetching from Stripe
       // For now, we'll return a mock URL
       return {
-        receiptUrl: `https://example.com/receipts/${paymentId}`
+        receiptUrl: `https://example.com/receipts/${paymentId}`,
       };
     } catch (err) {
       throw new Error(`Error generating payment receipt: ${err.message}`);
@@ -58,32 +58,32 @@ class PaymentService {
   /**
    * Mock function to fetch payment data from Stripe
    * This would be replaced with actual Stripe API calls in production
-   * 
+   *
    * @param {string} customerId - Stripe customer ID
    * @returns {Promise<Array>} Array of payment objects from Stripe
    */
   static async fetchStripePayments(customerId) {
     // This is a mock function - in reality, you would call Stripe's API
     // Something like: await stripe.charges.list({ customer: customerId })
-    
+
     // Return mock data for demonstration
     return [
       {
-        id: 'ch_mock1',
+        id: "ch_mock1",
         amount: 4999, // In cents
-        currency: 'usd',
-        description: 'Pro subscription - Monthly',
-        status: 'succeeded',
-        created: Math.floor(Date.now() / 1000) - 86400 // Yesterday
+        currency: "usd",
+        description: "Pro subscription - Monthly",
+        status: "succeeded",
+        created: Math.floor(Date.now() / 1000) - 86400, // Yesterday
       },
       {
-        id: 'ch_mock2',
+        id: "ch_mock2",
         amount: 4999,
-        currency: 'usd',
-        description: 'Pro subscription - Monthly',
-        status: 'succeeded',
-        created: Math.floor(Date.now() / 1000) - (86400 * 30) // 30 days ago
-      }
+        currency: "usd",
+        description: "Pro subscription - Monthly",
+        status: "succeeded",
+        created: Math.floor(Date.now() / 1000) - 86400 * 30, // 30 days ago
+      },
     ];
   }
 
@@ -95,17 +95,17 @@ class PaymentService {
   static async syncStripePayments(userId, stripeCustomerId) {
     try {
       if (!stripeCustomerId) {
-        throw new Error('Stripe customer ID not found');
+        throw new Error("Stripe customer ID not found");
       }
 
       // Fetch payments from Stripe
       const stripePayments = await this.fetchStripePayments(stripeCustomerId);
-      
+
       // For each payment, create or update in our database
       for (const payment of stripePayments) {
-        const existingPayment = await Payment.findOne({ 
+        const existingPayment = await Payment.findOne({
           userId,
-          stripePaymentId: payment.id
+          stripePaymentId: payment.id,
         });
 
         if (!existingPayment) {
@@ -117,11 +117,11 @@ class PaymentService {
             description: payment.description,
             status: payment.status,
             date: new Date(payment.created * 1000), // Convert Unix timestamp to Date
-            metadata: payment
+            metadata: payment,
           });
         }
       }
-      
+
       return await this.getPaymentHistory(userId);
     } catch (err) {
       throw new Error(`Error syncing payments from Stripe: ${err.message}`);

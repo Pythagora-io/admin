@@ -1,18 +1,62 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/useToast";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Check, CreditCard, ExternalLink, Zap, X, AlertTriangle } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+  Check,
+  CreditCard,
+  ExternalLink,
+  Zap,
+  X,
+  AlertTriangle,
+} from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { getUserSubscription, getSubscriptionPlans, updateSubscription, getTopUpPackages, purchaseTopUp, cancelSubscription } from "@/api/subscription";
-import { getStripeConfig, createPaymentIntent, createTopUpPaymentIntent, getPaymentMethods } from "@/api/stripe";
+import {
+  getUserSubscription,
+  getSubscriptionPlans,
+  updateSubscription,
+  getTopUpPackages,
+  purchaseTopUp,
+  cancelSubscription,
+} from "@/api/subscription";
+import {
+  getStripeConfig,
+  createPaymentIntent,
+  createTopUpPaymentIntent,
+  getPaymentMethods,
+} from "@/api/stripe";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Elements, PaymentElement } from "@stripe/react-stripe-js";
@@ -61,7 +105,8 @@ export function SubscriptionPage() {
         toast({
           variant: "destructive",
           title: "Configuration Error",
-          description: "Failed to load payment configuration. Please try again later.",
+          description:
+            "Failed to load payment configuration. Please try again later.",
         });
       }
     };
@@ -75,12 +120,13 @@ export function SubscriptionPage() {
         setLoading(true);
 
         console.log("Fetching subscription data...");
-        const [subscriptionData, plansData, packagesData, paymentMethodsData] = await Promise.all([
-          getUserSubscription(),
-          getSubscriptionPlans(),
-          getTopUpPackages(),
-          getPaymentMethods()
-        ]);
+        const [subscriptionData, plansData, packagesData, paymentMethodsData] =
+          await Promise.all([
+            getUserSubscription(),
+            getSubscriptionPlans(),
+            getTopUpPackages(),
+            getPaymentMethods(),
+          ]);
         console.log("Subscription data received:", subscriptionData);
         console.log("Plans data received:", plansData);
 
@@ -93,7 +139,9 @@ export function SubscriptionPage() {
         // Set the current plan as selected by default
         if (subscriptionData.subscription?.plan) {
           const currentPlanId = plansData.plans.find(
-            p => p.name.toLowerCase() === subscriptionData.subscription.plan.toLowerCase()
+            (p) =>
+              p.name.toLowerCase() ===
+              subscriptionData.subscription.plan.toLowerCase(),
           )?.id;
           if (currentPlanId) {
             setSelectedPlan(currentPlanId);
@@ -104,7 +152,8 @@ export function SubscriptionPage() {
         toast({
           variant: "destructive",
           title: "Error",
-          description: "Failed to load subscription data. Please try again later.",
+          description:
+            "Failed to load subscription data. Please try again later.",
         });
       } finally {
         setLoading(false);
@@ -183,7 +232,9 @@ export function SubscriptionPage() {
       setProcessingPayment(true);
 
       // For a real implementation, we would create a payment intent first
-      const paymentIntentResponse = await createPaymentIntent({ planId: planToChange.id });
+      const paymentIntentResponse = await createPaymentIntent({
+        planId: planToChange.id,
+      });
       setClientSecret(paymentIntentResponse.clientSecret);
 
       // Then proceed with subscription update
@@ -261,7 +312,9 @@ export function SubscriptionPage() {
       setProcessingPayment(true);
 
       // For a real implementation, we would create a payment intent first
-      const paymentIntentResponse = await createTopUpPaymentIntent({ packageId: selectedTopUp });
+      const paymentIntentResponse = await createTopUpPaymentIntent({
+        packageId: selectedTopUp,
+      });
       setClientSecret(paymentIntentResponse.clientSecret);
 
       // Then proceed with top-up purchase
@@ -270,7 +323,7 @@ export function SubscriptionPage() {
       // Update the token count in the current subscription
       setSubscription({
         ...subscription,
-        tokens: (subscription.tokens || 0) + response.tokens
+        tokens: (subscription.tokens || 0) + response.tokens,
       });
 
       toast({
@@ -302,7 +355,8 @@ export function SubscriptionPage() {
 
       toast({
         title: "Subscription Canceled",
-        description: "Your subscription has been canceled and will end at the end of the current billing period.",
+        description:
+          "Your subscription has been canceled and will end at the end of the current billing period.",
       });
 
       setCancelDialogOpen(false);
@@ -318,7 +372,7 @@ export function SubscriptionPage() {
   };
 
   const handleContactForEnterprise = () => {
-    window.open('https://pythagora.io/contact', '_blank');
+    window.open("https://pythagora.io/contact", "_blank");
   };
 
   if (loading) {
@@ -329,16 +383,16 @@ export function SubscriptionPage() {
     );
   }
 
-  const formatCurrency = (amount: number | null, currency: string = 'USD') => {
-    if (amount === null) return 'Custom';
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency
+  const formatCurrency = (amount: number | null, currency: string = "USD") => {
+    if (amount === null) return "Custom";
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: currency,
     }).format(amount);
   };
 
   const formatTokens = (tokens: number | null) => {
-    if (tokens === null) return 'Custom';
+    if (tokens === null) return "Custom";
     if (tokens >= 1000000) {
       return `${(tokens / 1000000).toLocaleString()}M`;
     }
@@ -349,54 +403,72 @@ export function SubscriptionPage() {
   const isOutOfTokens = subscription?.tokens === 0;
 
   // Check if user has a paid subscription
-  const hasPaidSubscription = subscription?.amount > 0 && subscription?.status === 'active';
-  const isSubscriptionCanceled = subscription?.status === 'canceled';
+  const hasPaidSubscription =
+    subscription?.amount > 0 && subscription?.status === "active";
+  const isSubscriptionCanceled = subscription?.status === "canceled";
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Subscription</h1>
-        <p className="text-muted-foreground">Manage your subscription and token usage</p>
+        <p className="text-muted-foreground">
+          Manage your subscription and token usage
+        </p>
       </div>
 
       {isOutOfTokens && (
-        <Alert variant="destructive" className="bg-red-50 dark:bg-red-950/30 border-red-300 dark:border-red-800 text-red-800 dark:text-red-300">
+        <Alert
+          variant="destructive"
+          className="bg-red-50 dark:bg-red-950/30 border-red-300 dark:border-red-800 text-red-800 dark:text-red-300"
+        >
           <AlertTriangle className="h-5 w-5" />
-          <AlertTitle className="font-semibold">You've run out of tokens!</AlertTitle>
+          <AlertTitle className="font-semibold">
+            You've run out of tokens!
+          </AlertTitle>
           <AlertDescription>
-            To continue building your apps, please top up your tokens or upgrade your plan.
+            To continue building your apps, please top up your tokens or upgrade
+            your plan.
           </AlertDescription>
         </Alert>
       )}
 
       <Card>
         <CardHeader>
-          <CardTitle>Current Plan <Badge className="ml-2 bg-yellow-500 hover:bg-yellow-600">{subscription?.plan || "Free"} Plan</Badge></CardTitle>
+          <CardTitle>
+            Current Plan{" "}
+            <Badge className="ml-2 bg-yellow-500 hover:bg-yellow-600">
+              {subscription?.plan || "Free"} Plan
+            </Badge>
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <h3 className="text-xl font-semibold">Price</h3>
               <p className="text-muted-foreground">
-                {subscription?.amount > 0 ? (
-                  `${formatCurrency(subscription.amount, subscription.currency)} / month`
-                ) : (
-                  "Free"
-                )}
+                {subscription?.amount > 0
+                  ? `${formatCurrency(subscription.amount, subscription.currency)} / month`
+                  : "Free"}
               </p>
             </div>
             <div className="flex gap-2">
               {hasPaidSubscription && !isSubscriptionCanceled && (
-                <Button variant="outline" onClick={() => setCancelDialogOpen(true)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setCancelDialogOpen(true)}
+                >
                   Cancel Subscription
                 </Button>
               )}
               {isSubscriptionCanceled && (
                 <Badge variant="outline" className="py-1 px-2">
-                  Cancels on {new Date(subscription.nextBillingDate).toLocaleDateString()}
+                  Cancels on{" "}
+                  {new Date(subscription.nextBillingDate).toLocaleDateString()}
                 </Badge>
               )}
-              <Button onClick={() => setChangePlanOpen(true)}>Change Plan</Button>
+              <Button onClick={() => setChangePlanOpen(true)}>
+                Change Plan
+              </Button>
             </div>
           </div>
 
@@ -415,7 +487,10 @@ export function SubscriptionPage() {
                 Top Up
               </Button>
             </div>
-            <Progress value={subscription?.tokens > 0 ? 50 : 0} className="h-2" />
+            <Progress
+              value={subscription?.tokens > 0 ? 50 : 0}
+              className="h-2"
+            />
             <p className="text-xs text-muted-foreground text-right">
               {subscription?.tokens || 0} / 600,000 tokens
             </p>
@@ -443,7 +518,8 @@ export function SubscriptionPage() {
           <div className="py-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {plans.map((plan) => {
-                const isCurrentPlan = plan.name.toLowerCase() === subscription?.plan?.toLowerCase();
+                const isCurrentPlan =
+                  plan.name.toLowerCase() === subscription?.plan?.toLowerCase();
                 const isEnterprisePlan = plan.isEnterprise;
                 const isFreePlan = plan.price === 0;
                 const buttonLabel = isCurrentPlan
@@ -460,7 +536,9 @@ export function SubscriptionPage() {
                         ? "border-primary bg-primary/5"
                         : "border-border"
                     } ${isEnterprisePlan ? "border-dashed" : ""}`}
-                    onClick={() => !isEnterprisePlan && setSelectedPlan(plan.id)}
+                    onClick={() =>
+                      !isEnterprisePlan && setSelectedPlan(plan.id)
+                    }
                   >
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-lg font-semibold">{plan.name}</span>
@@ -482,7 +560,9 @@ export function SubscriptionPage() {
 
                     {plan.tokens !== null && (
                       <div className="text-sm text-muted-foreground mb-4">
-                        {plan.tokens === 0 ? "No tokens included" : `${formatTokens(plan.tokens)} tokens included`}
+                        {plan.tokens === 0
+                          ? "No tokens included"
+                          : `${formatTokens(plan.tokens)} tokens included`}
                       </div>
                     )}
 
@@ -509,11 +589,7 @@ export function SubscriptionPage() {
                           Get in Touch
                         </Button>
                       ) : isCurrentPlan ? (
-                        <Button
-                          className="w-full"
-                          variant="secondary"
-                          disabled
-                        >
+                        <Button className="w-full" variant="secondary" disabled>
                           Current Plan
                         </Button>
                       ) : (
@@ -537,7 +613,10 @@ export function SubscriptionPage() {
       </Dialog>
 
       {/* Plan Change Confirmation Dialog */}
-      <AlertDialog open={confirmPlanChangeOpen} onOpenChange={setConfirmPlanChangeOpen}>
+      <AlertDialog
+        open={confirmPlanChangeOpen}
+        onOpenChange={setConfirmPlanChangeOpen}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
@@ -566,10 +645,12 @@ export function SubscriptionPage() {
           )}
 
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => {
-              setConfirmPlanChangeOpen(false);
-              setShowPaymentForm(false);
-            }}>
+            <AlertDialogCancel
+              onClick={() => {
+                setConfirmPlanChangeOpen(false);
+                setShowPaymentForm(false);
+              }}
+            >
               Cancel
             </AlertDialogCancel>
             {(!showPaymentForm || hasPaymentMethod) && (
@@ -621,11 +702,16 @@ export function SubscriptionPage() {
             <Button variant="outline" onClick={() => setTopUpOpen(false)}>
               Cancel
             </Button>
-            <AlertDialog open={confirmTopUpOpen} onOpenChange={setConfirmTopUpOpen}>
+            <AlertDialog
+              open={confirmTopUpOpen}
+              onOpenChange={setConfirmTopUpOpen}
+            >
               <AlertDialogTrigger asChild>
                 <Button
                   disabled={!selectedTopUp}
-                  onClick={() => selectedTopUp && handleInitiateTopUp(selectedTopUp)}
+                  onClick={() =>
+                    selectedTopUp && handleInitiateTopUp(selectedTopUp)
+                  }
                 >
                   Continue
                 </Button>
@@ -634,7 +720,8 @@ export function SubscriptionPage() {
                 <AlertDialogHeader>
                   <AlertDialogTitle>Confirm Token Purchase</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Are you sure you want to purchase this token package? Your payment method on file will be charged immediately.
+                    Are you sure you want to purchase this token package? Your
+                    payment method on file will be charged immediately.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
 
@@ -652,10 +739,12 @@ export function SubscriptionPage() {
                 )}
 
                 <AlertDialogFooter>
-                  <AlertDialogCancel onClick={() => {
-                    setConfirmTopUpOpen(false);
-                    setShowPaymentForm(false);
-                  }}>
+                  <AlertDialogCancel
+                    onClick={() => {
+                      setConfirmTopUpOpen(false);
+                      setShowPaymentForm(false);
+                    }}
+                  >
                     Cancel
                   </AlertDialogCancel>
                   {(!showPaymentForm || hasPaymentMethod) && (
@@ -679,12 +768,15 @@ export function SubscriptionPage() {
           <DialogHeader>
             <DialogTitle>Cancel Subscription</DialogTitle>
             <DialogDescription>
-              Your subscription will remain active until the end of the current billing period.
+              Your subscription will remain active until the end of the current
+              billing period.
             </DialogDescription>
           </DialogHeader>
           <div className="py-4 space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="cancelReason">Reason for cancellation (optional)</Label>
+              <Label htmlFor="cancelReason">
+                Reason for cancellation (optional)
+              </Label>
               <Textarea
                 id="cancelReason"
                 placeholder="Please let us know why you're canceling..."
@@ -694,11 +786,14 @@ export function SubscriptionPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCancelDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setCancelDialogOpen(false)}
+            >
               Back
             </Button>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               onClick={handleCancelSubscription}
               disabled={isCancelling}
             >

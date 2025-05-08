@@ -3,7 +3,7 @@ require("dotenv").config();
 const mongoose = require("mongoose");
 const express = require("express");
 const session = require("express-session");
-const MongoStore = require('connect-mongo');
+const MongoStore = require("connect-mongo");
 const basicRoutes = require("./routes/index");
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
@@ -26,9 +26,9 @@ if (!process.env.DATABASE_URL) {
 const app = express();
 const port = process.env.PORT || 3000;
 // Pretty-print JSON responses
-app.enable('json spaces');
+app.enable("json spaces");
 // We want to be consistent with URL paths, so we enable strict routing
-app.enable('strict routing');
+app.enable("strict routing");
 
 app.use(cors({}));
 app.use(express.json());
@@ -45,25 +45,25 @@ app.on("error", (error) => {
 // Basic Routes
 app.use(basicRoutes);
 // Authentication Routes
-app.use('/api/auth', authRoutes);
+app.use("/api/auth", authRoutes);
 // User Routes
-app.use('/api/user', userRoutes);
+app.use("/api/user", userRoutes);
 // Subscription Routes
-app.use('/api/subscription', subscriptionRoutes);
+app.use("/api/subscription", subscriptionRoutes);
 // Stripe Routes
-app.use('/api/stripe', stripeRoutes);
+app.use("/api/stripe", stripeRoutes);
 // Payment Routes
-app.use('/api/payments', paymentRoutes);
+app.use("/api/payments", paymentRoutes);
 // Billing Routes
-app.use('/api/billing', billingRoutes);
+app.use("/api/billing", billingRoutes);
 // Domain Routes
-app.use('/api/domains', domainRoutes);
+app.use("/api/domains", domainRoutes);
 // Project Routes
-app.use('/api/projects', projectRoutes);
+app.use("/api/projects", projectRoutes);
 // Team Routes
-app.use('/api/team', teamRoutes);
+app.use("/api/team", teamRoutes);
 // Settings Routes
-app.use('/api/settings', settingsRoutes);
+app.use("/api/settings", settingsRoutes);
 
 // If no routes handled the request, it's a 404
 app.use((req, res, next) => {

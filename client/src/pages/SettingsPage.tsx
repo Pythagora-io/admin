@@ -1,19 +1,34 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/useToast";
 import { Separator } from "@/components/ui/separator";
-import { getUserSettings, updateUserSettings, getSettingDescriptions } from "@/api/settings";
+import {
+  getUserSettings,
+  updateUserSettings,
+  getSettingDescriptions,
+} from "@/api/settings";
 
 export function SettingsPage() {
-  const [settings, setSettings] = useState<{[key: string]: boolean}>({});
-  const [descriptions, setDescriptions] = useState<{[key: string]: {title: string, description: string}}>({});
+  const [settings, setSettings] = useState<{ [key: string]: boolean }>({});
+  const [descriptions, setDescriptions] = useState<{
+    [key: string]: { title: string; description: string };
+  }>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
-  const [originalSettings, setOriginalSettings] = useState<{[key: string]: boolean}>({});
+  const [originalSettings, setOriginalSettings] = useState<{
+    [key: string]: boolean;
+  }>({});
   const { toast } = useToast();
 
   useEffect(() => {
@@ -21,9 +36,9 @@ export function SettingsPage() {
       try {
         const [settingsData, descriptionsData] = await Promise.all([
           getUserSettings(),
-          getSettingDescriptions()
+          getSettingDescriptions(),
         ]);
-        
+
         setSettings(settingsData.settings);
         setOriginalSettings(settingsData.settings);
         setDescriptions(descriptionsData.descriptions);
@@ -44,7 +59,7 @@ export function SettingsPage() {
   useEffect(() => {
     // Check if settings have changed from original
     const settingsChanged = Object.keys(settings).some(
-      key => settings[key] !== originalSettings[key]
+      (key) => settings[key] !== originalSettings[key],
     );
     setHasChanges(settingsChanged);
   }, [settings, originalSettings]);
@@ -52,7 +67,7 @@ export function SettingsPage() {
   const handleToggle = (key: string) => {
     setSettings({
       ...settings,
-      [key]: !settings[key]
+      [key]: !settings[key],
     });
   };
 
@@ -94,7 +109,9 @@ export function SettingsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Advanced Settings</h1>
-        <p className="text-muted-foreground">Customize your account preferences</p>
+        <p className="text-muted-foreground">
+          Customize your account preferences
+        </p>
       </div>
 
       <Card>
@@ -104,10 +121,13 @@ export function SettingsPage() {
         </CardHeader>
         <CardContent className="space-y-6">
           {Object.keys(settings).map((key) => (
-            <div key={key} className="flex items-start space-x-3 justify-between">
+            <div
+              key={key}
+              className="flex items-start space-x-3 justify-between"
+            >
               <div className="flex-1 space-y-1">
-                <Label 
-                  htmlFor={key} 
+                <Label
+                  htmlFor={key}
                   className="text-base font-medium cursor-pointer"
                 >
                   {descriptions[key]?.title}
@@ -126,17 +146,14 @@ export function SettingsPage() {
         </CardContent>
         <Separator />
         <CardFooter className="p-6 justify-between">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={handleResetSettings}
             disabled={!hasChanges || saving}
           >
             Reset
           </Button>
-          <Button 
-            onClick={handleSaveSettings}
-            disabled={!hasChanges || saving}
-          >
+          <Button onClick={handleSaveSettings} disabled={!hasChanges || saving}>
             {saving ? "Saving..." : "Save Changes"}
           </Button>
         </CardFooter>

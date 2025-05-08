@@ -24,13 +24,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem("accessToken", response.accessToken);
         setIsAuthenticated(true);
       } else {
-        throw new Error('Login failed');
+        throw new Error("Login failed");
       }
     } catch (error) {
       localStorage.removeItem("refreshToken");
       localStorage.removeItem("accessToken");
       setIsAuthenticated(false);
-      throw new Error(error?.message || 'Login failed');
+      throw new Error(error?.message || "Login failed");
     }
   };
 
@@ -46,7 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem("refreshToken");
       localStorage.removeItem("accessToken");
       setIsAuthenticated(false);
-      throw new Error(error?.message || 'Registration failed');
+      throw new Error(error?.message || "Registration failed");
     }
   };
 
@@ -58,7 +58,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, setIsAuthenticated, login, register, logout }}>
+    <AuthContext.Provider
+      value={{ isAuthenticated, setIsAuthenticated, login, register, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );

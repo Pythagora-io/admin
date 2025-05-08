@@ -1,14 +1,48 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/useToast";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { Trash, ExternalLink, PlusCircle, Globe, CheckCircle } from "lucide-react";
-import { getUserDomains, addDomain, deleteDomain, verifyDomain } from "@/api/domains";
+import {
+  Trash,
+  ExternalLink,
+  PlusCircle,
+  Globe,
+  CheckCircle,
+} from "lucide-react";
+import {
+  getUserDomains,
+  addDomain,
+  deleteDomain,
+  verifyDomain,
+} from "@/api/domains";
 
 export function DomainsPage() {
   const [domains, setDomains] = useState<any[]>([]);
@@ -79,7 +113,7 @@ export function DomainsPage() {
 
     try {
       await deleteDomain(domainToDelete);
-      setDomains(domains.filter(domain => domain._id !== domainToDelete));
+      setDomains(domains.filter((domain) => domain._id !== domainToDelete));
       toast({
         title: "Success",
         description: "Domain deleted successfully",
@@ -101,9 +135,11 @@ export function DomainsPage() {
     try {
       const response = await verifyDomain(domainId);
       // Update the domain in the local state
-      setDomains(domains.map(domain => 
-        domain._id === domainId ? { ...domain, verified: true } : domain
-      ));
+      setDomains(
+        domains.map((domain) =>
+          domain._id === domainId ? { ...domain, verified: true } : domain,
+        ),
+      );
       toast({
         title: "Success",
         description: response.message || "Domain verified successfully",
@@ -120,14 +156,14 @@ export function DomainsPage() {
   };
 
   const openInNewTab = (domain: string) => {
-    window.open(`https://${domain}`, '_blank', 'noopener,noreferrer');
+    window.open(`https://${domain}`, "_blank", "noopener,noreferrer");
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
@@ -211,11 +247,17 @@ export function DomainsPage() {
                     </p>
                   </div>
                   {domain.verified ? (
-                    <Badge variant="outline" className="bg-green-50 text-green-600 dark:bg-green-600/10 dark:text-green-400 border-green-200 dark:border-green-600/20">
+                    <Badge
+                      variant="outline"
+                      className="bg-green-50 text-green-600 dark:bg-green-600/10 dark:text-green-400 border-green-200 dark:border-green-600/20"
+                    >
                       Verified
                     </Badge>
                   ) : (
-                    <Badge variant="outline" className="bg-yellow-50 text-yellow-600 dark:bg-yellow-600/10 dark:text-yellow-400 border-yellow-200 dark:border-yellow-600/20">
+                    <Badge
+                      variant="outline"
+                      className="bg-yellow-50 text-yellow-600 dark:bg-yellow-600/10 dark:text-yellow-400 border-yellow-200 dark:border-yellow-600/20"
+                    >
                       Pending Verification
                     </Badge>
                   )}
@@ -262,12 +304,16 @@ export function DomainsPage() {
       )}
 
       {/* Delete Domain Alert Dialog */}
-      <AlertDialog open={deleteDomainDialogOpen} onOpenChange={setDeleteDomainDialogOpen}>
+      <AlertDialog
+        open={deleteDomainDialogOpen}
+        onOpenChange={setDeleteDomainDialogOpen}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Domain</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this domain? This action cannot be undone.
+              Are you sure you want to delete this domain? This action cannot be
+              undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

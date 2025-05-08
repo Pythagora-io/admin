@@ -1,15 +1,63 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/useToast";
-import { MoreHorizontal, UserPlus, Settings, UserMinus, Search } from "lucide-react";
-import { getTeamMembers, inviteTeamMember, removeTeamMember, updateTeamMemberRole, getMemberAccess, updateMemberAccess, searchProjects } from "@/api/team";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import {
+  MoreHorizontal,
+  UserPlus,
+  Settings,
+  UserMinus,
+  Search,
+} from "lucide-react";
+import {
+  getTeamMembers,
+  inviteTeamMember,
+  removeTeamMember,
+  updateTeamMemberRole,
+  getMemberAccess,
+  updateMemberAccess,
+  searchProjects,
+} from "@/api/team";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export function TeamPage() {
   const [members, setMembers] = useState<any[]>([]);
@@ -66,11 +114,11 @@ export function TeamPage() {
     setSendingInvite(true);
     try {
       const response = await inviteTeamMember({ email: inviteEmail });
-      
+
       // Fetch the updated team members list after successful invitation
       const updatedMembers = await getTeamMembers();
       setMembers(updatedMembers.members);
-      
+
       toast({
         title: "Success",
         description: response.message || "Invitation sent successfully",
@@ -93,7 +141,7 @@ export function TeamPage() {
 
     try {
       await removeTeamMember(memberToRemove._id);
-      setMembers(members.filter(member => member._id !== memberToRemove._id));
+      setMembers(members.filter((member) => member._id !== memberToRemove._id));
       toast({
         title: "Success",
         description: "Team member removed successfully",
@@ -110,13 +158,18 @@ export function TeamPage() {
     }
   };
 
-  const handleRoleChange = async (memberId: string, role: 'admin' | 'developer' | 'viewer') => {
+  const handleRoleChange = async (
+    memberId: string,
+    role: "admin" | "developer" | "viewer",
+  ) => {
     setUpdatingRole(memberId);
     try {
       await updateTeamMemberRole(memberId, { role });
-      setMembers(members.map(member =>
-        member._id === memberId ? { ...member, role } : member
-      ));
+      setMembers(
+        members.map((member) =>
+          member._id === memberId ? { ...member, role } : member,
+        ),
+      );
       toast({
         title: "Success",
         description: `Role updated to ${role}`,
@@ -159,9 +212,9 @@ export function TeamPage() {
     try {
       const response = await searchProjects(query);
       // Filter out projects that are already in memberProjects
-      const existingProjectIds = memberProjects.map(p => p._id);
+      const existingProjectIds = memberProjects.map((p) => p._id);
       setProjectSearchResults(
-        response.projects.filter(p => !existingProjectIds.includes(p._id))
+        response.projects.filter((p) => !existingProjectIds.includes(p._id)),
       );
     } catch (error) {
       toast({
@@ -174,16 +227,18 @@ export function TeamPage() {
 
   const addProjectToMember = (project: any) => {
     // Add project to memberProjects with 'view' access as default
-    setMemberProjects([...memberProjects, { ...project, access: 'view' }]);
+    setMemberProjects([...memberProjects, { ...project, access: "view" }]);
     // Clear search results
     setProjectSearchResults([]);
     setProjectSearchQuery("");
   };
 
-  const handleAccessChange = (projectId: string, access: 'view' | 'edit') => {
-    setMemberProjects(memberProjects.map(project =>
-      project._id === projectId ? { ...project, access } : project
-    ));
+  const handleAccessChange = (projectId: string, access: "view" | "edit") => {
+    setMemberProjects(
+      memberProjects.map((project) =>
+        project._id === projectId ? { ...project, access } : project,
+      ),
+    );
   };
 
   const saveAccessChanges = async () => {
@@ -191,12 +246,14 @@ export function TeamPage() {
 
     setSavingAccess(true);
     try {
-      const projectsToUpdate = memberProjects.map(p => ({
+      const projectsToUpdate = memberProjects.map((p) => ({
         id: p._id,
-        access: p.access
+        access: p.access,
       }));
 
-      await updateMemberAccess(selectedMember._id, { projects: projectsToUpdate });
+      await updateMemberAccess(selectedMember._id, {
+        projects: projectsToUpdate,
+      });
 
       toast({
         title: "Success",
@@ -216,14 +273,14 @@ export function TeamPage() {
 
   const getRoleColor = (role: string) => {
     switch (role) {
-      case 'admin':
-        return 'bg-red-100 text-red-800 dark:bg-red-700/20 dark:text-red-400 border-red-200';
-      case 'developer':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-700/20 dark:text-blue-400 border-blue-200';
-      case 'viewer':
-        return 'bg-green-100 text-green-800 dark:bg-green-700/20 dark:text-green-400 border-green-200';
+      case "admin":
+        return "bg-red-100 text-red-800 dark:bg-red-700/20 dark:text-red-400 border-red-200";
+      case "developer":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-700/20 dark:text-blue-400 border-blue-200";
+      case "viewer":
+        return "bg-green-100 text-green-800 dark:bg-green-700/20 dark:text-green-400 border-green-200";
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-700/20 dark:text-gray-400 border-gray-200';
+        return "bg-gray-100 text-gray-800 dark:bg-gray-700/20 dark:text-gray-400 border-gray-200";
     }
   };
 
@@ -240,7 +297,9 @@ export function TeamPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Team Management</h1>
-          <p className="text-muted-foreground">Manage your team members and their access</p>
+          <p className="text-muted-foreground">
+            Manage your team members and their access
+          </p>
         </div>
         <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
           <DialogTrigger asChild>
@@ -316,16 +375,25 @@ export function TeamPage() {
                     </div>
                     <div>
                       <h3 className="font-medium">{member.name}</h3>
-                      <p className="text-sm text-muted-foreground">{member.email}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {member.email}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
                     <Select
                       value={member.role}
-                      onValueChange={(value) => handleRoleChange(member._id, value as 'admin' | 'developer' | 'viewer')}
+                      onValueChange={(value) =>
+                        handleRoleChange(
+                          member._id,
+                          value as "admin" | "developer" | "viewer",
+                        )
+                      }
                       disabled={updatingRole === member._id}
                     >
-                      <SelectTrigger className={`w-32 ${getRoleColor(member.role)} border`}>
+                      <SelectTrigger
+                        className={`w-32 ${getRoleColor(member.role)} border`}
+                      >
                         <SelectValue placeholder="Select role" />
                       </SelectTrigger>
                       <SelectContent>
@@ -341,7 +409,9 @@ export function TeamPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => openAccessManagement(member)}>
+                        <DropdownMenuItem
+                          onClick={() => openAccessManagement(member)}
+                        >
                           <Settings className="mr-2 h-4 w-4" />
                           Manage Access
                         </DropdownMenuItem>
@@ -366,7 +436,10 @@ export function TeamPage() {
       </Card>
 
       {/* Access Management Dialog */}
-      <Dialog open={accessManagementOpen} onOpenChange={setAccessManagementOpen}>
+      <Dialog
+        open={accessManagementOpen}
+        onOpenChange={setAccessManagementOpen}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Manage Project Access</DialogTitle>
@@ -413,7 +486,10 @@ export function TeamPage() {
                     <Select
                       defaultValue={project.access}
                       onValueChange={(value) =>
-                        handleAccessChange(project._id, value as 'view' | 'edit')
+                        handleAccessChange(
+                          project._id,
+                          value as "view" | "edit",
+                        )
                       }
                     >
                       <SelectTrigger className="w-[120px]">
@@ -430,13 +506,13 @@ export function TeamPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setAccessManagementOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setAccessManagementOpen(false)}
+            >
               Cancel
             </Button>
-            <Button
-              onClick={saveAccessChanges}
-              disabled={savingAccess}
-            >
+            <Button onClick={saveAccessChanges} disabled={savingAccess}>
               {savingAccess ? "Saving..." : "Save Changes"}
             </Button>
           </DialogFooter>
@@ -449,7 +525,8 @@ export function TeamPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Remove Team Member</AlertDialogTitle>
             <AlertDialogDescription>
-              {memberToRemove && `Are you sure you want to remove ${memberToRemove.name} from the team? They will lose access to all projects.`}
+              {memberToRemove &&
+                `Are you sure you want to remove ${memberToRemove.name} from the team? They will lose access to all projects.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

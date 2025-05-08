@@ -1,5 +1,5 @@
-const Settings = require('../models/Settings');
-const settingsConfig = require('../config/settingsConfig');
+const Settings = require("../models/Settings");
+const settingsConfig = require("../config/settingsConfig");
 
 class SettingsService {
   /**
@@ -10,22 +10,22 @@ class SettingsService {
   static async getUserSettings(userId) {
     try {
       let userSettings = await Settings.findOne({ userId });
-      
+
       // If no settings found, create default settings
       if (!userSettings) {
         const defaultSettings = {};
-        
+
         // Use defaults from config
-        Object.keys(settingsConfig).forEach(key => {
+        Object.keys(settingsConfig).forEach((key) => {
           defaultSettings[key] = settingsConfig[key].default;
         });
-        
+
         userSettings = await Settings.create({
           userId,
-          settings: defaultSettings
+          settings: defaultSettings,
         });
       }
-      
+
       return userSettings.settings;
     } catch (error) {
       console.error(`Error getting user settings: ${error}`);
@@ -43,8 +43,11 @@ class SettingsService {
     try {
       // Validate settings
       const validSettings = {};
-      Object.keys(settings).forEach(key => {
-        if (settingsConfig[key] !== undefined && typeof settings[key] === 'boolean') {
+      Object.keys(settings).forEach((key) => {
+        if (
+          settingsConfig[key] !== undefined &&
+          typeof settings[key] === "boolean"
+        ) {
           validSettings[key] = settings[key];
         }
       });
@@ -53,15 +56,15 @@ class SettingsService {
       const options = { new: true, upsert: true, setDefaultsOnInsert: true };
       const updatedSettings = await Settings.findOneAndUpdate(
         { userId },
-        { 
-          $set: { 
+        {
+          $set: {
             settings: validSettings,
-            updatedAt: new Date()
-          } 
+            updatedAt: new Date(),
+          },
         },
-        options
+        options,
       );
-      
+
       return updatedSettings.settings;
     } catch (error) {
       console.error(`Error updating user settings: ${error}`);
@@ -75,14 +78,14 @@ class SettingsService {
    */
   static getSettingDescriptions() {
     const descriptions = {};
-    
-    Object.keys(settingsConfig).forEach(key => {
+
+    Object.keys(settingsConfig).forEach((key) => {
       descriptions[key] = {
         title: settingsConfig[key].title,
-        description: settingsConfig[key].description
+        description: settingsConfig[key].description,
       };
     });
-    
+
     return descriptions;
   }
 }

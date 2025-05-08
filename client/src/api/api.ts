@@ -1,21 +1,21 @@
-import axios, { AxiosRequestConfig, AxiosError } from 'axios';
-import JSONbig from 'json-bigint';
+import axios, { AxiosRequestConfig, AxiosError } from "axios";
+import JSONbig from "json-bigint";
 
 const localApi = axios.create({
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
   validateStatus: (status) => {
     return status >= 200 && status < 300;
   },
-  transformResponse: [(data) => JSONbig.parse(data)]
+  transformResponse: [(data) => JSONbig.parse(data)],
 });
 
 let accessToken: string | null = null;
 
 const getApiInstance = (url: string) => {
-  console.log('Getting API instance for URL:', url);
-  console.log('Current access token exists:', !!accessToken);
+  console.log("Getting API instance for URL:", url);
+  console.log("Current access token exists:", !!accessToken);
   return localApi;
 };
 
@@ -26,58 +26,63 @@ const isAuthEndpoint = (url: string): boolean => {
 const setupInterceptors = (apiInstance: typeof axios) => {
   apiInstance.interceptors.request.use(
     (config: AxiosRequestConfig): AxiosRequestConfig => {
-      console.log('Making request to:', config.url);
-      
+      console.log("Making request to:", config.url);
+
       if (!accessToken) {
-        accessToken = localStorage.getItem('accessToken');
-        console.log('Retrieved token from localStorage:', !!accessToken);
+        accessToken = localStorage.getItem("accessToken");
+        console.log("Retrieved token from localStorage:", !!accessToken);
       }
-      
+
       if (accessToken && config.headers) {
         config.headers.Authorization = `Bearer ${accessToken}`;
-        console.log('Added Authorization header');
+        console.log("Added Authorization header");
       } else {
-        console.log('No token available for request');
+        console.log("No token available for request");
       }
 
       return config;
     },
-    (error: AxiosError): Promise<AxiosError> => Promise.reject(error)
+    (error: AxiosError): Promise<AxiosError> => Promise.reject(error),
   );
 
   apiInstance.interceptors.response.use(
     (response) => response,
     async (error: AxiosError): Promise<any> => {
-      const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
+      const originalRequest = error.config as AxiosRequestConfig & {
+        _retry?: boolean;
+      };
 
-      if ([401, 403].includes(error.response?.status) && !originalRequest._retry) {
+      if (
+        [401, 403].includes(error.response?.status) &&
+        !originalRequest._retry
+      ) {
         originalRequest._retry = true;
 
         try {
-            if (isAuthEndpoint(originalRequest.url || '')) {
-                const { data } = await localApi.post(`/api/auth/refresh`, {
-                refreshToken: localStorage.getItem('refreshToken'),
-                });
-                accessToken = data.data.accessToken;
-                localStorage.setItem('accessToken', accessToken);
-                localStorage.setItem('refreshToken', data.data.refreshToken);
-            }
+          if (isAuthEndpoint(originalRequest.url || "")) {
+            const { data } = await localApi.post(`/api/auth/refresh`, {
+              refreshToken: localStorage.getItem("refreshToken"),
+            });
+            accessToken = data.data.accessToken;
+            localStorage.setItem("accessToken", accessToken);
+            localStorage.setItem("refreshToken", data.data.refreshToken);
+          }
 
           if (originalRequest.headers) {
             originalRequest.headers.Authorization = `Bearer ${accessToken}`;
           }
-          return getApiInstance(originalRequest.url || '')(originalRequest);
+          return getApiInstance(originalRequest.url || "")(originalRequest);
         } catch (err) {
-          localStorage.removeItem('refreshToken');
-          localStorage.removeItem('accessToken');
+          localStorage.removeItem("refreshToken");
+          localStorage.removeItem("accessToken");
           accessToken = null;
-          window.location.href = '/login';
+          window.location.href = "/login";
           return Promise.reject(err);
         }
       }
 
       return Promise.reject(error);
-    }
+    },
   );
 };
 
@@ -85,7 +90,7 @@ setupInterceptors(localApi);
 
 const api = {
   request: (config: AxiosRequestConfig) => {
-    const apiInstance = getApiInstance(config.url || '');
+    const apiInstance = getApiInstance(config.url || "");
     return apiInstance(config);
   },
   get: (url: string, config?: AxiosRequestConfig) => {

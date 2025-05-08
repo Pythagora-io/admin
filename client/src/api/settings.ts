@@ -1,4 +1,4 @@
-import api from './api';
+import api from "./api";
 
 // Description: Get user settings
 // Endpoint: GET /api/settings
@@ -6,7 +6,7 @@ import api from './api';
 // Response: { settings: { [key: string]: boolean } }
 export const getUserSettings = async () => {
   try {
-    const response = await api.get('/api/settings');
+    const response = await api.get("/api/settings");
     return response.data;
   } catch (error) {
     throw new Error(error?.response?.data?.error || error.message);
@@ -17,9 +17,11 @@ export const getUserSettings = async () => {
 // Endpoint: PUT /api/settings
 // Request: { settings: { [key: string]: boolean } }
 // Response: { success: boolean, message: string, settings: { [key: string]: boolean } }
-export const updateUserSettings = async (data: { settings: { [key: string]: boolean } }) => {
+export const updateUserSettings = async (data: {
+  settings: { [key: string]: boolean };
+}) => {
   try {
-    const response = await api.put('/api/settings', data);
+    const response = await api.put("/api/settings", data);
     return response.data;
   } catch (error) {
     throw new Error(error?.response?.data?.error || error.message);
@@ -32,7 +34,7 @@ export const updateUserSettings = async (data: { settings: { [key: string]: bool
 // Response: { descriptions: { [key: string]: { title: string, description: string } } }
 export const getSettingDescriptions = async () => {
   try {
-    const response = await api.get('/api/settings/descriptions');
+    const response = await api.get("/api/settings/descriptions");
     return response.data;
   } catch (error) {
     throw new Error(error?.response?.data?.error || error.message);

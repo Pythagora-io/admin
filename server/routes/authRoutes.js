@@ -1,17 +1,20 @@
-const express = require('express');
-const UserService = require('../services/userService.js');
-const { requireUser } = require('./middleware/auth.js');
-const { generateAccessToken, generateRefreshToken } = require('../utils/auth.js');
-const jwt = require('jsonwebtoken');
+const express = require("express");
+const UserService = require("../services/userService.js");
+const { requireUser } = require("./middleware/auth.js");
+const {
+  generateAccessToken,
+  generateRefreshToken,
+} = require("../utils/auth.js");
+const jwt = require("jsonwebtoken");
 
 const router = express.Router();
 
-router.post('/login', async (req, res) => {
-  const sendError = msg => res.status(400).json({ message: msg });
+router.post("/login", async (req, res) => {
+  const sendError = (msg) => res.status(400).json({ message: msg });
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return sendError('Email and password are required');
+    return sendError("Email and password are required");
   }
 
   const user = await UserService.authenticateWithPassword(email, password);
@@ -22,36 +25,35 @@ router.post('/login', async (req, res) => {
 
     user.refreshToken = refreshToken;
     await user.save();
-    return res.json({...user.toObject(), accessToken});
+    return res.json({ ...user.toObject(), accessToken });
   } else {
-    return sendError('Email or password is incorrect');
-
+    return sendError("Email or password is incorrect");
   }
 });
 
-router.post('/register', async (req, res, next) => {
+router.post("/register", async (req, res, next) => {
   try {
     // Extract name from request body
     const { name, email, password } = req.body;
-    
+
     // Validate required fields
     if (!name || !email || !password) {
-      return res.status(400).json({ 
-        message: 'Name, email and password are required' 
+      return res.status(400).json({
+        message: "Name, email and password are required",
       });
     }
 
     // Create user with name field
     const user = await UserService.create({ name, email, password });
-    
+
     // Generate access token
     const accessToken = generateAccessToken(user);
-    
+
     // Return user data and token
     return res.status(200).json({
       email: user.email,
       name: user.name,
-      accessToken
+      accessToken,
     });
   } catch (error) {
     console.error(`Error while registering user: ${error}`);
@@ -59,7 +61,7 @@ router.post('/register', async (req, res, next) => {
   }
 });
 
-router.post('/logout', async (req, res) => {
+router.post("/logout", async (req, res) => {
   const { email } = req.body;
 
   const user = await User.findOne({ email });
@@ -68,16 +70,16 @@ router.post('/logout', async (req, res) => {
     await user.save();
   }
 
-  res.status(200).json({ message: 'User logged out successfully.' });
+  res.status(200).json({ message: "User logged out successfully." });
 });
 
-router.post('/refresh', async (req, res) => {
+router.post("/refresh", async (req, res) => {
   const { refreshToken } = req.body;
 
   if (!refreshToken) {
     return res.status(401).json({
       success: false,
-      message: 'Refresh token is required'
+      message: "Refresh token is required",
     });
   }
 
@@ -91,14 +93,14 @@ router.post('/refresh', async (req, res) => {
     if (!user) {
       return res.status(403).json({
         success: false,
-        message: 'User not found'
+        message: "User not found",
       });
     }
 
     if (user.refreshToken !== refreshToken) {
       return res.status(403).json({
         success: false,
-        message: 'Invalid refresh token'
+        message: "Invalid refresh token",
       });
     }
 
@@ -115,28 +117,27 @@ router.post('/refresh', async (req, res) => {
       success: true,
       data: {
         accessToken: newAccessToken,
-        refreshToken: newRefreshToken
-      }
+        refreshToken: newRefreshToken,
+      },
     });
-
   } catch (error) {
     console.error(`Token refresh error: ${error.message}`);
 
-    if (error.name === 'TokenExpiredError') {
+    if (error.name === "TokenExpiredError") {
       return res.status(403).json({
         success: false,
-        message: 'Refresh token has expired'
+        message: "Refresh token has expired",
       });
     }
 
     return res.status(403).json({
       success: false,
-      message: 'Invalid refresh token'
+      message: "Invalid refresh token",
     });
   }
 });
 
-router.get('/me', requireUser, async (req, res) => {
+router.get("/me", requireUser, async (req, res) => {
   return res.status(200).json(req.user);
 });
 

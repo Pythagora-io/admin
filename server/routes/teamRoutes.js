@@ -1,10 +1,10 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const TeamService = require('../services/teamService');
-const { requireUser } = require('./middleware/auth');
+const TeamService = require("../services/teamService");
+const { requireUser } = require("./middleware/auth");
 
 // Get team members
-router.get('/', requireUser, async (req, res) => {
+router.get("/", requireUser, async (req, res) => {
   try {
     console.log("GET /api/team endpoint called");
     const members = await TeamService.getTeamMembers();
@@ -17,12 +17,12 @@ router.get('/', requireUser, async (req, res) => {
 });
 
 // Invite team member
-router.post('/invite', requireUser, async (req, res) => {
+router.post("/invite", requireUser, async (req, res) => {
   try {
     const { email } = req.body;
-    
-    if (!email || typeof email !== 'string' || !email.includes('@')) {
-      return res.status(400).json({ error: 'Valid email is required' });
+
+    if (!email || typeof email !== "string" || !email.includes("@")) {
+      return res.status(400).json({ error: "Valid email is required" });
     }
 
     const result = await TeamService.inviteTeamMember(email);
@@ -34,7 +34,7 @@ router.post('/invite', requireUser, async (req, res) => {
 });
 
 // Remove team member
-router.delete('/:id', requireUser, async (req, res) => {
+router.delete("/:id", requireUser, async (req, res) => {
   try {
     const memberId = req.params.id;
     const result = await TeamService.removeTeamMember(memberId);
@@ -46,13 +46,17 @@ router.delete('/:id', requireUser, async (req, res) => {
 });
 
 // Update team member role
-router.put('/:id/role', requireUser, async (req, res) => {
+router.put("/:id/role", requireUser, async (req, res) => {
   try {
     const memberId = req.params.id;
     const { role } = req.body;
-    
-    if (!role || !['admin', 'developer', 'viewer'].includes(role)) {
-      return res.status(400).json({ error: 'Valid role is required (admin, developer, or viewer)' });
+
+    if (!role || !["admin", "developer", "viewer"].includes(role)) {
+      return res
+        .status(400)
+        .json({
+          error: "Valid role is required (admin, developer, or viewer)",
+        });
     }
 
     const result = await TeamService.updateTeamMemberRole(memberId, role);
@@ -64,7 +68,7 @@ router.put('/:id/role', requireUser, async (req, res) => {
 });
 
 // Get member access
-router.get('/:id/access', requireUser, async (req, res) => {
+router.get("/:id/access", requireUser, async (req, res) => {
   try {
     const memberId = req.params.id;
     const result = await TeamService.getMemberAccess(memberId);
@@ -76,19 +80,23 @@ router.get('/:id/access', requireUser, async (req, res) => {
 });
 
 // Update member access
-router.put('/:id/access', requireUser, async (req, res) => {
+router.put("/:id/access", requireUser, async (req, res) => {
   try {
     const memberId = req.params.id;
     const { projects } = req.body;
-    
+
     if (!Array.isArray(projects)) {
-      return res.status(400).json({ error: 'Projects must be an array' });
+      return res.status(400).json({ error: "Projects must be an array" });
     }
 
     for (const project of projects) {
-      if (!project.id || !project.access || !['view', 'edit'].includes(project.access)) {
-        return res.status(400).json({ 
-          error: 'Each project must have an id and access (view or edit)' 
+      if (
+        !project.id ||
+        !project.access ||
+        !["view", "edit"].includes(project.access)
+      ) {
+        return res.status(400).json({
+          error: "Each project must have an id and access (view or edit)",
         });
       }
     }
@@ -102,12 +110,12 @@ router.put('/:id/access', requireUser, async (req, res) => {
 });
 
 // Search projects
-router.get('/projects/search', requireUser, async (req, res) => {
+router.get("/projects/search", requireUser, async (req, res) => {
   try {
     const { query } = req.query;
-    
+
     if (!query) {
-      return res.status(400).json({ error: 'Search query is required' });
+      return res.status(400).json({ error: "Search query is required" });
     }
 
     const result = await TeamService.searchProjects(query);

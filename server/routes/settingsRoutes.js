@@ -1,6 +1,6 @@
-const express = require('express');
-const SettingsService = require('../services/settingsService');
-const { requireUser } = require('./middleware/auth');
+const express = require("express");
+const SettingsService = require("../services/settingsService");
+const { requireUser } = require("./middleware/auth");
 
 const router = express.Router();
 
@@ -9,12 +9,12 @@ const router = express.Router();
  * @route GET /api/settings
  * @access Private
  */
-router.get('/', requireUser, async (req, res) => {
+router.get("/", requireUser, async (req, res) => {
   try {
     const settings = await SettingsService.getUserSettings(req.user._id);
-    
+
     return res.status(200).json({
-      settings
+      settings,
     });
   } catch (error) {
     console.error(`Error fetching user settings: ${error}`);
@@ -27,20 +27,23 @@ router.get('/', requireUser, async (req, res) => {
  * @route PUT /api/settings
  * @access Private
  */
-router.put('/', requireUser, async (req, res) => {
+router.put("/", requireUser, async (req, res) => {
   try {
     const { settings } = req.body;
-    
-    if (!settings || typeof settings !== 'object') {
-      return res.status(400).json({ error: 'Settings object is required' });
+
+    if (!settings || typeof settings !== "object") {
+      return res.status(400).json({ error: "Settings object is required" });
     }
-    
-    const updatedSettings = await SettingsService.updateUserSettings(req.user._id, settings);
-    
+
+    const updatedSettings = await SettingsService.updateUserSettings(
+      req.user._id,
+      settings,
+    );
+
     return res.status(200).json({
       success: true,
-      message: 'Settings updated successfully',
-      settings: updatedSettings
+      message: "Settings updated successfully",
+      settings: updatedSettings,
     });
   } catch (error) {
     console.error(`Error updating user settings: ${error}`);
@@ -53,12 +56,12 @@ router.put('/', requireUser, async (req, res) => {
  * @route GET /api/settings/descriptions
  * @access Private
  */
-router.get('/descriptions', requireUser, async (req, res) => {
+router.get("/descriptions", requireUser, async (req, res) => {
   try {
     const descriptions = SettingsService.getSettingDescriptions();
-    
+
     return res.status(200).json({
-      descriptions
+      descriptions,
     });
   } catch (error) {
     console.error(`Error fetching setting descriptions: ${error}`);

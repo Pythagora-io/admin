@@ -1,8 +1,34 @@
 import { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Sidebar, SidebarContent, SidebarHeader, SidebarTrigger, SidebarProvider, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarInset, SidebarFooter, SidebarMenuSub, SidebarMenuSubItem, SidebarMenuSubButton } from "./ui/sidebar";
-import { UserCircle, CreditCard, FileText, Globe, Settings, Layers, Users, LogOut, FileEdit, ExternalLink, Menu } from "lucide-react";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarHeader,
+  SidebarTrigger,
+  SidebarProvider,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarInset,
+  SidebarFooter,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
+} from "./ui/sidebar";
+import {
+  UserCircle,
+  CreditCard,
+  FileText,
+  Globe,
+  Settings,
+  Layers,
+  Users,
+  LogOut,
+  FileEdit,
+  ExternalLink,
+  Menu,
+} from "lucide-react";
 import { Button } from "./ui/button";
 import { ThemeToggle } from "./ui/theme-toggle";
 import { useAuth } from "@/contexts/AuthContext";
@@ -17,7 +43,7 @@ export function DashboardLayout() {
 
   // Open the projects submenu by default if we're on a projects page
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(
-    location.pathname.startsWith('/projects') ? "projects" : null
+    location.pathname.startsWith("/projects") ? "projects" : null,
   );
 
   // State for sidebar open status
@@ -25,11 +51,17 @@ export function DashboardLayout() {
 
   useEffect(() => {
     // Keep Projects submenu open if we're on a projects page
-    if (location.pathname.startsWith('/projects') && openSubmenu !== "projects") {
+    if (
+      location.pathname.startsWith("/projects") &&
+      openSubmenu !== "projects"
+    ) {
       setOpenSubmenu("projects");
     }
     // Close the submenu when navigating away from projects pages
-    if (!location.pathname.startsWith('/projects') && openSubmenu === "projects") {
+    if (
+      !location.pathname.startsWith("/projects") &&
+      openSubmenu === "projects"
+    ) {
       setOpenSubmenu(null);
     }
 
@@ -48,9 +80,9 @@ export function DashboardLayout() {
     setOpenSubmenu(openSubmenu === key ? null : key);
   };
 
-  const isProjectsPage = location.pathname.startsWith('/projects');
-  const isProjectsDraftsPage = location.pathname === '/projects/drafts';
-  const isProjectsDeployedPage = location.pathname === '/projects/deployed';
+  const isProjectsPage = location.pathname.startsWith("/projects");
+  const isProjectsDraftsPage = location.pathname === "/projects/drafts";
+  const isProjectsDeployedPage = location.pathname === "/projects/deployed";
 
   const navigateTo = (path: string) => {
     navigate(path);
@@ -70,17 +102,36 @@ export function DashboardLayout() {
 
       <SidebarProvider defaultOpen={!isMobile}>
         <div className="flex min-h-screen">
-          <Sidebar className="border-r fixed md:relative" open={sidebarOpen} onOpenChange={setSidebarOpen}>
+          <Sidebar
+            className="border-r fixed md:relative"
+            open={sidebarOpen}
+            onOpenChange={setSidebarOpen}
+          >
             <SidebarHeader className="pt-6 pb-4">
               <div className="flex items-center px-6">
                 <div
                   onClick={() => navigate("/")}
                   className="flex items-center cursor-pointer"
                 >
-                  <svg viewBox="0 0 24 24" className="h-7 w-7 text-primary" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2.00001 17.5228 6.47716 22 12 22Z" fill="currentColor" fillOpacity="0.2" />
-                    <path d="M15.5 9C15.5 11.2091 13.7091 13 11.5 13H9V9C9 6.79086 10.7909 5 13 5C15.2091 5 15.5 6.79086 15.5 9Z" fill="currentColor" />
-                    <path d="M9 13H11.5C13.7091 13 15.5 14.7909 15.5 17C15.5 19.2091 13.2091 20 11 20C8.79086 20 9 18.2091 9 16V13Z" fill="currentColor" />
+                  <svg
+                    viewBox="0 0 24 24"
+                    className="h-7 w-7 text-primary"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2.00001 17.5228 6.47716 22 12 22Z"
+                      fill="currentColor"
+                      fillOpacity="0.2"
+                    />
+                    <path
+                      d="M15.5 9C15.5 11.2091 13.7091 13 11.5 13H9V9C9 6.79086 10.7909 5 13 5C15.2091 5 15.5 6.79086 15.5 9Z"
+                      fill="currentColor"
+                    />
+                    <path
+                      d="M9 13H11.5C13.7091 13 15.5 14.7909 15.5 17C15.5 19.2091 13.2091 20 11 20C8.79086 20 9 18.2091 9 16V13Z"
+                      fill="currentColor"
+                    />
                   </svg>
                   <span className="ml-3 text-xl font-semibold">Pythagora</span>
                 </div>

@@ -1,16 +1,16 @@
-import api from './api';
+import api from "./api";
 
 // Description: Get user projects
 // Endpoint: GET /api/projects
 // Request: { type: 'drafts' | 'deployed' }
 // Response: { projects: Array<{ _id: string, title: string, thumbnail: string, lastEdited: string, visibility: 'private' | 'public' }> }
-export const getUserProjects = async (type: 'drafts' | 'deployed') => {
-    try {
-        const response = await api.get(`/api/projects?type=${type}`);
-        return response.data;
-    } catch (error) {
-        throw new Error(error?.response?.data?.error || error.message);
-    }
+export const getUserProjects = async (type: "drafts" | "deployed") => {
+  try {
+    const response = await api.get(`/api/projects?type=${type}`);
+    return response.data;
+  } catch (error) {
+    throw new Error(error?.response?.data?.error || error.message);
+  }
 };
 
 // Description: Delete projects
@@ -18,25 +18,28 @@ export const getUserProjects = async (type: 'drafts' | 'deployed') => {
 // Request: { projectIds: string[] }
 // Response: { success: boolean, message: string }
 export const deleteProjects = async (data: { projectIds: string[] }) => {
-    try {
-        const response = await api.delete('/api/projects', { data });
-        return response.data;
-    } catch (error) {
-        throw new Error(error?.response?.data?.error || error.message);
-    }
+  try {
+    const response = await api.delete("/api/projects", { data });
+    return response.data;
+  } catch (error) {
+    throw new Error(error?.response?.data?.error || error.message);
+  }
 };
 
 // Description: Rename project
 // Endpoint: PUT /api/projects/:id/rename
 // Request: { title: string }
 // Response: { success: boolean, message: string, project: { _id: string, title: string } }
-export const renameProject = async (projectId: string, data: { title: string }) => {
-    try {
-        const response = await api.put(`/api/projects/${projectId}/rename`, data);
-        return response.data;
-    } catch (error) {
-        throw new Error(error?.response?.data?.error || error.message);
-    }
+export const renameProject = async (
+  projectId: string,
+  data: { title: string },
+) => {
+  try {
+    const response = await api.put(`/api/projects/${projectId}/rename`, data);
+    return response.data;
+  } catch (error) {
+    throw new Error(error?.response?.data?.error || error.message);
+  }
 };
 
 // Description: Create a new project draft
@@ -44,17 +47,17 @@ export const renameProject = async (projectId: string, data: { title: string }) 
 // Request: { title: string, description?: string, visibility?: 'private' | 'public', thumbnail?: string }
 // Response: { success: boolean, message: string, project: Project }
 export const createProjectDraft = async (data: {
-    title: string,
-    description?: string,
-    visibility?: 'private' | 'public',
-    thumbnail?: string
+  title: string;
+  description?: string;
+  visibility?: "private" | "public";
+  thumbnail?: string;
 }) => {
-    try {
-        const response = await api.post('/api/projects', data);
-        return response.data;
-    } catch (error) {
-        throw new Error(error?.response?.data?.error || error.message);
-    }
+  try {
+    const response = await api.post("/api/projects", data);
+    return response.data;
+  } catch (error) {
+    throw new Error(error?.response?.data?.error || error.message);
+  }
 };
 
 // Description: Deploy a project draft
@@ -62,12 +65,12 @@ export const createProjectDraft = async (data: {
 // Request: {}
 // Response: { success: boolean, message: string, project: Project }
 export const deployProject = async (projectId: string) => {
-    try {
-        const response = await api.post(`/api/projects/${projectId}/deploy`);
-        return response.data;
-    } catch (error) {
-        throw new Error(error?.response?.data?.error || error.message);
-    }
+  try {
+    const response = await api.post(`/api/projects/${projectId}/deploy`);
+    return response.data;
+  } catch (error) {
+    throw new Error(error?.response?.data?.error || error.message);
+  }
 };
 
 // Description: Get project access
@@ -87,7 +90,10 @@ export const getProjectAccess = async (projectId: string) => {
 // Endpoint: PUT /api/projects/:id/access
 // Request: { users: Array<{ id: string, access: 'view' | 'edit' }> }
 // Response: { success: boolean, message: string }
-export const updateProjectAccess = async (projectId: string, data: { users: Array<{ id: string, access: 'view' | 'edit' }> }) => {
+export const updateProjectAccess = async (
+  projectId: string,
+  data: { users: Array<{ id: string; access: "view" | "edit" }> },
+) => {
   try {
     const response = await api.put(`/api/projects/${projectId}/access`, data);
     return response.data;
@@ -101,10 +107,10 @@ export const updateProjectAccess = async (projectId: string, data: { users: Arra
 // Request: {}
 // Response: { success: boolean, message: string, project: Project }
 export const duplicateProject = async (projectId: string) => {
-    try {
-        const response = await api.post(`/api/projects/${projectId}/duplicate`);
-        return response.data;
-    } catch (error) {
-        throw new Error(error?.response?.data?.error || error.message);
-    }
+  try {
+    const response = await api.post(`/api/projects/${projectId}/duplicate`);
+    return response.data;
+  } catch (error) {
+    throw new Error(error?.response?.data?.error || error.message);
+  }
 };

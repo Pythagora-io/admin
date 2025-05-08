@@ -1,4 +1,4 @@
-import api from './api';
+import api from "./api";
 
 // Description: Get user payment history
 // Endpoint: GET /api/payments
@@ -6,7 +6,7 @@ import api from './api';
 // Response: { payments: Array<{ id: string, date: string, amount: number, currency: string, description: string, status: string, receiptUrl: string }> }
 export const getPaymentHistory = async () => {
   try {
-    const response = await api.get('/api/payments');
+    const response = await api.get("/api/payments");
     return response.data;
   } catch (error) {
     throw new Error(error?.response?.data?.error || error.message);
@@ -32,7 +32,7 @@ export const getPaymentReceipt = async (paymentId: string) => {
 // Response: { billingInfo: { name: string, address: string, city: string, state: string, zip: string, country: string } }
 export const getBillingInfo = async () => {
   try {
-    const response = await api.get('/api/billing');
+    const response = await api.get("/api/billing");
     return response.data;
   } catch (error) {
     throw new Error(error?.response?.data?.error || error.message);
@@ -45,7 +45,7 @@ export const getBillingInfo = async () => {
 // Response: { companyInfo: { name: string, address: string, city: string, state: string, zip: string, country: string, taxId: string } }
 export const getCompanyBillingInfo = async () => {
   try {
-    const response = await api.get('/api/billing/company');
+    const response = await api.get("/api/billing/company");
     return response.data;
   } catch (error) {
     throw new Error(error?.response?.data?.error || error.message);

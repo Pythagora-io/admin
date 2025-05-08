@@ -1,4 +1,4 @@
-import api from './api';
+import api from "./api";
 
 // Description: Login user functionality
 // Endpoint: POST /api/auth/login
@@ -6,10 +6,10 @@ import api from './api';
 // Response: { accessToken: string, refreshToken: string }
 export const login = async (email: string, password: string) => {
   try {
-    const response = await api.post('/api/auth/login', { email, password });
+    const response = await api.post("/api/auth/login", { email, password });
     return response.data;
   } catch (error) {
-    console.error('Login error:', error);
+    console.error("Login error:", error);
     throw new Error(error?.response?.data?.message || error.message);
   }
 };
@@ -18,9 +18,17 @@ export const login = async (email: string, password: string) => {
 // Endpoint: POST /api/auth/register
 // Request: { name: string, email: string, password: string }
 // Response: { email: string, accessToken: string }
-export const register = async (name: string, email: string, password: string) => {
+export const register = async (
+  name: string,
+  email: string,
+  password: string,
+) => {
   try {
-    const response = await api.post('/api/auth/register', { name, email, password });
+    const response = await api.post("/api/auth/register", {
+      name,
+      email,
+      password,
+    });
     return response.data;
   } catch (error) {
     throw new Error(error?.response?.data?.message || error.message);
@@ -33,7 +41,7 @@ export const register = async (name: string, email: string, password: string) =>
 // Response: { success: boolean, message: string }
 export const logout = async () => {
   try {
-    return await api.post('/api/auth/logout');
+    return await api.post("/api/auth/logout");
   } catch (error) {
     throw new Error(error?.response?.data?.message || error.message);
   }

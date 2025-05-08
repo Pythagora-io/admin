@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/useToast';
+import { useState } from "react";
+import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/useToast";
 
 interface PaymentMethodFormProps {
   onSuccess?: (paymentMethod: any) => void;
@@ -13,8 +13,8 @@ interface PaymentMethodFormProps {
 export function PaymentMethodForm({
   onSuccess,
   onCancel,
-  buttonText = 'Save Payment Method',
-  isProcessing = false
+  buttonText = "Save Payment Method",
+  isProcessing = false,
 }: PaymentMethodFormProps) {
   const stripe = useStripe();
   const elements = useElements();
@@ -37,22 +37,23 @@ export function PaymentMethodForm({
 
     if (!cardElement) {
       setProcessing(false);
-      setError('Card element not found');
+      setError("Card element not found");
       return;
     }
 
     try {
       const { error, paymentMethod } = await stripe.createPaymentMethod({
-        type: 'card',
+        type: "card",
         card: cardElement,
       });
 
       if (error) {
-        setError(error.message || 'An error occurred with your payment method');
+        setError(error.message || "An error occurred with your payment method");
         toast({
           variant: "destructive",
           title: "Payment Error",
-          description: error.message || 'An error occurred with your payment method',
+          description:
+            error.message || "An error occurred with your payment method",
         });
       } else if (paymentMethod) {
         if (onSuccess) {
@@ -64,11 +65,11 @@ export function PaymentMethodForm({
         });
       }
     } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred');
+      setError(err.message || "An unexpected error occurred");
       toast({
         variant: "destructive",
         title: "Error",
-        description: err.message || 'An unexpected error occurred',
+        description: err.message || "An unexpected error occurred",
       });
     } finally {
       setProcessing(false);
@@ -83,14 +84,14 @@ export function PaymentMethodForm({
             options={{
               style: {
                 base: {
-                  fontSize: '16px',
-                  color: '#424770',
-                  '::placeholder': {
-                    color: '#aab7c4',
+                  fontSize: "16px",
+                  color: "#424770",
+                  "::placeholder": {
+                    color: "#aab7c4",
                   },
                 },
                 invalid: {
-                  color: '#9e2146',
+                  color: "#9e2146",
                 },
               },
             }}
@@ -104,10 +105,7 @@ export function PaymentMethodForm({
             Cancel
           </Button>
         )}
-        <Button
-          type="submit"
-          disabled={!stripe || processing || isProcessing}
-        >
+        <Button type="submit" disabled={!stripe || processing || isProcessing}>
           {processing || isProcessing ? "Processing..." : buttonText}
         </Button>
       </div>

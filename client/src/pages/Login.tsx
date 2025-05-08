@@ -1,9 +1,9 @@
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { useNavigate } from "react-router-dom"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -11,42 +11,42 @@ import {
   CardHeader,
   CardTitle,
   CardFooter,
-} from "@/components/ui/card"
-import { useToast } from "@/hooks/useToast"
-import { LogIn } from "lucide-react"
-import { useAuth } from "@/contexts/AuthContext"
+} from "@/components/ui/card";
+import { useToast } from "@/hooks/useToast";
+import { LogIn } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 type LoginForm = {
-  email: string
-  password: string
-}
+  email: string;
+  password: string;
+};
 
 export function Login() {
-  const [loading, setLoading] = useState(false)
-  const { toast } = useToast()
-  const { login } = useAuth()
-  const navigate = useNavigate()
-  const { register, handleSubmit } = useForm<LoginForm>()
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const { register, handleSubmit } = useForm<LoginForm>();
 
   const onSubmit = async (data: LoginForm) => {
     try {
-      setLoading(true)
+      setLoading(true);
       await login(data.email, data.password);
       toast({
         title: "Success",
         description: "Logged in successfully",
-      })
-      navigate("/")
+      });
+      navigate("/");
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Error",
         description: error?.message,
-      })
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-secondary p-4">
@@ -98,5 +98,5 @@ export function Login() {
         </CardFooter>
       </Card>
     </div>
-  )
+  );
 }

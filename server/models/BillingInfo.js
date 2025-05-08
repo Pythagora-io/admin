@@ -1,48 +1,48 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const billingInfoSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    ref: "User",
     required: true,
-    unique: true
+    unique: true,
   },
   name: {
     type: String,
-    required: true
+    required: true,
   },
   address: {
     type: String,
-    required: true
+    required: true,
   },
   city: {
     type: String,
-    required: true
+    required: true,
   },
   state: {
     type: String,
-    required: true
+    required: true,
   },
   zip: {
     type: String,
-    required: true
+    required: true,
   },
   country: {
     type: String,
-    required: true
+    required: true,
   },
   updatedAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
 // Update the updatedAt timestamp on save
-billingInfoSchema.pre('save', function(next) {
+billingInfoSchema.pre("save", function (next) {
   this.updatedAt = Date.now();
   next();
 });
 
-const BillingInfo = mongoose.model('BillingInfo', billingInfoSchema);
+const BillingInfo = mongoose.model("BillingInfo", billingInfoSchema);
 
 module.exports = BillingInfo;

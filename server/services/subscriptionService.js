@@ -1,10 +1,10 @@
 /**
  * Service for managing subscription-related operations
  */
-const subscriptionPlans = require('../config/subscriptionPlans');
-const Subscription = require('../models/Subscription');
-const User = require('../models/User');
-const stripeService = require('./stripeService');
+const subscriptionPlans = require("../config/subscriptionPlans");
+const Subscription = require("../models/Subscription");
+const User = require("../models/User");
+const stripeService = require("./stripeService");
 
 /**
  * Get all available subscription plans
@@ -20,7 +20,7 @@ const getAllPlans = () => {
  * @returns {Object|null} The subscription plan or null if not found
  */
 const getPlanById = (planId) => {
-  return subscriptionPlans.find(plan => plan.id === planId) || null;
+  return subscriptionPlans.find((plan) => plan.id === planId) || null;
 };
 
 /**
@@ -30,18 +30,20 @@ const getPlanById = (planId) => {
  */
 const getUserSubscription = async (userId) => {
   try {
-    const subscription = await Subscription.findOne({ userId }).sort({ createdAt: -1 }).exec();
+    const subscription = await Subscription.findOne({ userId })
+      .sort({ createdAt: -1 })
+      .exec();
 
     if (!subscription) {
       // Return a default free subscription if none exists
       return {
-        plan: 'Free',
-        status: 'active',
+        plan: "Free",
+        status: "active",
         startDate: new Date(),
         nextBillingDate: new Date(),
         amount: 0,
-        currency: 'USD',
-        tokens: 0
+        currency: "USD",
+        tokens: 0,
       };
     }
 
@@ -54,12 +56,12 @@ const getUserSubscription = async (userId) => {
       startDate: subscription.startDate,
       nextBillingDate: subscription.nextBillingDate,
       amount: plan.price || 0,
-      currency: plan.currency || 'USD',
-      tokens: subscription.tokens || plan.tokens || 0
+      currency: plan.currency || "USD",
+      tokens: subscription.tokens || plan.tokens || 0,
     };
   } catch (error) {
-    console.error('Error getting user subscription:', error);
-    throw new Error('Failed to retrieve user subscription');
+    console.error("Error getting user subscription:", error);
+    throw new Error("Failed to retrieve user subscription");
   }
 };
 
@@ -73,12 +75,12 @@ const updateSubscription = async (userId, planId) => {
   try {
     const plan = getPlanById(planId);
     if (!plan) {
-      throw new Error('Invalid subscription plan');
+      throw new Error("Invalid subscription plan");
     }
 
     const user = await User.findById(userId);
     if (!user) {
-      throw new Error('User not found');
+      throw new Error("User not found");
     }
 
     // Get or create Stripe customer
@@ -88,11 +90,11 @@ const updateSubscription = async (userId, planId) => {
     const subscription = new Subscription({
       userId,
       planId,
-      status: 'active',
+      status: "active",
       startDate: new Date(),
       nextBillingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
       tokens: plan.tokens || 0,
-      stripeCustomerId: customerId
+      stripeCustomerId: customerId,
     });
 
     // If it's a paid plan, create a Stripe subscription
@@ -102,7 +104,7 @@ const updateSubscription = async (userId, planId) => {
       //   customerId,
       //   priceId: `price_${planId}` // This would be your actual Stripe price ID
       // });
-      
+
       // subscription.stripeSubscriptionId = stripeSubscription.id;
       subscription.stripeSubscriptionId = `sub_mock_${Math.random().toString(36).substring(2, 15)}`;
     }
@@ -115,11 +117,11 @@ const updateSubscription = async (userId, planId) => {
       startDate: subscription.startDate,
       nextBillingDate: subscription.nextBillingDate,
       amount: plan.price || 0,
-      currency: plan.currency || 'USD',
-      tokens: subscription.tokens
+      currency: plan.currency || "USD",
+      tokens: subscription.tokens,
     };
   } catch (error) {
-    console.error('Error updating subscription:', error);
+    console.error("Error updating subscription:", error);
     throw new Error(`Failed to update subscription: ${error.message}`);
   }
 };
@@ -134,44 +136,46 @@ const purchaseTopUp = async (userId, packageId) => {
   try {
     // In a real implementation, this would validate the package ID against available packages
     // and process the payment through Stripe
-    
+
     // Get the current subscription
-    let subscription = await Subscription.findOne({ userId }).sort({ createdAt: -1 });
-    
+    let subscription = await Subscription.findOne({ userId }).sort({
+      createdAt: -1,
+    });
+
     if (!subscription) {
       // Create a free subscription if none exists
       subscription = new Subscription({
         userId,
-        planId: 'free',
-        status: 'active',
+        planId: "free",
+        status: "active",
         startDate: new Date(),
         nextBillingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        tokens: 0
+        tokens: 0,
       });
     }
-    
+
     // Mock top-up packages
     const packages = {
-      'topup-50': 10000000,
-      'topup-100': 20000000,
-      'topup-200': 40000000,
-      'topup-500': 200000000,
-      'topup-1000': 300000000
+      "topup-50": 10000000,
+      "topup-100": 20000000,
+      "topup-200": 40000000,
+      "topup-500": 200000000,
+      "topup-1000": 300000000,
     };
-    
+
     const tokens = packages[packageId] || 0;
-    
+
     // Add tokens to the subscription
     subscription.tokens += tokens;
     await subscription.save();
-    
+
     return {
       success: true,
-      message: 'Token top-up purchased successfully',
-      tokens
+      message: "Token top-up purchased successfully",
+      tokens,
     };
   } catch (error) {
-    console.error('Error purchasing top-up:', error);
+    console.error("Error purchasing top-up:", error);
     throw new Error(`Failed to purchase token top-up: ${error.message}`);
   }
 };
@@ -185,18 +189,18 @@ const purchaseTopUp = async (userId, packageId) => {
 const cancelSubscription = async (userId, reason) => {
   try {
     // Find the user's active subscription
-    const subscription = await Subscription.findOne({ 
-      userId, 
-      status: 'active' 
+    const subscription = await Subscription.findOne({
+      userId,
+      status: "active",
     }).sort({ createdAt: -1 });
 
     if (!subscription) {
-      throw new Error('No active subscription found');
+      throw new Error("No active subscription found");
     }
 
     // Get the plan details
     const plan = getPlanById(subscription.planId);
-    
+
     // Calculate the end date (current billing period end)
     const endDate = subscription.nextBillingDate;
 
@@ -206,8 +210,8 @@ const cancelSubscription = async (userId, reason) => {
     }
 
     // Update the subscription status
-    subscription.status = 'canceled';
-    subscription.cancelReason = reason || 'User requested cancellation';
+    subscription.status = "canceled";
+    subscription.cancelReason = reason || "User requested cancellation";
     subscription.canceledAt = new Date();
     await subscription.save();
 
@@ -218,11 +222,11 @@ const cancelSubscription = async (userId, reason) => {
       endDate: endDate,
       canceledAt: subscription.canceledAt,
       amount: plan.price || 0,
-      currency: plan.currency || 'USD',
-      tokens: subscription.tokens
+      currency: plan.currency || "USD",
+      tokens: subscription.tokens,
     };
   } catch (error) {
-    console.error('Error canceling subscription:', error);
+    console.error("Error canceling subscription:", error);
     throw new Error(`Failed to cancel subscription: ${error.message}`);
   }
 };
@@ -234,5 +238,5 @@ module.exports = {
   getUserSubscription,
   updateSubscription,
   purchaseTopUp,
-  cancelSubscription
+  cancelSubscription,
 };

@@ -1,4 +1,4 @@
-const Domain = require('../models/Domain');
+const Domain = require("../models/Domain");
 
 class DomainService {
   /**
@@ -25,20 +25,23 @@ class DomainService {
       // Normalize domain (remove protocol, www, trailing slashes)
       const normalizedDomain = domain
         .toLowerCase()
-        .replace(/^(https?:\/\/)?(www\.)?/, '')
-        .replace(/\/.*$/, '');
-      
+        .replace(/^(https?:\/\/)?(www\.)?/, "")
+        .replace(/\/.*$/, "");
+
       // Check if domain already exists for this user
-      const existingDomain = await Domain.findOne({ userId, domain: normalizedDomain });
+      const existingDomain = await Domain.findOne({
+        userId,
+        domain: normalizedDomain,
+      });
       if (existingDomain) {
-        throw new Error('This domain has already been added to your account');
+        throw new Error("This domain has already been added to your account");
       }
 
       // Create new domain
       const newDomain = new Domain({
         userId,
         domain: normalizedDomain,
-        verified: false
+        verified: false,
       });
 
       await newDomain.save();
@@ -58,7 +61,9 @@ class DomainService {
     try {
       const result = await Domain.deleteOne({ _id: domainId, userId });
       if (result.deletedCount === 0) {
-        throw new Error('Domain not found or you do not have permission to delete it');
+        throw new Error(
+          "Domain not found or you do not have permission to delete it",
+        );
       }
       return true;
     } catch (err) {
@@ -76,15 +81,17 @@ class DomainService {
     try {
       // Find domain and ensure it belongs to the user
       const domain = await Domain.findOne({ _id: domainId, userId });
-      
+
       if (!domain) {
-        throw new Error('Domain not found or you do not have permission to verify it');
+        throw new Error(
+          "Domain not found or you do not have permission to verify it",
+        );
       }
-      
+
       // Mock verification process - in the future, this will check DNS records
       domain.verified = true;
       await domain.save();
-      
+
       return domain;
     } catch (err) {
       throw new Error(`Error verifying domain: ${err.message}`);

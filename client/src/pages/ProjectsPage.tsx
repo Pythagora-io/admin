@@ -2,30 +2,81 @@ import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/useToast";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { MoreHorizontal, Edit, Link2, Copy, FilePlus, Trash, ExternalLink, Check, Users, Search, Upload } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { getUserProjects, deleteProjects, renameProject, getProjectAccess, updateProjectAccess, createProjectDraft, duplicateProject, deployProject } from "@/api/projects";
+import {
+  MoreHorizontal,
+  Edit,
+  Link2,
+  Copy,
+  FilePlus,
+  Trash,
+  ExternalLink,
+  Check,
+  Users,
+  Search,
+  Upload,
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  getUserProjects,
+  deleteProjects,
+  renameProject,
+  getProjectAccess,
+  updateProjectAccess,
+  createProjectDraft,
+  duplicateProject,
+  deployProject,
+} from "@/api/projects";
 import { searchUsers } from "@/api/team";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
 
 interface ProjectsPageProps {
-  type?: 'drafts' | 'deployed';
+  type?: "drafts" | "deployed";
 }
 
-export function ProjectsPage({ type = 'drafts' }: ProjectsPageProps) {
+export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
   const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
   const [isSelecting, setIsSelecting] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
-  const [projectToRename, setProjectToRename] = useState<{ id: string, title: string } | null>(null);
+  const [projectToRename, setProjectToRename] = useState<{
+    id: string;
+    title: string;
+  } | null>(null);
   const [newProjectTitle, setNewProjectTitle] = useState("");
   const [isRenaming, setIsRenaming] = useState(false);
   const [isDeploying, setIsDeploying] = useState(false);
@@ -44,7 +95,7 @@ export function ProjectsPage({ type = 'drafts' }: ProjectsPageProps) {
   const navigate = useNavigate();
 
   // Set page title based on type
-  const pageTitle = type === 'drafts' ? 'Draft Projects' : 'Deployed Projects';
+  const pageTitle = type === "drafts" ? "Draft Projects" : "Deployed Projects";
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -67,7 +118,7 @@ export function ProjectsPage({ type = 'drafts' }: ProjectsPageProps) {
 
   const toggleProjectSelection = (projectId: string) => {
     if (selectedProjects.includes(projectId)) {
-      setSelectedProjects(selectedProjects.filter(id => id !== projectId));
+      setSelectedProjects(selectedProjects.filter((id) => id !== projectId));
     } else {
       setSelectedProjects([...selectedProjects, projectId]);
     }
@@ -85,7 +136,9 @@ export function ProjectsPage({ type = 'drafts' }: ProjectsPageProps) {
       await deleteProjects({ projectIds: selectedProjects });
 
       // Update local state
-      setProjects(projects.filter(project => !selectedProjects.includes(project._id)));
+      setProjects(
+        projects.filter((project) => !selectedProjects.includes(project._id)),
+      );
 
       toast({
         title: "Success",
@@ -109,7 +162,7 @@ export function ProjectsPage({ type = 'drafts' }: ProjectsPageProps) {
       const response = await createProjectDraft({
         title: "New Project",
         description: "Enter project description here",
-        visibility: "private"
+        visibility: "private",
       });
 
       // Refresh the projects list
@@ -137,14 +190,18 @@ export function ProjectsPage({ type = 'drafts' }: ProjectsPageProps) {
 
     setIsRenaming(true);
     try {
-      const response = await renameProject(projectToRename.id, { title: newProjectTitle });
+      const response = await renameProject(projectToRename.id, {
+        title: newProjectTitle,
+      });
 
       // Update local state
-      setProjects(projects.map(project =>
-        project._id === projectToRename.id
-          ? { ...project, title: newProjectTitle }
-          : project
-      ));
+      setProjects(
+        projects.map((project) =>
+          project._id === projectToRename.id
+            ? { ...project, title: newProjectTitle }
+            : project,
+        ),
+      );
 
       toast({
         title: "Success",
@@ -178,8 +235,10 @@ export function ProjectsPage({ type = 'drafts' }: ProjectsPageProps) {
       });
 
       // If we're on the drafts page, remove the project from the list
-      if (type === 'drafts') {
-        setProjects(projects.filter(project => project._id !== projectToDeploy));
+      if (type === "drafts") {
+        setProjects(
+          projects.filter((project) => project._id !== projectToDeploy),
+        );
       }
 
       setDeployConfirmOpen(false);
@@ -224,9 +283,9 @@ export function ProjectsPage({ type = 'drafts' }: ProjectsPageProps) {
     try {
       const response = await searchUsers(query);
       // Filter out users that are already in projectUsers
-      const existingUserIds = projectUsers.map(p => p._id);
+      const existingUserIds = projectUsers.map((p) => p._id);
       setUserSearchResults(
-        response.users.filter(user => !existingUserIds.includes(user._id))
+        response.users.filter((user) => !existingUserIds.includes(user._id)),
       );
     } catch (error) {
       toast({
@@ -239,16 +298,18 @@ export function ProjectsPage({ type = 'drafts' }: ProjectsPageProps) {
 
   const addUserToProject = (user: any) => {
     // Add user to projectUsers with 'view' access as default
-    setProjectUsers([...projectUsers, { ...user, access: 'view' }]);
+    setProjectUsers([...projectUsers, { ...user, access: "view" }]);
     // Clear search results
     setUserSearchResults([]);
     setUserSearchQuery("");
   };
 
-  const handleAccessChange = (userId: string, access: 'view' | 'edit') => {
-    setProjectUsers(projectUsers.map(user =>
-      user._id === userId ? { ...user, access } : user
-    ));
+  const handleAccessChange = (userId: string, access: "view" | "edit") => {
+    setProjectUsers(
+      projectUsers.map((user) =>
+        user._id === userId ? { ...user, access } : user,
+      ),
+    );
   };
 
   const saveAccessChanges = async () => {
@@ -256,9 +317,9 @@ export function ProjectsPage({ type = 'drafts' }: ProjectsPageProps) {
 
     setSavingAccess(true);
     try {
-      const usersToUpdate = projectUsers.map(u => ({
+      const usersToUpdate = projectUsers.map((u) => ({
         id: u._id,
-        access: u.access
+        access: u.access,
       }));
 
       await updateProjectAccess(selectedProject._id, { users: usersToUpdate });
@@ -280,22 +341,24 @@ export function ProjectsPage({ type = 'drafts' }: ProjectsPageProps) {
   };
 
   const handleProjectAction = (action: string, projectId: string) => {
-    const project = projects.find(p => p._id === projectId);
+    const project = projects.find((p) => p._id === projectId);
 
     if (!project) return;
 
     switch (action) {
-      case 'open':
-        window.open(`/editor/${projectId}`, '_blank');
+      case "open":
+        window.open(`/editor/${projectId}`, "_blank");
         break;
-      case 'copy-link':
-        navigator.clipboard.writeText(`${window.location.origin}/p/${projectId}`);
+      case "copy-link":
+        navigator.clipboard.writeText(
+          `${window.location.origin}/p/${projectId}`,
+        );
         toast({
           title: "Link Copied",
           description: "Project link copied to clipboard",
         });
         break;
-      case 'duplicate':
+      case "duplicate":
         // Show toast immediately
         toast({
           title: "Duplicating Project",
@@ -304,18 +367,19 @@ export function ProjectsPage({ type = 'drafts' }: ProjectsPageProps) {
 
         // Use Promise chaining instead of await
         duplicateProject(projectId)
-          .then(response => {
+          .then((response) => {
             // Refresh the projects list
-            return getUserProjects(type).then(updatedResponse => {
+            return getUserProjects(type).then((updatedResponse) => {
               setProjects(updatedResponse.projects);
 
               toast({
                 title: "Success",
-                description: response.message || "Project duplicated successfully",
+                description:
+                  response.message || "Project duplicated successfully",
               });
             });
           })
-          .catch(error => {
+          .catch((error) => {
             toast({
               variant: "destructive",
               title: "Error",
@@ -323,25 +387,25 @@ export function ProjectsPage({ type = 'drafts' }: ProjectsPageProps) {
             });
           });
         break;
-      case 'rename':
+      case "rename":
         setProjectToRename({ id: projectId, title: project.title });
         setNewProjectTitle(project.title);
         setRenameDialogOpen(true);
         break;
-      case 'deploy':
+      case "deploy":
         setProjectToDeploy(projectId);
         setDeployConfirmOpen(true);
         break;
-      case 'unpublish':
+      case "unpublish":
         toast({
           title: "Feature Coming Soon",
           description: "Project unpublishing will be available shortly",
         });
         break;
-      case 'manage-access':
+      case "manage-access":
         openAccessManagement(project);
         break;
-      case 'delete':
+      case "delete":
         setSelectedProjects([projectId]);
         setDeleteConfirmOpen(true);
         break;
@@ -354,26 +418,26 @@ export function ProjectsPage({ type = 'drafts' }: ProjectsPageProps) {
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
     if (diffInSeconds < 60) {
-      return 'just now';
+      return "just now";
     }
 
     const diffInMinutes = Math.floor(diffInSeconds / 60);
     if (diffInMinutes < 60) {
-      return `${diffInMinutes} minute${diffInMinutes > 1 ? 's' : ''} ago`;
+      return `${diffInMinutes} minute${diffInMinutes > 1 ? "s" : ""} ago`;
     }
 
     const diffInHours = Math.floor(diffInMinutes / 60);
     if (diffInHours < 24) {
-      return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+      return `${diffInHours} hour${diffInHours > 1 ? "s" : ""} ago`;
     }
 
     const diffInDays = Math.floor(diffInHours / 24);
     if (diffInDays < 30) {
-      return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
+      return `${diffInDays} day${diffInDays > 1 ? "s" : ""} ago`;
     }
 
     const diffInMonths = Math.floor(diffInDays / 30);
-    return `${diffInMonths} month${diffInMonths > 1 ? 's' : ''} ago`;
+    return `${diffInMonths} month${diffInMonths > 1 ? "s" : ""} ago`;
   };
 
   if (loading) {
@@ -394,10 +458,7 @@ export function ProjectsPage({ type = 'drafts' }: ProjectsPageProps) {
         <div className="flex gap-2">
           {isSelecting ? (
             <>
-              <Button
-                variant="outline"
-                onClick={handleSelectMode}
-              >
+              <Button variant="outline" onClick={handleSelectMode}>
                 Cancel
               </Button>
               <Button
@@ -410,10 +471,7 @@ export function ProjectsPage({ type = 'drafts' }: ProjectsPageProps) {
             </>
           ) : (
             <>
-              <Button
-                variant="outline"
-                onClick={handleSelectMode}
-              >
+              <Button variant="outline" onClick={handleSelectMode}>
                 Select
               </Button>
               <Button onClick={handleNewProject}>
@@ -446,9 +504,16 @@ export function ProjectsPage({ type = 'drafts' }: ProjectsPageProps) {
               <Card
                 key={project._id}
                 className={`overflow-hidden transition-all ${
-                  isSelecting ? "ring-2 ring-offset-2 " + (selectedProjects.includes(project._id) ? "ring-primary" : "ring-transparent") : ""
+                  isSelecting
+                    ? "ring-2 ring-offset-2 " +
+                      (selectedProjects.includes(project._id)
+                        ? "ring-primary"
+                        : "ring-transparent")
+                    : ""
                 }`}
-                onClick={() => isSelecting && toggleProjectSelection(project._id)}
+                onClick={() =>
+                  isSelecting && toggleProjectSelection(project._id)
+                }
               >
                 <div className="relative">
                   <div className="absolute top-2 right-2 z-10">
@@ -465,41 +530,71 @@ export function ProjectsPage({ type = 'drafts' }: ProjectsPageProps) {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-[180px]">
-                          <DropdownMenuItem onClick={() => handleProjectAction("open", project._id)}>
+                          <DropdownMenuItem
+                            onClick={() =>
+                              handleProjectAction("open", project._id)
+                            }
+                          >
                             <ExternalLink className="mr-2 h-4 w-4" />
                             Open
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleProjectAction("copy-link", project._id)}>
+                          <DropdownMenuItem
+                            onClick={() =>
+                              handleProjectAction("copy-link", project._id)
+                            }
+                          >
                             <Link2 className="mr-2 h-4 w-4" />
                             Copy Link
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleProjectAction("duplicate", project._id)}>
+                          <DropdownMenuItem
+                            onClick={() =>
+                              handleProjectAction("duplicate", project._id)
+                            }
+                          >
                             <Copy className="mr-2 h-4 w-4" />
                             Duplicate
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleProjectAction("rename", project._id)}>
+                          <DropdownMenuItem
+                            onClick={() =>
+                              handleProjectAction("rename", project._id)
+                            }
+                          >
                             <Edit className="mr-2 h-4 w-4" />
                             Rename
                           </DropdownMenuItem>
-                          {type === 'drafts' && (
-                            <DropdownMenuItem onClick={() => handleProjectAction("deploy", project._id)}>
+                          {type === "drafts" && (
+                            <DropdownMenuItem
+                              onClick={() =>
+                                handleProjectAction("deploy", project._id)
+                              }
+                            >
                               <Upload className="mr-2 h-4 w-4" />
                               Deploy
                             </DropdownMenuItem>
                           )}
-                          {type === 'deployed' && (
-                            <DropdownMenuItem onClick={() => handleProjectAction("unpublish", project._id)}>
+                          {type === "deployed" && (
+                            <DropdownMenuItem
+                              onClick={() =>
+                                handleProjectAction("unpublish", project._id)
+                              }
+                            >
                               <ExternalLink className="mr-2 h-4 w-4" />
                               Unpublish
                             </DropdownMenuItem>
                           )}
-                          <DropdownMenuItem onClick={() => handleProjectAction("manage-access", project._id)}>
+                          <DropdownMenuItem
+                            onClick={() =>
+                              handleProjectAction("manage-access", project._id)
+                            }
+                          >
                             <Users className="mr-2 h-4 w-4" />
                             Manage Access
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             className="text-red-500 focus:text-red-500 focus:bg-red-50 dark:focus:bg-red-950/50"
-                            onClick={() => handleProjectAction("delete", project._id)}
+                            onClick={() =>
+                              handleProjectAction("delete", project._id)
+                            }
                           >
                             <Trash className="mr-2 h-4 w-4" />
                             Delete
@@ -521,8 +616,12 @@ export function ProjectsPage({ type = 'drafts' }: ProjectsPageProps) {
                         Edited {formatTimeAgo(project.lastEdited)}
                       </p>
                     </div>
-                    <Badge variant={project.visibility === 'private' ? 'outline' : 'default'}>
-                      {project.visibility === 'private' ? 'Private' : 'Public'}
+                    <Badge
+                      variant={
+                        project.visibility === "private" ? "outline" : "default"
+                      }
+                    >
+                      {project.visibility === "private" ? "Private" : "Public"}
                     </Badge>
                   </div>
                 </CardContent>
@@ -536,9 +635,15 @@ export function ProjectsPage({ type = 'drafts' }: ProjectsPageProps) {
       <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Project{selectedProjects.length > 1 ? 's' : ''}</AlertDialogTitle>
+            <AlertDialogTitle>
+              Delete Project{selectedProjects.length > 1 ? "s" : ""}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete {selectedProjects.length === 1 ? 'this project' : `these ${selectedProjects.length} projects`}? This action cannot be undone.
+              Are you sure you want to delete{" "}
+              {selectedProjects.length === 1
+                ? "this project"
+                : `these ${selectedProjects.length} projects`}
+              ? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -576,7 +681,10 @@ export function ProjectsPage({ type = 'drafts' }: ProjectsPageProps) {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setRenameDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setRenameDialogOpen(false)}
+            >
               Cancel
             </Button>
             <Button
@@ -595,17 +703,15 @@ export function ProjectsPage({ type = 'drafts' }: ProjectsPageProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Deploy Project</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to deploy this project? The project will be accessible to others based on your visibility settings.
+              Are you sure you want to deploy this project? The project will be
+              accessible to others based on your visibility settings.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setDeployConfirmOpen(false)}>
               Cancel
             </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeploy}
-              disabled={isDeploying}
-            >
+            <AlertDialogAction onClick={handleDeploy} disabled={isDeploying}>
               {isDeploying ? "Deploying..." : "Deploy"}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -613,7 +719,10 @@ export function ProjectsPage({ type = 'drafts' }: ProjectsPageProps) {
       </AlertDialog>
 
       {/* Access Management Dialog */}
-      <Dialog open={accessManagementOpen} onOpenChange={setAccessManagementOpen}>
+      <Dialog
+        open={accessManagementOpen}
+        onOpenChange={setAccessManagementOpen}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Manage Project Access</DialogTitle>
@@ -648,7 +757,8 @@ export function ProjectsPage({ type = 'drafts' }: ProjectsPageProps) {
             <div className="space-y-3 max-h-60 overflow-auto">
               {projectUsers.length === 0 ? (
                 <p className="text-center text-muted-foreground py-4">
-                  No users have access to this project yet. Search and add users above.
+                  No users have access to this project yet. Search and add users
+                  above.
                 </p>
               ) : (
                 projectUsers.map((user) => (
@@ -658,12 +768,14 @@ export function ProjectsPage({ type = 'drafts' }: ProjectsPageProps) {
                   >
                     <div>
                       <p className="font-medium">{user.name}</p>
-                      <p className="text-sm text-muted-foreground">{user.email}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {user.email}
+                      </p>
                     </div>
                     <Select
                       defaultValue={user.access}
                       onValueChange={(value) =>
-                        handleAccessChange(user._id, value as 'view' | 'edit')
+                        handleAccessChange(user._id, value as "view" | "edit")
                       }
                     >
                       <SelectTrigger className="w-[100px]">
@@ -680,13 +792,13 @@ export function ProjectsPage({ type = 'drafts' }: ProjectsPageProps) {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setAccessManagementOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setAccessManagementOpen(false)}
+            >
               Cancel
             </Button>
-            <Button
-              onClick={saveAccessChanges}
-              disabled={savingAccess}
-            >
+            <Button onClick={saveAccessChanges} disabled={savingAccess}>
               {savingAccess ? "Saving..." : "Save Changes"}
             </Button>
           </DialogFooter>

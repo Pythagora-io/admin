@@ -1,12 +1,42 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/useToast";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { getCurrentUser, updateUserEmail, updateUserPassword, updateEmailPreferences } from "@/api/user";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  getCurrentUser,
+  updateUserEmail,
+  updateUserPassword,
+  updateEmailPreferences,
+} from "@/api/user";
 import { Checkbox } from "@/components/ui/checkbox";
 
 export function AccountPage() {
@@ -54,13 +84,14 @@ export function AccountPage() {
     try {
       const response = await updateUserEmail({ email: newEmail });
       // Update the user state with the new email
-      setUser(prevUser => ({
+      setUser((prevUser) => ({
         ...prevUser,
-        email: newEmail
+        email: newEmail,
       }));
       toast({
         title: "Success",
-        description: response.message || "Email update confirmation has been sent",
+        description:
+          response.message || "Email update confirmation has been sent",
       });
       setEmailChangeOpen(false);
       setNewEmail("");
@@ -117,7 +148,9 @@ export function AccountPage() {
   const handleReceiveUpdatesChange = async (checked: boolean) => {
     setReceiveUpdates(checked);
     try {
-      const response = await updateEmailPreferences({ receiveUpdates: checked });
+      const response = await updateEmailPreferences({
+        receiveUpdates: checked,
+      });
       toast({
         title: "Preference Updated",
         description: checked
@@ -147,7 +180,9 @@ export function AccountPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Account</h1>
-        <p className="text-muted-foreground">Manage your account details and password</p>
+        <p className="text-muted-foreground">
+          Manage your account details and password
+        </p>
       </div>
 
       <Card>
@@ -161,7 +196,7 @@ export function AccountPage() {
             <div className="flex items-center gap-2">
               <Input
                 id="email"
-                value={user?.email || 'Loading...'}
+                value={user?.email || "Loading..."}
                 readOnly
                 className="flex-1 bg-muted"
               />
@@ -173,7 +208,8 @@ export function AccountPage() {
                   <DialogHeader>
                     <DialogTitle>Change Email Address</DialogTitle>
                     <DialogDescription>
-                      Enter your new email address. A confirmation email will be sent to your current email address.
+                      Enter your new email address. A confirmation email will be
+                      sent to your current email address.
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4 py-4">
@@ -188,7 +224,10 @@ export function AccountPage() {
                     </div>
                   </div>
                   <DialogFooter>
-                    <Button variant="outline" onClick={() => setEmailChangeOpen(false)}>
+                    <Button
+                      variant="outline"
+                      onClick={() => setEmailChangeOpen(false)}
+                    >
                       Cancel
                     </Button>
                     <Button onClick={handleEmailUpdate}>Request Change</Button>
@@ -215,7 +254,10 @@ export function AccountPage() {
           <CardDescription>Update your password</CardDescription>
         </CardHeader>
         <CardContent>
-          <Dialog open={passwordChangeOpen} onOpenChange={setPasswordChangeOpen}>
+          <Dialog
+            open={passwordChangeOpen}
+            onOpenChange={setPasswordChangeOpen}
+          >
             <DialogTrigger asChild>
               <Button variant="outline">Change Password</Button>
             </DialogTrigger>
@@ -259,7 +301,10 @@ export function AccountPage() {
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setPasswordChangeOpen(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setPasswordChangeOpen(false)}
+                >
                   Cancel
                 </Button>
                 <Button onClick={handlePasswordUpdate}>Update Password</Button>
