@@ -7,8 +7,8 @@ import { useToast } from "@/hooks/useToast";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { Trash, ExternalLink, PlusCircle, Globe } from "lucide-react";
-import { getUserDomains, addDomain, deleteDomain } from "@/api/domains";
+import { Trash, ExternalLink, PlusCircle, Globe, CheckCircle } from "lucide-react";
+import { getUserDomains, addDomain, deleteDomain, verifyDomain } from "@/api/domains";
 
 export function DomainsPage() {
   const [domains, setDomains] = useState<any[]>([]);
@@ -17,6 +17,7 @@ export function DomainsPage() {
   const [addDomainOpen, setAddDomainOpen] = useState(false);
   const [domainToDelete, setDomainToDelete] = useState<string | null>(null);
   const [deleteDomainDialogOpen, setDeleteDomainDialogOpen] = useState(false);
+  const [verifyingDomain, setVerifyingDomain] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -92,6 +93,29 @@ export function DomainsPage() {
     } finally {
       setDeleteDomainDialogOpen(false);
       setDomainToDelete(null);
+    }
+  };
+
+  const handleVerifyDomain = async (domainId: string) => {
+    setVerifyingDomain(domainId);
+    try {
+      const response = await verifyDomain(domainId);
+      // Update the domain in the local state
+      setDomains(domains.map(domain => 
+        domain._id === domainId ? { ...domain, verified: true } : domain
+      ));
+      toast({
+        title: "Success",
+        description: response.message || "Domain verified successfully",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Failed to verify domain",
+      });
+    } finally {
+      setVerifyingDomain(null);
     }
   };
 
@@ -197,6 +221,22 @@ export function DomainsPage() {
                   )}
                 </div>
                 <div className="flex gap-2">
+                  {!domain.verified && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleVerifyDomain(domain._id)}
+                      disabled={verifyingDomain === domain._id}
+                      className="text-green-600 border-green-200 hover:bg-green-50 hover:text-green-700 dark:border-green-800 dark:hover:bg-green-900/20"
+                    >
+                      {verifyingDomain === domain._id ? (
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-green-500 border-t-transparent" />
+                      ) : (
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                      )}
+                      Verify
+                    </Button>
+                  )}
                   <Button
                     variant="ghost"
                     size="icon"

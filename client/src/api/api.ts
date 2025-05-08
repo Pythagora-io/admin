@@ -1,8 +1,6 @@
 import axios, { AxiosRequestConfig, AxiosError } from 'axios';
 import JSONbig from 'json-bigint';
 
-
-
 const localApi = axios.create({
   headers: {
     'Content-Type': 'application/json',
@@ -13,11 +11,11 @@ const localApi = axios.create({
   transformResponse: [(data) => JSONbig.parse(data)]
 });
 
-
-
 let accessToken: string | null = null;
 
 const getApiInstance = (url: string) => {
+  console.log('Getting API instance for URL:', url);
+  console.log('Current access token exists:', !!accessToken);
   return localApi;
 };
 
@@ -28,12 +26,18 @@ const isAuthEndpoint = (url: string): boolean => {
 const setupInterceptors = (apiInstance: typeof axios) => {
   apiInstance.interceptors.request.use(
     (config: AxiosRequestConfig): AxiosRequestConfig => {
-
+      console.log('Making request to:', config.url);
+      
       if (!accessToken) {
         accessToken = localStorage.getItem('accessToken');
+        console.log('Retrieved token from localStorage:', !!accessToken);
       }
+      
       if (accessToken && config.headers) {
         config.headers.Authorization = `Bearer ${accessToken}`;
+        console.log('Added Authorization header');
+      } else {
+        console.log('No token available for request');
       }
 
       return config;
@@ -41,7 +45,7 @@ const setupInterceptors = (apiInstance: typeof axios) => {
     (error: AxiosError): Promise<AxiosError> => Promise.reject(error)
   );
 
-    apiInstance.interceptors.response.use(
+  apiInstance.interceptors.response.use(
     (response) => response,
     async (error: AxiosError): Promise<any> => {
       const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
@@ -78,8 +82,6 @@ const setupInterceptors = (apiInstance: typeof axios) => {
 };
 
 setupInterceptors(localApi);
-
-
 
 const api = {
   request: (config: AxiosRequestConfig) => {

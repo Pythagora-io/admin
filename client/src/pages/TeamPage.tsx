@@ -31,9 +31,13 @@ export function TeamPage() {
   useEffect(() => {
     const fetchMembers = async () => {
       try {
+        console.log("Fetching team members...");
         const response = await getTeamMembers();
+        console.log("Team members response:", response);
+        console.log("Members array:", response.members);
         setMembers(response.members);
       } catch (error) {
+        console.error("Error in fetchMembers:", error);
         toast({
           variant: "destructive",
           title: "Error",
@@ -62,6 +66,11 @@ export function TeamPage() {
     setSendingInvite(true);
     try {
       const response = await inviteTeamMember({ email: inviteEmail });
+      
+      // Fetch the updated team members list after successful invitation
+      const updatedMembers = await getTeamMembers();
+      setMembers(updatedMembers.members);
+      
       toast({
         title: "Success",
         description: response.message || "Invitation sent successfully",

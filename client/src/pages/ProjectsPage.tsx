@@ -7,9 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { MoreHorizontal, Edit, Link2, Copy, FilePlus, Trash, ExternalLink, Check, Users, Search } from "lucide-react";
+import { MoreHorizontal, Edit, Link2, Copy, FilePlus, Trash, ExternalLink, Check, Users, Search, Upload } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { getUserProjects, deleteProjects, renameProject, getProjectAccess, updateProjectAccess } from "@/api/projects";
+import { getUserProjects, deleteProjects, renameProject, getProjectAccess, updateProjectAccess, createProjectDraft, duplicateProject, deployProject } from "@/api/projects";
 import { searchUsers } from "@/api/team";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
@@ -28,6 +28,9 @@ export function ProjectsPage({ type = 'drafts' }: ProjectsPageProps) {
   const [projectToRename, setProjectToRename] = useState<{ id: string, title: string } | null>(null);
   const [newProjectTitle, setNewProjectTitle] = useState("");
   const [isRenaming, setIsRenaming] = useState(false);
+  const [isDeploying, setIsDeploying] = useState(false);
+  const [deployConfirmOpen, setDeployConfirmOpen] = useState(false);
+  const [projectToDeploy, setProjectToDeploy] = useState<string | null>(null);
 
   // Manage access state
   const [accessManagementOpen, setAccessManagementOpen] = useState(false);
@@ -101,8 +104,32 @@ export function ProjectsPage({ type = 'drafts' }: ProjectsPageProps) {
     }
   };
 
-  const handleNewProject = () => {
-    window.open('/editor/new', '_blank');
+  const handleNewProject = async () => {
+    try {
+      const response = await createProjectDraft({
+        title: "New Project",
+        description: "Enter project description here",
+        visibility: "private"
+      });
+
+      // Refresh the projects list
+      const updatedResponse = await getUserProjects(type);
+      setProjects(updatedResponse.projects);
+
+      toast({
+        title: "Success",
+        description: "New project created successfully",
+      });
+
+      // You could also navigate to an editor with the new project ID
+      // navigate(`/editor/${response.project._id}`);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Failed to create new project",
+      });
+    }
   };
 
   const handleRename = async () => {
@@ -135,6 +162,36 @@ export function ProjectsPage({ type = 'drafts' }: ProjectsPageProps) {
       });
     } finally {
       setIsRenaming(false);
+    }
+  };
+
+  const handleDeploy = async () => {
+    if (!projectToDeploy) return;
+
+    setIsDeploying(true);
+    try {
+      const response = await deployProject(projectToDeploy);
+
+      toast({
+        title: "Success",
+        description: response.message || "Project deployed successfully",
+      });
+
+      // If we're on the drafts page, remove the project from the list
+      if (type === 'drafts') {
+        setProjects(projects.filter(project => project._id !== projectToDeploy));
+      }
+
+      setDeployConfirmOpen(false);
+      setProjectToDeploy(null);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Failed to deploy project",
+      });
+    } finally {
+      setIsDeploying(false);
     }
   };
 
@@ -239,15 +296,41 @@ export function ProjectsPage({ type = 'drafts' }: ProjectsPageProps) {
         });
         break;
       case 'duplicate':
+        // Show toast immediately
         toast({
           title: "Duplicating Project",
           description: "Creating a copy of your project...",
         });
+
+        // Use Promise chaining instead of await
+        duplicateProject(projectId)
+          .then(response => {
+            // Refresh the projects list
+            return getUserProjects(type).then(updatedResponse => {
+              setProjects(updatedResponse.projects);
+
+              toast({
+                title: "Success",
+                description: response.message || "Project duplicated successfully",
+              });
+            });
+          })
+          .catch(error => {
+            toast({
+              variant: "destructive",
+              title: "Error",
+              description: error.message || "Failed to duplicate project",
+            });
+          });
         break;
       case 'rename':
         setProjectToRename({ id: projectId, title: project.title });
         setNewProjectTitle(project.title);
         setRenameDialogOpen(true);
+        break;
+      case 'deploy':
+        setProjectToDeploy(projectId);
+        setDeployConfirmOpen(true);
         break;
       case 'unpublish':
         toast({
@@ -398,6 +481,12 @@ export function ProjectsPage({ type = 'drafts' }: ProjectsPageProps) {
                             <Edit className="mr-2 h-4 w-4" />
                             Rename
                           </DropdownMenuItem>
+                          {type === 'drafts' && (
+                            <DropdownMenuItem onClick={() => handleProjectAction("deploy", project._id)}>
+                              <Upload className="mr-2 h-4 w-4" />
+                              Deploy
+                            </DropdownMenuItem>
+                          )}
                           {type === 'deployed' && (
                             <DropdownMenuItem onClick={() => handleProjectAction("unpublish", project._id)}>
                               <ExternalLink className="mr-2 h-4 w-4" />
@@ -490,7 +579,7 @@ export function ProjectsPage({ type = 'drafts' }: ProjectsPageProps) {
             <Button variant="outline" onClick={() => setRenameDialogOpen(false)}>
               Cancel
             </Button>
-            <Button 
+            <Button
               onClick={handleRename}
               disabled={isRenaming || !newProjectTitle.trim()}
             >
@@ -499,6 +588,29 @@ export function ProjectsPage({ type = 'drafts' }: ProjectsPageProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Deploy Confirmation Dialog */}
+      <AlertDialog open={deployConfirmOpen} onOpenChange={setDeployConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Deploy Project</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to deploy this project? The project will be accessible to others based on your visibility settings.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeployConfirmOpen(false)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeploy}
+              disabled={isDeploying}
+            >
+              {isDeploying ? "Deploying..." : "Deploy"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Access Management Dialog */}
       <Dialog open={accessManagementOpen} onOpenChange={setAccessManagementOpen}>

@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/useToast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { getCurrentUser, updateUserEmail, updateUserPassword } from "@/api/user";
+import { getCurrentUser, updateUserEmail, updateUserPassword, updateEmailPreferences } from "@/api/user";
 import { Checkbox } from "@/components/ui/checkbox";
 
 export function AccountPage() {
@@ -26,8 +26,6 @@ export function AccountPage() {
       try {
         const { user } = await getCurrentUser();
         setUser(user);
-        // Assuming the user object might have a receiveUpdates field
-        // If not, it will default to false
         setReceiveUpdates(user.receiveUpdates || false);
       } catch (error) {
         toast({
@@ -55,6 +53,11 @@ export function AccountPage() {
 
     try {
       const response = await updateUserEmail({ email: newEmail });
+      // Update the user state with the new email
+      setUser(prevUser => ({
+        ...prevUser,
+        email: newEmail
+      }));
       toast({
         title: "Success",
         description: response.message || "Email update confirmation has been sent",
@@ -111,16 +114,25 @@ export function AccountPage() {
     }
   };
 
-  const handleReceiveUpdatesChange = (checked: boolean) => {
+  const handleReceiveUpdatesChange = async (checked: boolean) => {
     setReceiveUpdates(checked);
-    // Here you would typically call an API to update this preference
-    // For now, we'll just show a toast notification
-    toast({
-      title: "Preference Updated",
-      description: checked
-        ? "You will now receive email updates"
-        : "You will no longer receive email updates",
-    });
+    try {
+      const response = await updateEmailPreferences({ receiveUpdates: checked });
+      toast({
+        title: "Preference Updated",
+        description: checked
+          ? "You will now receive email updates"
+          : "You will no longer receive email updates",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Failed to update email preferences",
+      });
+      // Revert the UI state if the API call fails
+      setReceiveUpdates(!checked);
+    }
   };
 
   if (loading) {
@@ -147,7 +159,12 @@ export function AccountPage() {
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <div className="flex items-center gap-2">
-              <Input id="email" value={user.email} readOnly className="flex-1 bg-muted" />
+              <Input
+                id="email"
+                value={user?.email || 'Loading...'}
+                readOnly
+                className="flex-1 bg-muted"
+              />
               <Dialog open={emailChangeOpen} onOpenChange={setEmailChangeOpen}>
                 <DialogTrigger asChild>
                   <Button variant="outline">Change Email</Button>

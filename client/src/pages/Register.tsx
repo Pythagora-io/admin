@@ -18,6 +18,7 @@ import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/hooks/useToast"
 
 const registerSchema = z.object({
+  name: z.string().min(2, { message: "Name must be at least 2 characters long" }),
   email: z.string().email({ message: "Please enter a valid email address" }),
   password: z.string().min(6, { message: "Password must be at least 6 characters long" }),
   confirmPassword: z.string(),
@@ -35,6 +36,7 @@ export function Register() {
   const form = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
+      name: "",
       email: "",
       password: "",
       confirmPassword: "",
@@ -44,7 +46,7 @@ export function Register() {
   async function onSubmit(values: z.infer<typeof registerSchema>) {
     setIsLoading(true)
     try {
-      const response = await registerUser(values.email, values.password)
+      const response = await registerUser(values.name, values.email, values.password)
       localStorage.setItem("accessToken", response.accessToken)
       setIsAuthenticated(true)
       navigate("/")
@@ -94,6 +96,19 @@ export function Register() {
         <div className="bg-card border rounded-xl shadow-sm p-6">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter your name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="email"

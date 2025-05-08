@@ -1,134 +1,102 @@
 import { useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
-import { z } from "zod"
 import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
+import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { login } from "@/api/auth"
-import { useAuth } from "@/contexts/AuthContext"
+import { Label } from "@/components/ui/label"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@/components/ui/card"
 import { useToast } from "@/hooks/useToast"
+import { LogIn } from "lucide-react"
+import { useAuth } from "@/contexts/AuthContext"
 
-const loginSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address" }),
-  password: z.string().min(6, { message: "Password must be at least 6 characters long" }),
-})
+type LoginForm = {
+  email: string
+  password: string
+}
 
 export function Login() {
-  const { setIsAuthenticated } = useAuth()
-  const navigate = useNavigate()
+  const [loading, setLoading] = useState(false)
   const { toast } = useToast()
-  const [isLoading, setIsLoading] = useState(false)
+  const { login } = useAuth()
+  const navigate = useNavigate()
+  const { register, handleSubmit } = useForm<LoginForm>()
 
-  const form = useForm<z.infer<typeof loginSchema>>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-  })
-
-  async function onSubmit(values: z.infer<typeof loginSchema>) {
-    setIsLoading(true)
+  const onSubmit = async (data: LoginForm) => {
     try {
-      const response = await login(values.email, values.password)
-      localStorage.setItem("accessToken", response.accessToken)
-      localStorage.setItem("refreshToken", response.refreshToken)
-      setIsAuthenticated(true)
+      setLoading(true)
+      await login(data.email, data.password);
+      toast({
+        title: "Success",
+        description: "Logged in successfully",
+      })
       navigate("/")
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Login failed",
-        description: error.message || "Invalid email or password",
+        title: "Error",
+        description: error?.message,
       })
     } finally {
-      setIsLoading(false)
+      setLoading(false)
     }
   }
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center px-4">
-      {/* Background image with blur */}
-      <div 
-        className="fixed inset-0 w-[95%] h-[95%] m-auto -z-10 bg-cover bg-center rounded-xl"
-        style={{ 
-          backgroundImage: "url('/images/abstract-bg.jpg')",
-          filter: "blur(8px)",
-          opacity: 0.15
-        }}
-      ></div>
-
-      <div className="w-full max-w-md space-y-8 mx-auto">
-        <div className="flex flex-col items-center text-center space-y-2">
-          <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/10">
-            <svg viewBox="0 0 24 24" className="h-6 w-6 text-primary" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2.00001 17.5228 6.47716 22 12 22Z" fill="currentColor" fillOpacity="0.2" />
-              <path d="M15.5 9C15.5 11.2091 13.7091 13 11.5 13H9V9C9 6.79086 10.7909 5 13 5C15.2091 5 15.5 6.79086 15.5 9Z" fill="currentColor" />
-              <path d="M9 13H11.5C13.7091 13 15.5 14.7909 15.5 17C15.5 19.2091 13.2091 20 11 20C8.79086 20 9 18.2091 9 16V13Z" fill="currentColor" />
-            </svg>
-          </div>
-          <h1 className="text-2xl font-bold">Welcome to Pythagora</h1>
-          <p className="text-muted-foreground">
-            Enter your credentials to access your account
-          </p>
-        </div>
-
-        <div className="bg-card border rounded-xl shadow-sm p-6">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter your email" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-secondary p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle>Welcome back</CardTitle>
+          <CardDescription>Enter your credentials to continue</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="Enter your email"
+                {...register("email", { required: true })}
               />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input type="password" placeholder="Enter your password" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="Enter your password"
+                {...register("password", { required: true })}
               />
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Signing in..." : "Sign In"}
-              </Button>
-            </form>
-          </Form>
-          <div className="mt-4 text-center text-sm">
-            <p>
-              Don't have an account?{" "}
-              <Link
-                to="/register"
-                className="underline underline-offset-4 hover:text-primary"
-              >
-                Sign up
-              </Link>
-            </p>
-          </div>
-        </div>
-      </div>
+            </div>
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? (
+                "Loading..."
+              ) : (
+                <>
+                  <LogIn className="mr-2 h-4 w-4" />
+                  Sign In
+                </>
+              )}
+            </Button>
+          </form>
+        </CardContent>
+        <CardFooter className="flex justify-center">
+          <Button
+            variant="link"
+            className="text-sm text-muted-foreground"
+            onClick={() => navigate("/register")}
+          >
+            Don't have an account? Sign up
+          </Button>
+        </CardFooter>
+      </Card>
     </div>
   )
 }

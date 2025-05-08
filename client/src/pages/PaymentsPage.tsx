@@ -12,8 +12,23 @@ import { updateBillingInfo } from "@/api/user";
 
 export function PaymentsPage() {
   const [payments, setPayments] = useState<any[]>([]);
-  const [billingInfo, setBillingInfo] = useState<any>(null);
-  const [companyInfo, setCompanyInfo] = useState<any>(null);
+  const [billingInfo, setBillingInfo] = useState<any>({
+    name: '',
+    address: '',
+    city: '',
+    state: '',
+    zip: '',
+    country: ''
+  });
+  const [companyInfo, setCompanyInfo] = useState<any>({
+    name: '',
+    address: '',
+    city: '',
+    state: '',
+    zip: '',
+    country: '',
+    taxId: ''
+  });
   const [loading, setLoading] = useState(true);
   const [editBillingOpen, setEditBillingOpen] = useState(false);
   const [formBillingInfo, setFormBillingInfo] = useState<any>({
@@ -35,13 +50,24 @@ export function PaymentsPage() {
           getCompanyBillingInfo()
         ]);
 
-        setPayments(paymentsData.payments);
-        setBillingInfo(billingData.billingInfo);
-        setCompanyInfo(companyData.companyInfo);
+        console.log('Payments data:', paymentsData);
+        console.log('Billing data:', billingData);
+        console.log('Company data:', companyData);
 
-        // Initialize form with current billing info
-        setFormBillingInfo(billingData.billingInfo);
+        setPayments(paymentsData.payments || []);
+        
+        // Guard against null billing info
+        if (billingData && billingData.billingInfo) {
+          setBillingInfo(billingData.billingInfo);
+          setFormBillingInfo(billingData.billingInfo);
+        }
+        
+        // Guard against null company info
+        if (companyData && companyData.companyInfo) {
+          setCompanyInfo(companyData.companyInfo);
+        }
       } catch (error) {
+        console.error('Error fetching data:', error);
         toast({
           variant: "destructive",
           title: "Error",

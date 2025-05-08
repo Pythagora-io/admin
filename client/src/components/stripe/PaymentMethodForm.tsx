@@ -104,8 +104,8 @@ export function PaymentMethodForm({
             Cancel
           </Button>
         )}
-        <Button 
-          type="submit" 
+        <Button
+          type="submit"
           disabled={!stripe || processing || isProcessing}
         >
           {processing || isProcessing ? "Processing..." : buttonText}

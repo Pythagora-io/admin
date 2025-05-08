@@ -1,11 +1,11 @@
-
 import { createContext, useContext, useState, ReactNode } from "react";
 import { login as apiLogin, register as apiRegister } from "@/api/auth";
 
 type AuthContextType = {
   isAuthenticated: boolean;
+  setIsAuthenticated: (value: boolean) => void;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
 };
 
@@ -24,7 +24,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem("accessToken", response.accessToken);
         setIsAuthenticated(true);
       } else {
-        throw new Error(error?.response?.data?.message || 'Login failed');
+        throw new Error('Login failed');
       }
     } catch (error) {
       localStorage.removeItem("refreshToken");
@@ -34,9 +34,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const register = async (email: string, password: string) => {
+  const register = async (name: string, email: string, password: string) => {
     try {
-      const response = await apiRegister(email, password);
+      const response = await apiRegister(name, email, password);
+      if (response?.accessToken) {
+        localStorage.setItem("accessToken", response.accessToken);
+        setIsAuthenticated(true);
+      }
+      return response;
     } catch (error) {
       localStorage.removeItem("refreshToken");
       localStorage.removeItem("accessToken");
@@ -53,7 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, register, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, setIsAuthenticated, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );
