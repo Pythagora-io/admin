@@ -453,7 +453,7 @@ export function DashboardLayout() {
 
       <main className="relative min-h-screen flex flex-col flex-1 overflow-y-auto py-4 md:ml-48">
         <div className="flex-1 bg-background-content-glassy/80 border border-border rounded-2xl backdrop-blur-lg px-4 md:px-6 py-4 md:py-6">
-          <div className="mx-auto max-w-7xl h-full">
+          <div className="mx-auto max-w-7xl h-full px-4 md:px-14 py-4 md:py-14">
             <Outlet />
           </div>
         </div>
