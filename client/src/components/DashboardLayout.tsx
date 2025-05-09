@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import DashboardBackground from '@/assets/dashboard-background.svg';
+import DashboardBackground from "@/assets/dashboard-background.svg";
 
 import {
   Sidebar,
@@ -100,9 +100,9 @@ export function DashboardLayout() {
   const navButtonBaseClasses =
     "w-full flex items-center rounded-lg px-4 py-2.5 text-sm font-medium transition-colors duration-150";
   const navButtonInactiveClasses =
-    "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground";
-  const navButtonActiveClasses = "bg-btn-primary text-btn-primary-foreground";
-  const iconClasses = "h-5 w-5 mr-2 flex-shrink-0";
+    "text-sidebar-foreground hover:bg-sidebar-hover hover:text-sidebar-active-foreground";
+  const navButtonActiveClasses = "bg-primary text-sidebar-active-foreground";
+  const iconClasses = "h-5 w-5 mr-3 flex-shrink-0";
 
   const renderSidebarContent = () => (
     <>
@@ -119,7 +119,12 @@ export function DashboardLayout() {
                 : navButtonInactiveClasses,
             )}
           >
-            <UserCircle className={cn(iconClasses, "stroke-current")} />
+            <UserCircle
+              className={cn(
+                iconClasses,
+                location.pathname === "/" ? "text-white" : "text-sidebar-muted",
+              )}
+            />
             <span>Account</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
@@ -136,7 +141,14 @@ export function DashboardLayout() {
                 : navButtonInactiveClasses,
             )}
           >
-            <CreditCard className={cn(iconClasses, "")} />
+            <CreditCard
+              className={cn(
+                iconClasses,
+                location.pathname === "/subscription"
+                  ? "text-white"
+                  : "text-sidebar-muted",
+              )}
+            />
             <span>Subscription</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
@@ -153,7 +165,14 @@ export function DashboardLayout() {
                 : navButtonInactiveClasses,
             )}
           >
-            <FileText className={cn(iconClasses, "stroke-current")} />
+            <FileText
+              className={cn(
+                iconClasses,
+                location.pathname === "/payments"
+                  ? "text-white"
+                  : "text-sidebar-muted",
+              )}
+            />
             <span>Payments</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
@@ -170,7 +189,14 @@ export function DashboardLayout() {
                 : navButtonInactiveClasses,
             )}
           >
-            <Globe className={cn(iconClasses, "")} />
+            <Globe
+              className={cn(
+                iconClasses,
+                location.pathname === "/domains"
+                  ? "text-white"
+                  : "text-sidebar-muted",
+              )}
+            />
             <span>Domains</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
@@ -192,26 +218,36 @@ export function DashboardLayout() {
                 : navButtonInactiveClasses,
             )}
           >
-            <Layers className={cn(iconClasses, "stroke-current")} />
+            <Layers
+              className={cn(
+                iconClasses,
+                isProjectsPage ? "text-white" : "text-sidebar-muted",
+              )}
+            />
             <span>Projects</span>
           </SidebarMenuButton>
           {openSubmenu === "projects" && (
-            <SidebarMenuSub className="mt-1 ml-2 pl-6 border-l">
+            <SidebarMenuSub className="mt-1 ml-4 pl-4 border-l border-sidebar-border">
               <SidebarMenuSubItem>
                 <SidebarMenuSubButton
                   isActive={isProjectsDraftsPage}
                   onClick={() => navigateTo("/projects/drafts")}
                   className={cn(
-                    "py-1.5 px-3 text-sm font-medium rounded-md w-full flex items-center",
+                    "py-1.5 px-2 text-sm rounded-md w-full flex items-center",
                     isProjectsDraftsPage
-                      ? "text-sidebar-primary-foreground"
-                      : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                      ? "text-primary"
+                      : "text-sidebar-foreground hover:text-primary",
                   )}
                 >
                   <FileEdit
-                    className={cn(iconClasses, "h-4 w-4 stroke-current")}
+                    className={cn(
+                      "h-5 w-5 mr-2",
+                      isProjectsDraftsPage
+                        ? "text-primary"
+                        : "text-sidebar-muted group-hover:text-primary",
+                    )}
                   />
-                  Drafts
+                  <span>Drafts</span>
                 </SidebarMenuSubButton>
               </SidebarMenuSubItem>
               <SidebarMenuSubItem>
@@ -219,14 +255,19 @@ export function DashboardLayout() {
                   isActive={isProjectsDeployedPage}
                   onClick={() => navigateTo("/projects/deployed")}
                   className={cn(
-                    "py-1.5 px-3 text-sm font-medium rounded-md w-full flex items-center",
+                    "py-1.5 px-2 text-sm rounded-md w-full flex items-center",
                     isProjectsDeployedPage
-                      ? "text-sidebar-primary-foreground"
-                      : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                      ? "text-primary"
+                      : "text-sidebar-foreground hover:text-primary",
                   )}
                 >
                   <ExternalLink
-                    className={cn(iconClasses, "h-4 w-4 stroke-current")}
+                    className={cn(
+                      "h-5 w-5 mr-2",
+                      isProjectsDeployedPage
+                        ? "text-primary"
+                        : "text-sidebar-muted group-hover:text-primary",
+                    )}
                   />
                   Deployed
                 </SidebarMenuSubButton>
@@ -247,7 +288,14 @@ export function DashboardLayout() {
                 : navButtonInactiveClasses,
             )}
           >
-            <Settings className={cn(iconClasses, "stroke-current")} />
+            <Settings
+              className={cn(
+                iconClasses,
+                location.pathname === "/settings"
+                  ? "text-white"
+                  : "text-sidebar-muted",
+              )}
+            />
             <span>Settings</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
@@ -264,7 +312,14 @@ export function DashboardLayout() {
                 : navButtonInactiveClasses,
             )}
           >
-            <Users className={cn(iconClasses, "stroke-current")} />
+            <Users
+              className={cn(
+                iconClasses,
+                location.pathname === "/team"
+                  ? "text-white"
+                  : "text-sidebar-muted",
+              )}
+            />
             <span>Team</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
@@ -274,10 +329,8 @@ export function DashboardLayout() {
 
   return (
     <div className="relative min-h-screen">
-      {/* <BackgroundImage /> */}
-
       <SidebarProvider>
-        <Sidebar className="hidden md:flex md:flex-col md:fixed md:inset-y-0 md:z-50 md:w-48 bg-black pl-1 py-2">
+        <Sidebar className="hidden md:flex md:flex-col md:fixed md:inset-y-0 md:z-50 md:w-48 bg-sidebar text-sidebar-foreground pl-1 py-2">
           <CustomSidebarHeader className="flex justify-start pt-6 pb-4 pl-6">
             <div
               onClick={handleLogoClick}
@@ -317,7 +370,7 @@ export function DashboardLayout() {
                 variant="ghost"
                 size="icon"
                 onClick={handleLogout}
-                className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-lg"
+                className="text-sidebar-muted hover:text-sidebar-active-foreground rounded-lg"
                 aria-label="Log out"
               >
                 <LogOut className="h-5 w-5 stroke-current" />
@@ -333,15 +386,18 @@ export function DashboardLayout() {
             <Button
               variant="ghost"
               size="icon"
-              className="fixed top-4 left-4 z-30 bg-background/80 backdrop-blur-sm shadow-sm border p-2 rounded-lg text-white"
+              className="fixed top-4 left-4 z-30 bg-card/80 backdrop-blur-sm shadow-sm p-2 rounded-lg border-border"
               aria-label="Open sidebar"
             >
-              <Menu className="h-5 w-5" />
+              <Menu className="h-5 w-5 text-foreground" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-60 bg-black p-0 flex flex-col">
+          <SheetContent
+            side="left"
+            className="w-60 bg-sidebar text-sidebar-foreground p-0 flex flex-col"
+          >
             <SidebarProvider>
-              <SheetHeader className="pt-6 pb-4 px-4">
+              <SheetHeader className="pt-6 pb-4 px-4 border-b border-sidebar-border">
                 <div className="flex items-center justify-between">
                   <div
                     onClick={handleLogoClick}
@@ -374,7 +430,7 @@ export function DashboardLayout() {
               <div className="flex-1 overflow-y-auto py-4">
                 {renderSidebarContent()}
               </div>
-              <SheetFooter className="mt-auto py-4 px-4">
+              <SheetFooter className="mt-auto py-4 px-4 border-t border-sidebar-border">
                 <div className="flex items-center justify-between">
                   <ThemeToggle />
                   <SheetClose asChild>
@@ -382,7 +438,7 @@ export function DashboardLayout() {
                       variant="ghost"
                       size="icon"
                       onClick={handleLogout}
-                      className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-lg"
+                      className="text-sidebar-muted hover:text-sidebar-active-foreground rounded-lg"
                       aria-label="Log out"
                     >
                       <LogOut className="h-5 w-5 stroke-current" />
@@ -395,8 +451,8 @@ export function DashboardLayout() {
         </Sheet>
       </div>
 
-      <main className="relative min-h-screen flex flex-col flex-1 overflow-y-auto md:ml-48 py-4">
-        <div className="flex-1 bg-[rgba(17,16,22,0.8)] border border-[rgba(247,248,248,0.1)] rounded-2xl backdrop-blur-lg px-4 md:px-6 py-4 md:py-6">
+      <main className="relative min-h-screen flex flex-col flex-1 overflow-y-auto py-4 md:ml-48">
+        <div className="flex-1 bg-background-content-glassy/80 border border-border rounded-2xl backdrop-blur-lg px-4 md:px-6 py-4 md:py-6">
           <div className="mx-auto max-w-7xl h-full">
             <Outlet />
           </div>
