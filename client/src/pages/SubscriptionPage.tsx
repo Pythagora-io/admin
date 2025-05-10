@@ -101,9 +101,8 @@ export function SubscriptionPage() {
         const config = await getStripeConfig();
         setStripePublicKey(config.publicKey);
       } catch (error) {
-        console.error("Failed to load Stripe configuration:", error);
         toast({
-          variant: "destructive",
+          variant: "error",
           title: "Configuration Error",
           description:
             "Failed to load payment configuration. Please try again later.",
@@ -148,9 +147,8 @@ export function SubscriptionPage() {
           }
         }
       } catch (error) {
-        console.error("Error fetching subscription data:", error);
         toast({
-          variant: "destructive",
+          variant: "error",
           title: "Error",
           description:
             "Failed to load subscription data. Please try again later.",
@@ -186,7 +184,7 @@ export function SubscriptionPage() {
   const handlePlanChange = async () => {
     if (!planToChange) {
       toast({
-        variant: "destructive",
+        variant: "error",
         title: "Error",
         description: "No plan selected to change to",
       });
@@ -200,6 +198,7 @@ export function SubscriptionPage() {
         const response = await updateSubscription({ planId: planToChange.id });
         setSubscription(response.subscription);
         toast({
+          variant: "success",
           title: "Success",
           description: response.message || "Subscription updated successfully",
         });
@@ -207,7 +206,7 @@ export function SubscriptionPage() {
         setChangePlanOpen(false);
       } catch (error) {
         toast({
-          variant: "destructive",
+          variant: "error",
           title: "Error",
           description: error.message || "Failed to update subscription",
         });
@@ -220,7 +219,7 @@ export function SubscriptionPage() {
     // For paid plans, initiate payment if user doesn't have a payment method
     if (!hasPaymentMethod && showPaymentForm) {
       toast({
-        variant: "destructive",
+        variant: "error",
         title: "Payment Required",
         description: "Please add a payment method to continue",
       });
@@ -242,6 +241,7 @@ export function SubscriptionPage() {
       setSubscription(response.subscription);
 
       toast({
+        variant: "success",
         title: "Success",
         description: response.message || "Subscription updated successfully",
       });
@@ -250,7 +250,7 @@ export function SubscriptionPage() {
       setChangePlanOpen(false);
     } catch (error) {
       toast({
-        variant: "destructive",
+        variant: "error",
         title: "Error",
         description: error.message || "Failed to update subscription",
       });
@@ -264,6 +264,7 @@ export function SubscriptionPage() {
     setShowPaymentForm(false);
 
     toast({
+      variant: "success",
       title: "Payment Method Added",
       description: "Your payment method has been saved",
     });
@@ -291,7 +292,7 @@ export function SubscriptionPage() {
   const handleTopUpPurchase = async () => {
     if (!selectedTopUp) {
       toast({
-        variant: "destructive",
+        variant: "error",
         title: "Error",
         description: "Please select a token package to continue",
       });
@@ -301,7 +302,7 @@ export function SubscriptionPage() {
     // If payment form is shown but no payment method added yet
     if (!hasPaymentMethod && showPaymentForm) {
       toast({
-        variant: "destructive",
+        variant: "error",
         title: "Payment Required",
         description: "Please add a payment method to continue",
       });
@@ -327,6 +328,7 @@ export function SubscriptionPage() {
       });
 
       toast({
+        variant: "success",
         title: "Success",
         description: response.message || "Token top-up purchased successfully",
       });
@@ -335,7 +337,7 @@ export function SubscriptionPage() {
       setTopUpOpen(false);
     } catch (error) {
       toast({
-        variant: "destructive",
+        variant: "error",
         title: "Error",
         description: error.message || "Failed to purchase token top-up",
       });
@@ -354,6 +356,7 @@ export function SubscriptionPage() {
       setSubscription(response.subscription);
 
       toast({
+        variant: "success",
         title: "Subscription Canceled",
         description:
           "Your subscription has been canceled and will end at the end of the current billing period.",
@@ -362,7 +365,7 @@ export function SubscriptionPage() {
       setCancelDialogOpen(false);
     } catch (error) {
       toast({
-        variant: "destructive",
+        variant: "error",
         title: "Error",
         description: error.message || "Failed to cancel subscription",
       });

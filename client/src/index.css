@@ -37,7 +37,7 @@
   }
 
   .dark {
-    --background: 257 26% 6%; /* Figma Background #0B0912 */
+    --background: 251 32% 5%; /* Figma Background #0B0912 */
     --foreground: 240 8% 97%; /* Figma White #F7F8F8 */
     --card: 248 13% 15%; /* Figma Popup bg #222029 */
     --card-foreground: 240 8% 97%; /* Figma White #F7F8F8 */

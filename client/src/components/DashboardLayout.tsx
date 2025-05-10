@@ -328,9 +328,9 @@ export function DashboardLayout() {
   );
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative h-screen">
       <SidebarProvider>
-        <Sidebar className="hidden md:flex md:flex-col md:fixed md:inset-y-0 md:z-50 md:w-48 bg-sidebar text-sidebar-foreground pl-1 py-2">
+        <Sidebar className="hidden md:flex md:flex-col md:fixed md:inset-y-0 md:z-50 md:w-48 bg-background text-sidebar-foreground pl-1 py-2">
           <CustomSidebarHeader className="flex justify-start pt-6 pb-4 pl-6">
             <div
               onClick={handleLogoClick}
@@ -354,13 +354,12 @@ export function DashboardLayout() {
                   fill="#FFD11A"
                 />
               </svg>
-
               <span className="ml-2 text-lg font-semibold text-foreground">
                 Pythagora
               </span>
             </div>
           </CustomSidebarHeader>
-          <SidebarContent className="flex-1 overflow-y-auto">
+          <SidebarContent className="flex-1 overflow-y-auto pt-4">
             {renderSidebarContent()}
           </SidebarContent>
           <CustomSidebarFooter className="mt-auto py-4 px-4">
@@ -451,14 +450,14 @@ export function DashboardLayout() {
         </Sheet>
       </div>
 
-      <main className="relative min-h-screen flex flex-col flex-1 overflow-y-auto py-4 md:ml-48">
-        <div className="flex-1 bg-background-content-glassy/80 border border-border rounded-2xl backdrop-blur-lg px-4 md:px-6 py-4 md:py-6">
-          <div className="mx-auto max-w-7xl h-full px-4 md:px-14 py-4 md:py-14">
+      <main className="h-screen flex flex-col md:ml-48 pt-4 pb-4 pr-4">
+        <div className="flex-1 max-h-full bg-background-content-glassy/80 border border-border rounded-2xl backdrop-blur-lg px-4 md:px-6 py-4 md:py-6">
+          <div className="mx-auto max-w-7xl h-full overflow-auto p-4 lg:p-14">
             <Outlet />
           </div>
         </div>
 
-        <div className="flex absolute bottom-0 left-0 right-0 -z-10">
+        <div className="flex absolute bottom-0 md:ml-48 left-0 right-0 -z-10">
           <img
             src={DashboardBackground}
             alt="Decorative background"

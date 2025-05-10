@@ -1,19 +1,4 @@
 import { useState, useEffect } from "react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -26,17 +11,40 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/useToast";
-import { Download, Receipt, FileText } from "lucide-react";
+import { Download, FileText } from "lucide-react";
 import {
   getPaymentHistory,
   getBillingInfo,
   getCompanyBillingInfo,
 } from "@/api/payments";
 import { updateBillingInfo } from "@/api/user";
+import { Separator } from "@/components/ui/separator";
+
+// Interface Definitions
+interface Payment {
+  id: string;
+  date: string;
+  description: string;
+  amount: number;
+  currency: string;
+}
+
+interface BillingInfo {
+  name: string;
+  address: string;
+  city: string;
+  state: string;
+  zip: string;
+  country: string;
+}
+
+interface CompanyInfo extends BillingInfo {
+  taxId?: string; // taxId is optional as per current usage
+}
 
 export function PaymentsPage() {
-  const [payments, setPayments] = useState<any[]>([]);
-  const [billingInfo, setBillingInfo] = useState<any>({
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [billingInfo, setBillingInfo] = useState<BillingInfo>({
     name: "",
     address: "",
     city: "",
@@ -44,7 +52,7 @@ export function PaymentsPage() {
     zip: "",
     country: "",
   });
-  const [companyInfo, setCompanyInfo] = useState<any>({
+  const [companyInfo, setCompanyInfo] = useState<CompanyInfo>({
     name: "",
     address: "",
     city: "",
@@ -55,7 +63,7 @@ export function PaymentsPage() {
   });
   const [loading, setLoading] = useState(true);
   const [editBillingOpen, setEditBillingOpen] = useState(false);
-  const [formBillingInfo, setFormBillingInfo] = useState<any>({
+  const [formBillingInfo, setFormBillingInfo] = useState<BillingInfo>({
     name: "",
     address: "",
     city: "",
@@ -78,24 +86,26 @@ export function PaymentsPage() {
         console.log("Billing data:", billingData);
         console.log("Company data:", companyData);
 
-        setPayments(paymentsData.payments || []);
+        setPayments((paymentsData.payments || []) as Payment[]);
 
-        // Guard against null billing info
         if (billingData && billingData.billingInfo) {
-          setBillingInfo(billingData.billingInfo);
-          setFormBillingInfo(billingData.billingInfo);
+          setBillingInfo(billingData.billingInfo as BillingInfo);
+          setFormBillingInfo(billingData.billingInfo as BillingInfo);
         }
 
-        // Guard against null company info
         if (companyData && companyData.companyInfo) {
-          setCompanyInfo(companyData.companyInfo);
+          setCompanyInfo(companyData.companyInfo as CompanyInfo);
         }
-      } catch (error) {
+      } catch (error: unknown) {
         console.error("Error fetching data:", error);
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch payment data";
         toast({
-          variant: "destructive",
+          variant: "error",
           title: "Error",
-          description: error.message || "Failed to fetch payment data",
+          description: errorMessage,
         });
       } finally {
         setLoading(false);
@@ -106,16 +116,16 @@ export function PaymentsPage() {
   }, [toast]);
 
   const handleDownloadReceipt = (paymentId: string) => {
-    // In a real implementation, this would call an API endpoint to generate and download the receipt
+    console.log("Attempting to download receipt for payment ID:", paymentId);
     toast({
+      variant: "success",
       title: "Download Started",
       description: "Your receipt is being generated and will download shortly.",
     });
   };
 
   const handleUpdateBillingInfo = async () => {
-    // Validate required fields
-    const requiredFields = [
+    const requiredFields: (keyof BillingInfo)[] = [
       "name",
       "address",
       "city",
@@ -129,9 +139,9 @@ export function PaymentsPage() {
 
     if (missingFields.length > 0) {
       toast({
-        variant: "destructive",
+        variant: "error",
         title: "Error",
-        description: "Please fill in all required fields",
+        description: `Please fill in all required fields: ${missingFields.join(", ")}`,
       });
       return;
     }
@@ -140,25 +150,30 @@ export function PaymentsPage() {
       const response = await updateBillingInfo({
         billingInfo: formBillingInfo,
       });
-      setBillingInfo(response.billingInfo);
+      setBillingInfo(response.billingInfo as BillingInfo);
       toast({
+        variant: "success",
         title: "Success",
         description:
           response.message || "Billing information updated successfully",
       });
       setEditBillingOpen(false);
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to update billing information";
       toast({
-        variant: "destructive",
+        variant: "error",
         title: "Error",
-        description: error.message || "Failed to update billing information",
+        description: errorMessage,
       });
     }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormBillingInfo((prev) => ({
+    setFormBillingInfo((prev: BillingInfo) => ({
       ...prev,
       [name]: value,
     }));
@@ -188,190 +203,269 @@ export function PaymentsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Payments & Billing</h1>
-        <p className="text-muted-foreground">
+    <div className="mx-auto flex flex-col gap-14 text-foreground">
+      <div className="flex flex-col gap-2">
+        <h1 className="text-heading-3 text-foreground">Payments & Billing</h1>
+        <p className="text-body-sm text-foreground/60">
           Manage your billing information and view payment history
         </p>
       </div>
 
-      <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex justify-between items-center">
-              <span>Your Billing Information</span>
+      <div className="flex flex-col gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Your Billing Information Section */}
+          <div className="flex flex-col space-y-5">
+            <div className="space-y-1.5">
+              <h2 className="text-body-lg font-normal text-foreground">
+                Your Billing Information
+              </h2>
+              <p className="text-body-sm text-foreground/60">
+                Used for all receipts and invoices
+              </p>
+            </div>
+            <div className="space-y-1 text-body-md text-foreground">
+              <p className="font-medium">{billingInfo.name || "N/A"}</p>
+              <p>{billingInfo.address || "-"}</p>
+              <p>
+                {billingInfo.city || "-"}, {billingInfo.state || "-"}{" "}
+                {billingInfo.zip || "-"}
+              </p>
+              <p>{billingInfo.country || "-"}</p>
+            </div>
+            <div>
               <Button
-                variant="outline"
-                size="sm"
                 onClick={() => setEditBillingOpen(true)}
+                className="bg-primary text-primary-foreground text-body-md px-3 py-2 h-auto rounded-lg min-w-[80px]"
               >
                 Edit
               </Button>
-            </CardTitle>
-            <CardDescription>
-              Used for all receipts and invoices
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-1">
-              <p className="font-medium">{billingInfo.name}</p>
-              <p>{billingInfo.address}</p>
-              <p>
-                {billingInfo.city}, {billingInfo.state} {billingInfo.zip}
-              </p>
-              <p>{billingInfo.country}</p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Pythagora Billing Information</CardTitle>
-            <CardDescription>For your records</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-1">
-              <p className="font-medium">{companyInfo.name}</p>
-              <p>{companyInfo.address}</p>
-              <p>
-                {companyInfo.city}, {companyInfo.state} {companyInfo.zip}
+          {/* Pythagora Billing Information Section */}
+          <div className="flex flex-col space-y-5">
+            <div className="space-y-1.5">
+              <h2 className="text-body-lg font-normal text-foreground">
+                Pythagora Billing Information
+              </h2>
+              <p className="text-body-sm text-foreground/60">
+                For your records
               </p>
-              <p>{companyInfo.country}</p>
             </div>
-          </CardContent>
-        </Card>
+            <div className="space-y-1 text-body-md text-foreground">
+              <p className="font-medium">
+                {companyInfo.name || "Pythagora AI Inc."}
+              </p>
+              <p>{companyInfo.address || "548 Market St."}</p>
+              <p>
+                {companyInfo.city || "San Francisco"},{" "}
+                {companyInfo.state || "CA"} {companyInfo.zip || "94104"}
+              </p>
+              <p>{companyInfo.country || "USA"}</p>
+            </div>
+          </div>
+        </div>
+
+        <Separator className="bg-border" />
+
+        {/* Payment History Section */}
+        <div className="flex flex-col space-y-5">
+          <div className="space-y-1.5">
+            <h2 className="text-body-lg font-normal text-foreground">
+              Payment History
+            </h2>
+            <p className="text-body-sm text-foreground/60">
+              View and download receipts for your payments
+            </p>
+          </div>
+          <div>
+            {payments.length === 0 ? (
+              <div className="text-center py-10 border border-dashed border-border rounded-lg mt-4">
+                <FileText className="h-10 w-10 text-foreground/60 mx-auto mb-3" />
+                <h3 className="text-body-lg-medium text-foreground">
+                  No payment history yet
+                </h3>
+                <p className="text-body-sm text-foreground/60 mt-1">
+                  No invoices available.
+                </p>
+              </div>
+            ) : (
+              <div className="rounded-lg overflow-hidden">
+                {/* Header Row */}
+                <div className="flex items-center py-3 border-border text-body-sm font-medium text-foreground/60">
+                  <div className="min-w-[140px] w-[20%]">Date</div>
+                  <div className="flex-1">Description</div>
+                  <div className="min-w-[100px] w-[15%] text-right">Amount</div>
+                  <div className="min-w-[130px] w-[15%] text-right"></div>
+                </div>
+                {/* Payment Rows */}
+                {payments.map((payment) => (
+                  <div
+                    key={payment.id}
+                    className="flex items-center py-3 text-body-sm text-foreground border-b border-border"
+                    tabIndex={0}
+                    aria-label={`Payment on ${formatDate(payment.date)}: ${payment.description}, ${formatCurrency(payment.amount, payment.currency)}`}
+                  >
+                    <div className="min-w-[140px] w-[20%] font-medium">
+                      {formatDate(payment.date)}
+                    </div>
+                    <div className="flex-1">{payment.description}</div>
+                    <div className="min-w-[100px] w-[15%] text-right font-medium">
+                      {formatCurrency(payment.amount, payment.currency)}
+                    </div>
+                    <div className="min-w-[130px] w-[15%] text-right flex justify-end">
+                      <Button
+                        variant="ghost"
+                        className="rounded-lg h-9 px-3 text-xs font-medium flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        aria-label="Download PDF receipt"
+                        tabIndex={0}
+                        onClick={() => handleDownloadReceipt(payment.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ")
+                            handleDownloadReceipt(payment.id);
+                        }}
+                      >
+                        <Download className="h-4 w-4 mr-1" aria-hidden="true" />
+                        Download pdf
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Payment History</CardTitle>
-          <CardDescription>
-            View and download receipts for your payments
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {payments.length === 0 ? (
-            <div className="text-center py-8">
-              <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium">No payment history yet</h3>
-              <p className="text-muted-foreground">
-                Your payment history will appear here once you make your first
-                payment.
-              </p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead className="text-right">Receipt</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {payments.map((payment) => (
-                    <TableRow key={payment.id}>
-                      <TableCell>{formatDate(payment.date)}</TableCell>
-                      <TableCell>{payment.description}</TableCell>
-                      <TableCell>
-                        {formatCurrency(payment.amount, payment.currency)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDownloadReceipt(payment.id)}
-                        >
-                          <Download className="h-4 w-4 mr-2" />
-                          Download
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
       {/* Edit Billing Information Dialog */}
       <Dialog open={editBillingOpen} onOpenChange={setEditBillingOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Edit Billing Information</DialogTitle>
-            <DialogDescription>
+        <DialogContent className="bg-card border-none rounded-2xl p-8 w-[90%] sm:w-[500px]">
+          <DialogHeader className="mb-6">
+            <DialogTitle className="text-xl font-medium text-foreground">
+              Edit your billing information
+            </DialogTitle>
+            <DialogDescription className="text-sm text-foreground/60 text-left pt-1">
               Update your billing details for receipts and invoices.
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4 grid gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="name">Full Name or Business Name</Label>
+          <div className="py-0 grid gap-4">
+            <div className="space-y-2">
+              <Label
+                htmlFor="name"
+                className="text-sm font-medium text-foreground"
+              >
+                Full Name or Business Name
+              </Label>
               <Input
                 id="name"
                 name="name"
                 value={formBillingInfo.name}
                 onChange={handleInputChange}
+                className="bg-foreground/10 border border-border rounded-lg p-4 placeholder:text-foreground/60 text-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
+                placeholder="Enter full name or business name"
               />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="address">Address</Label>
+            <div className="space-y-2">
+              <Label
+                htmlFor="address"
+                className="text-sm font-medium text-foreground"
+              >
+                Address
+              </Label>
               <Input
                 id="address"
                 name="address"
                 value={formBillingInfo.address}
                 onChange={handleInputChange}
+                className="bg-foreground/10 border border-border rounded-lg p-4 placeholder:text-foreground/60 text-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
+                placeholder="Enter address"
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="city">City</Label>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1 space-y-2">
+                <Label
+                  htmlFor="city"
+                  className="text-sm font-medium text-foreground"
+                >
+                  City
+                </Label>
                 <Input
                   id="city"
                   name="city"
                   value={formBillingInfo.city}
                   onChange={handleInputChange}
+                  className="bg-foreground/10 border border-border rounded-lg p-4 placeholder:text-foreground/60 text-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
+                  placeholder="Enter city"
                 />
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="state">State / Province</Label>
+              <div className="flex-1 space-y-2">
+                <Label
+                  htmlFor="state"
+                  className="text-sm font-medium text-foreground"
+                >
+                  State / Province
+                </Label>
                 <Input
                   id="state"
                   name="state"
                   value={formBillingInfo.state}
                   onChange={handleInputChange}
+                  className="bg-foreground/10 border border-border rounded-lg p-4 placeholder:text-foreground/60 text-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
+                  placeholder="Enter state or province"
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="zip">ZIP / Postal Code</Label>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1 space-y-2">
+                <Label
+                  htmlFor="zip"
+                  className="text-sm font-medium text-foreground"
+                >
+                  ZIP / Postal Code
+                </Label>
                 <Input
                   id="zip"
                   name="zip"
                   value={formBillingInfo.zip}
                   onChange={handleInputChange}
+                  className="bg-foreground/10 border border-border rounded-lg p-4 placeholder:text-foreground/60 text-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
+                  placeholder="Enter ZIP or postal code"
                 />
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="country">Country</Label>
+              <div className="flex-1 space-y-2">
+                <Label
+                  htmlFor="country"
+                  className="text-sm font-medium text-foreground"
+                >
+                  Country
+                </Label>
                 <Input
                   id="country"
                   name="country"
                   value={formBillingInfo.country}
                   onChange={handleInputChange}
+                  className="bg-foreground/10 border border-border rounded-lg p-4 placeholder:text-foreground/60 text-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
+                  placeholder="Enter country"
                 />
               </div>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditBillingOpen(false)}>
+          <DialogFooter className="mt-6 sm:justify-end gap-2">
+            <Button
+              variant="ghost"
+              onClick={() => setEditBillingOpen(false)}
+              className="rounded-lg px-4 py-3 text-sm font-medium text-foreground hover:bg-foreground/10"
+              aria-label="Cancel edit billing info"
+            >
               Cancel
             </Button>
-            <Button onClick={handleUpdateBillingInfo}>Save Changes</Button>
+            <Button
+              onClick={handleUpdateBillingInfo}
+              className="bg-primary text-primary-foreground rounded-lg px-4 py-3 text-sm font-medium hover:bg-primary/90"
+              aria-label="Save billing info changes"
+            >
+              Save Changes
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

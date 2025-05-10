@@ -49,7 +49,7 @@ export function AccountPage() {
         setReceiveUpdates(user.receiveUpdates || false);
       } catch (error) {
         toast({
-          variant: "destructive",
+          variant: "error",
           title: "Error",
           description:
             error instanceof Error
@@ -67,7 +67,7 @@ export function AccountPage() {
   const handleEmailUpdate = async () => {
     if (!newEmail.trim() || !newEmail.includes("@")) {
       toast({
-        variant: "destructive",
+        variant: "error",
         title: "Error",
         description: "Please enter a valid email address",
       });
@@ -82,17 +82,16 @@ export function AccountPage() {
         email: newEmail,
       }));
       toast({
+        variant: "success",
         title: "Success",
         description:
           response.message || "Email update confirmation has been sent",
-        className:
-          "bg-success border-border text-toast-success-text p-5 rounded-lg",
       });
       setEmailChangeOpen(false);
       setNewEmail("");
     } catch (error) {
       toast({
-        variant: "destructive",
+        variant: "error",
         title: "Error",
         description:
           error instanceof Error ? error.message : "Failed to update email",
@@ -103,7 +102,7 @@ export function AccountPage() {
   const handlePasswordUpdate = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
       toast({
-        variant: "destructive",
+        variant: "error",
         title: "Error",
         description: "All password fields are required",
       });
@@ -112,7 +111,7 @@ export function AccountPage() {
 
     if (newPassword !== confirmPassword) {
       toast({
-        variant: "destructive",
+        variant: "error",
         title: "Error",
         description: "New passwords do not match",
       });
@@ -125,10 +124,9 @@ export function AccountPage() {
         newPassword,
       });
       toast({
+        variant: "success",
         title: "Success",
         description: response.message || "Password updated successfully",
-        className:
-          "bg-success border-border text-toast-success-text p-5 rounded-lg",
       });
       setPasswordChangeOpen(false);
       setCurrentPassword("");
@@ -136,7 +134,7 @@ export function AccountPage() {
       setConfirmPassword("");
     } catch (error) {
       toast({
-        variant: "destructive",
+        variant: "error",
         title: "Error",
         description:
           error instanceof Error ? error.message : "Failed to update password",
@@ -151,6 +149,7 @@ export function AccountPage() {
         receiveUpdates: checked,
       });
       toast({
+        variant: "success",
         title: "Preference Updated",
         description: checked
           ? "You will now receive email updates"
@@ -158,7 +157,7 @@ export function AccountPage() {
       });
     } catch (error) {
       toast({
-        variant: "destructive",
+        variant: "error",
         title: "Error",
         description:
           error instanceof Error
