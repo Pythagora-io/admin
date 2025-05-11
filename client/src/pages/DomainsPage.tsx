@@ -1,11 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,13 +24,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import {
-  Trash,
-  ExternalLink,
-  PlusCircle,
-  Globe,
-  CheckCircle,
-} from "lucide-react";
+import { Trash, ExternalLink, Plus, Globe, CheckCircle } from "lucide-react";
 import {
   getUserDomains,
   addDomain,
@@ -44,8 +32,15 @@ import {
   verifyDomain,
 } from "@/api/domains";
 
+type Domain = {
+  _id: string;
+  domain: string;
+  createdAt: string;
+  verified: boolean;
+};
+
 export function DomainsPage() {
-  const [domains, setDomains] = useState<any[]>([]);
+  const [domains, setDomains] = useState<Domain[]>([]);
   const [loading, setLoading] = useState(true);
   const [newDomain, setNewDomain] = useState("");
   const [addDomainOpen, setAddDomainOpen] = useState(false);
@@ -60,10 +55,12 @@ export function DomainsPage() {
         const response = await getUserDomains();
         setDomains(response.domains);
       } catch (error) {
+        let message = "Failed to fetch domains";
+        if (error instanceof Error) message = error.message;
         toast({
           variant: "destructive",
           title: "Error",
-          description: error.message || "Failed to fetch domains",
+          description: message,
         });
       } finally {
         setLoading(false);
@@ -95,10 +92,12 @@ export function DomainsPage() {
         description: response.message || "Domain added successfully",
       });
     } catch (error) {
+      let message = "Failed to add domain";
+      if (error instanceof Error) message = error.message;
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to add domain",
+        description: message,
       });
     }
   };
@@ -119,10 +118,12 @@ export function DomainsPage() {
         description: "Domain deleted successfully",
       });
     } catch (error) {
+      let message = "Failed to delete domain";
+      if (error instanceof Error) message = error.message;
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to delete domain",
+        description: message,
       });
     } finally {
       setDeleteDomainDialogOpen(false);
@@ -145,10 +146,12 @@ export function DomainsPage() {
         description: response.message || "Domain verified successfully",
       });
     } catch (error) {
+      let message = "Failed to verify domain";
+      if (error instanceof Error) message = error.message;
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to verify domain",
+        description: message,
       });
     } finally {
       setVerifyingDomain(null);
@@ -185,28 +188,26 @@ export function DomainsPage() {
         <Dialog open={addDomainOpen} onOpenChange={setAddDomainOpen}>
           <DialogTrigger asChild>
             <Button>
-              <PlusCircle className="h-4 w-4 mr-2" />
+              <Plus className="size-5 mr-2" />
               Add Domain
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="flex flex-col gap-10">
             <DialogHeader>
               <DialogTitle>Add a Domain</DialogTitle>
               <DialogDescription>
                 Enter the domain you want to connect to your account.
               </DialogDescription>
             </DialogHeader>
-            <div className="py-4">
-              <div className="flex items-end gap-2">
-                <div className="grid flex-1 gap-2">
-                  <Label htmlFor="domain">Domain Name</Label>
-                  <Input
-                    id="domain"
-                    value={newDomain}
-                    onChange={(e) => setNewDomain(e.target.value)}
-                    placeholder="example.com"
-                  />
-                </div>
+            <div>
+              <div className="flex flex-col gap-3">
+                <Label htmlFor="domain">Domain Name</Label>
+                <Input
+                  id="domain"
+                  value={newDomain}
+                  onChange={(e) => setNewDomain(e.target.value)}
+                  placeholder="example.com"
+                />
               </div>
             </div>
             <DialogFooter>
@@ -228,7 +229,7 @@ export function DomainsPage() {
               Add your first domain to connect with Pythagora services.
             </p>
             <Button onClick={() => setAddDomainOpen(true)}>
-              <PlusCircle className="h-4 w-4 mr-2" />
+              <Plus className="size-5 mr-2" />
               Add Your First Domain
             </Button>
           </CardContent>
