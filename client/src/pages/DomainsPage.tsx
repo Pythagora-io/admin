@@ -58,7 +58,7 @@ export function DomainsPage() {
         let message = "Failed to fetch domains";
         if (error instanceof Error) message = error.message;
         toast({
-          variant: "destructive",
+          variant: "error",
           title: "Error",
           description: message,
         });
@@ -75,7 +75,7 @@ export function DomainsPage() {
     const domainRegex = /^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$/;
     if (!domainRegex.test(newDomain)) {
       toast({
-        variant: "destructive",
+        variant: "error",
         title: "Error",
         description: "Please enter a valid domain name (e.g., example.com)",
       });
@@ -88,6 +88,7 @@ export function DomainsPage() {
       setNewDomain("");
       setAddDomainOpen(false);
       toast({
+        variant: "success",
         title: "Success",
         description: response.message || "Domain added successfully",
       });
@@ -95,7 +96,7 @@ export function DomainsPage() {
       let message = "Failed to add domain";
       if (error instanceof Error) message = error.message;
       toast({
-        variant: "destructive",
+        variant: "error",
         title: "Error",
         description: message,
       });
@@ -114,6 +115,7 @@ export function DomainsPage() {
       await deleteDomain(domainToDelete);
       setDomains(domains.filter((domain) => domain._id !== domainToDelete));
       toast({
+        variant: "success",
         title: "Success",
         description: "Domain deleted successfully",
       });
@@ -121,7 +123,7 @@ export function DomainsPage() {
       let message = "Failed to delete domain";
       if (error instanceof Error) message = error.message;
       toast({
-        variant: "destructive",
+        variant: "error",
         title: "Error",
         description: message,
       });
@@ -142,6 +144,7 @@ export function DomainsPage() {
         ),
       );
       toast({
+        variant: "success",
         title: "Success",
         description: response.message || "Domain verified successfully",
       });
@@ -149,7 +152,7 @@ export function DomainsPage() {
       let message = "Failed to verify domain";
       if (error instanceof Error) message = error.message;
       toast({
-        variant: "destructive",
+        variant: "error",
         title: "Error",
         description: message,
       });
