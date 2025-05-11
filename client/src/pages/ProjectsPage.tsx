@@ -31,10 +31,10 @@ import {
   FilePlus,
   Trash,
   ExternalLink,
-  Check,
   Users,
   Search,
   Upload,
+  FilePen,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -60,14 +60,35 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useNavigate } from "react-router-dom";
 
 interface ProjectsPageProps {
   type?: "drafts" | "deployed";
 }
 
+interface Project {
+  _id: string;
+  title: string;
+  lastEdited: string;
+  visibility: "public" | "private";
+  thumbnail?: string;
+  // Add other relevant project fields here
+}
+
+interface UserAccessInfo {
+  _id: string;
+  name: string;
+  email: string;
+  access: "view" | "edit";
+}
+
+interface SearchedUser {
+  _id: string;
+  name: string;
+  email: string;
+}
+
 export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
-  const [projects, setProjects] = useState<any[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
   const [isSelecting, setIsSelecting] = useState(false);
@@ -85,17 +106,18 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
 
   // Manage access state
   const [accessManagementOpen, setAccessManagementOpen] = useState(false);
-  const [selectedProject, setSelectedProject] = useState<any>(null);
-  const [projectUsers, setProjectUsers] = useState<any[]>([]);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [projectUsers, setProjectUsers] = useState<UserAccessInfo[]>([]);
   const [userSearchQuery, setUserSearchQuery] = useState("");
-  const [userSearchResults, setUserSearchResults] = useState<any[]>([]);
+  const [userSearchResults, setUserSearchResults] = useState<SearchedUser[]>(
+    [],
+  );
   const [savingAccess, setSavingAccess] = useState(false);
 
   const { toast } = useToast();
-  const navigate = useNavigate();
 
   // Set page title based on type
-  const pageTitle = type === "drafts" ? "Draft Projects" : "Deployed Projects";
+  const pageTitle = type === "drafts" ? "Drafts" : "Deployed Projects";
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -106,7 +128,8 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
         toast({
           variant: "destructive",
           title: "Error",
-          description: error.message || "Failed to fetch projects",
+          description:
+            error instanceof Error ? error.message : "Failed to fetch projects",
         });
       } finally {
         setLoading(false);
@@ -152,7 +175,8 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to delete projects",
+        description:
+          error instanceof Error ? error.message : "Failed to delete projects",
       });
     }
   };
@@ -164,6 +188,9 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
         description: "Enter project description here",
         visibility: "private",
       });
+
+      // Ensure response is used or handled if needed, e.g., for navigation or specific feedback
+      console.log("New project created:", response.project._id);
 
       // Refresh the projects list
       const updatedResponse = await getUserProjects(type);
@@ -180,7 +207,10 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to create new project",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to create new project",
       });
     }
   };
@@ -215,7 +245,8 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to rename project",
+        description:
+          error instanceof Error ? error.message : "Failed to rename project",
       });
     } finally {
       setIsRenaming(false);
@@ -247,14 +278,15 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to deploy project",
+        description:
+          error instanceof Error ? error.message : "Failed to deploy project",
       });
     } finally {
       setIsDeploying(false);
     }
   };
 
-  const openAccessManagement = async (project: any) => {
+  const openAccessManagement = async (project: Project) => {
     setSelectedProject(project);
     setAccessManagementOpen(true);
     setUserSearchQuery("");
@@ -267,7 +299,10 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to fetch project access",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch project access",
       });
     }
   };
@@ -285,18 +320,21 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       // Filter out users that are already in projectUsers
       const existingUserIds = projectUsers.map((p) => p._id);
       setUserSearchResults(
-        response.users.filter((user) => !existingUserIds.includes(user._id)),
+        (response.users as SearchedUser[]).filter(
+          (user) => !existingUserIds.includes(user._id),
+        ),
       );
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to search users",
+        description:
+          error instanceof Error ? error.message : "Failed to search users",
       });
     }
   };
 
-  const addUserToProject = (user: any) => {
+  const addUserToProject = (user: SearchedUser) => {
     // Add user to projectUsers with 'view' access as default
     setProjectUsers([...projectUsers, { ...user, access: "view" }]);
     // Clear search results
@@ -333,7 +371,10 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to update project access",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to update project access",
       });
     } finally {
       setSavingAccess(false);
@@ -383,7 +424,10 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
             toast({
               variant: "destructive",
               title: "Error",
-              description: error.message || "Failed to duplicate project",
+              description:
+                error instanceof Error
+                  ? error.message
+                  : "Failed to duplicate project",
             });
           });
         break;
@@ -450,10 +494,12 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold">{pageTitle}</h1>
-          <p className="text-muted-foreground">Manage your {type} projects</p>
+          <h1 className="text-2xl font-medium">{pageTitle}</h1>
+          <p className="text-body-sm text-muted-foreground">
+            Manage your {type} projects
+          </p>
         </div>
         <div className="flex gap-2">
           {isSelecting ? (
@@ -485,16 +531,17 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {projects.length === 0 ? (
-          <Card className="col-span-full">
-            <CardContent className="flex flex-col items-center justify-center py-10">
-              <FilePlus className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium">No projects yet</h3>
-              <p className="text-muted-foreground text-center mt-2 mb-4">
-                Create your first project to get started.
+          <Card className="bg-transparent rounded-2xl px-10 py-5">
+            <CardContent className="flex flex-col items-center justify-center py-10 gap-4">
+              <FilePen className="size-6 text-foreground/80" />
+              <p className="text-body-sm font-medium text-foreground/80 text-center max-w-xs">
+                No projects yet. Start your first project to get going.
               </p>
-              <Button onClick={handleNewProject}>
-                <FilePlus className="mr-2 h-4 w-4" />
-                Create Project
+              <Button
+                onClick={handleNewProject}
+                className="bg-primary text-primary-foreground text-caption-strong px-3 py-2 h-9 rounded-md"
+              >
+                New project
               </Button>
             </CardContent>
           </Card>
