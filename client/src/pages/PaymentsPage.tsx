@@ -196,109 +196,80 @@ export function PaymentsPage() {
         </p>
       </div>
 
-      <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex justify-between items-center">
-              <span>Your Billing Information</span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setEditBillingOpen(true)}
-              >
-                Edit
-              </Button>
-            </CardTitle>
-            <CardDescription>
-              Used for all receipts and invoices
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-1">
-              <p className="font-medium">{billingInfo.name}</p>
-              <p>{billingInfo.address}</p>
-              <p>
-                {billingInfo.city}, {billingInfo.state} {billingInfo.zip}
-              </p>
-              <p>{billingInfo.country}</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Pythagora Billing Information</CardTitle>
-            <CardDescription>For your records</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-1">
-              <p className="font-medium">{companyInfo.name}</p>
-              <p>{companyInfo.address}</p>
-              <p>
-                {companyInfo.city}, {companyInfo.state} {companyInfo.zip}
-              </p>
-              <p>{companyInfo.country}</p>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Billing Information Section */}
+      <div className="border-b border-border pb-8 mb-4 grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div>
+          <h2 className="text-lg font-semibold mb-1">Your Billing Information</h2>
+          <p className="text-sm text-muted-foreground mb-4">User for all receipts and invoices</p>
+          <div className="space-y-1 mb-4">
+            <p className="font-medium">{billingInfo.name}</p>
+            <p>{billingInfo.address}</p>
+            <p>
+              {billingInfo.city}, {billingInfo.state} {billingInfo.zip}
+            </p>
+            <p>{billingInfo.country}</p>
+          </div>
+          <Button variant="default" onClick={() => setEditBillingOpen(true)}>
+            Edit
+          </Button>
+        </div>
+        <div>
+          <h2 className="text-lg font-semibold mb-1">Pythagora Billing Information</h2>
+          <p className="text-sm text-muted-foreground mb-4">For your records</p>
+          <div className="space-y-1">
+            <p className="font-medium">{companyInfo.name}</p>
+            <p>{companyInfo.address}</p>
+            <p>
+              {companyInfo.city}, {companyInfo.state} {companyInfo.zip}
+            </p>
+            <p>{companyInfo.country}</p>
+          </div>
+        </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Payment History</CardTitle>
-          <CardDescription>
-            View and download receipts for your payments
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {payments.length === 0 ? (
-            <div className="text-center py-8">
-              <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium">No payment history yet</h3>
-              <p className="text-muted-foreground">
-                Your payment history will appear here once you make your first
-                payment.
-              </p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead className="text-right">Receipt</TableHead>
+      {/* Payment History Section */}
+      <div className="border-b border-border pb-8 mb-4">
+        <h2 className="text-lg font-semibold mb-1">Payment History</h2>
+        {payments.length === 0 ? (
+          <p className="text-muted-foreground">No invoices available.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead className="text-right">Receipt</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {payments.map((payment) => (
+                  <TableRow key={payment.id}>
+                    <TableCell>{formatDate(payment.date)}</TableCell>
+                    <TableCell>{payment.description}</TableCell>
+                    <TableCell>
+                      {formatCurrency(payment.amount, payment.currency)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDownloadReceipt(payment.id)}
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Download
+                      </Button>
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {payments.map((payment) => (
-                    <TableRow key={payment.id}>
-                      <TableCell>{formatDate(payment.date)}</TableCell>
-                      <TableCell>{payment.description}</TableCell>
-                      <TableCell>
-                        {formatCurrency(payment.amount, payment.currency)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDownloadReceipt(payment.id)}
-                        >
-                          <Download className="h-4 w-4 mr-2" />
-                          Download
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </div>
 
-      {/* Edit Billing Information Dialog */}
+      {/* Edit Billing Dialog (unchanged) */}
       <Dialog open={editBillingOpen} onOpenChange={setEditBillingOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -371,7 +342,7 @@ export function PaymentsPage() {
             <Button variant="outline" onClick={() => setEditBillingOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleUpdateBillingInfo}>Save Changes</Button>
+            <Button onClick={handleUpdateBillingInfo}>Save</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
