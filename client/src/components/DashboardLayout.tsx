@@ -1,11 +1,9 @@
 import { useState, useEffect } from "react";
-import { Outlet } from "react-router-dom";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
   SidebarHeader,
-  SidebarTrigger,
   SidebarProvider,
   SidebarMenu,
   SidebarMenuItem,
@@ -15,104 +13,108 @@ import {
   SidebarMenuSub,
   SidebarMenuSubItem,
   SidebarMenuSubButton,
+  SidebarTrigger,
 } from "./ui/sidebar";
 import {
-  UserCircle,
-  CreditCard,
-  FileText,
-  Globe,
-  Settings,
   Layers,
   Users,
-  LogOut,
+  Globe,
+  CreditCard,
+  FileText,
+  UserCircle,
+  Settings,
   FileEdit,
   ExternalLink,
-  Menu,
+  ChevronDown,
+  LogOut,
 } from "lucide-react";
-import { Button } from "./ui/button";
-import { ThemeToggle } from "./ui/theme-toggle";
+import { SidebarIcon } from "./ui/sidebaricons";
 import { useAuth } from "@/contexts/AuthContext";
-import { BackgroundImage } from "./BackgroundImage";
+import { getCurrentUser } from "@/api/user";
 import { useMobile } from "@/hooks/useMobile";
+import { BackgroundImage } from "./BackgroundImage";
 
 export function DashboardLayout() {
   const location = useLocation();
-  const { logout } = useAuth();
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const isMobile = useMobile();
 
-  // Open the projects submenu by default if we're on a projects page
-  const [openSubmenu, setOpenSubmenu] = useState<string | null>(
-    location.pathname.startsWith("/projects") ? "projects" : null,
-  );
-
-  // State for sidebar open status
-  const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
-
+  // Fetch current user for avatar
+  const [user, setUser] = useState<{ name: string } | null>(null);
   useEffect(() => {
-    // Keep Projects submenu open if we're on a projects page
+    getCurrentUser()
+      .then((data) => setUser(data.user))
+      .catch((err) => console.error("Error fetching user:", err));
+  }, []);
+
+  // Projects submenu state
+  const [openSubmenu, setOpenSubmenu] = useState<string | null>(
+    location.pathname.startsWith("/projects") ? "projects" : null
+  );
+  const toggleSubmenu = (key: string) =>
+    setOpenSubmenu(openSubmenu === key ? null : key);
+
+  // Sidebar open/collapse
+  const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
+  useEffect(() => {
+    if (isMobile) setSidebarOpen(false);
     if (
       location.pathname.startsWith("/projects") &&
       openSubmenu !== "projects"
     ) {
       setOpenSubmenu("projects");
     }
-    // Close the submenu when navigating away from projects pages
     if (
       !location.pathname.startsWith("/projects") &&
       openSubmenu === "projects"
     ) {
       setOpenSubmenu(null);
     }
-
-    // Close sidebar on mobile when route changes
-    if (isMobile) {
-      setSidebarOpen(false);
-    }
   }, [location.pathname, openSubmenu, isMobile]);
 
+  const navigateTo = (path: string) => {
+    navigate(path);
+    if (isMobile) setSidebarOpen(false);
+  };
   const handleLogout = () => {
     logout();
     navigate("/login");
   };
 
-  const toggleSubmenu = (key: string) => {
-    setOpenSubmenu(openSubmenu === key ? null : key);
-  };
-
   const isProjectsPage = location.pathname.startsWith("/projects");
-  const isProjectsDraftsPage = location.pathname === "/projects/drafts";
-  const isProjectsDeployedPage = location.pathname === "/projects/deployed";
+  const isDrafts = location.pathname === "/projects/drafts";
+  const isDeployed = location.pathname === "/projects/deployed";
 
-  const navigateTo = (path: string) => {
-    navigate(path);
-    // Close sidebar on mobile when navigating
-    if (isMobile) {
-      setSidebarOpen(false);
-    }
-  };
-
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
+  // Derive avatar initial
+  const initial = user?.name?.[0]?.toUpperCase() || "U";
 
   return (
     <div className="relative min-h-screen">
+      {/* BLEED GRAPHIC */}
       <BackgroundImage />
 
+      {/* Dark-mode overlay inset */}
+      <div
+        className="hidden dark:block absolute inset-4 rounded-xl pointer-events-none -z-10"
+        style={{ backgroundColor: "#111016CC" }}
+      />
+
       <SidebarProvider defaultOpen={!isMobile}>
-        <div className="flex min-h-screen">
+        <div className="flex min-h-screen relative">
+          {/* SIDEBAR */}
           <Sidebar
-            className="border-r fixed md:relative"
             open={sidebarOpen}
             onOpenChange={setSidebarOpen}
+            className="border-r fixed md:relative"
           >
             <SidebarHeader className="pt-6 pb-4">
               <div className="flex items-center px-6">
                 <div
-                  onClick={() => navigate("/")}
                   className="flex items-center cursor-pointer"
+                  onClick={() => navigate("/")}
                 >
+                  {/* Logo */}
                   <svg
                     viewBox="0 0 24 24"
                     className="h-7 w-7 text-primary"
@@ -135,23 +137,88 @@ export function DashboardLayout() {
                   </svg>
                   <span className="ml-3 text-xl font-semibold">Pythagora</span>
                 </div>
-                <div className="ml-auto md:hidden">
-                  <SidebarTrigger onClick={toggleSidebar} />
-                </div>
+                {isMobile && (
+                  <div className="ml-auto">
+                    <SidebarTrigger
+                      onClick={() => setSidebarOpen(!sidebarOpen)}
+                    />
+                  </div>
+                )}
               </div>
             </SidebarHeader>
+
             <SidebarContent className="px-3">
               <SidebarMenu className="space-y-2">
-                {/* Account */}
+                {/* Projects */}
                 <SidebarMenuItem>
                   <SidebarMenuButton
-                    isActive={location.pathname === "/"}
-                    tooltip="Account"
-                    onClick={() => navigateTo("/")}
+                    isActive={isProjectsPage}
+                    tooltip="Projects"
+                    onClick={() => {
+                      toggleSubmenu("projects");
+                      if (!isProjectsPage) navigateTo("/projects/drafts");
+                    }}
                     className="w-full py-3 px-4 text-base font-medium hover:bg-accent hover:text-accent-foreground"
                   >
-                    <UserCircle className="h-5 w-5 mr-3" />
-                    <span>Account</span>
+                    <SidebarIcon icon={<Layers />} isActive={isProjectsPage} />
+                    <span>Projects</span>
+                    <ChevronDown
+                      className={`h-4 w-4 ml-auto transition-transform ${
+                        openSubmenu === "projects"
+                          ? "rotate-180"
+                          : "rotate-0"
+                      }`}
+                    />
+                  </SidebarMenuButton>
+                  {openSubmenu === "projects" && (
+                    <SidebarMenuSub className="mt-1 ml-2 pl-6 border-l-2 border-gray-200 dark:border-gray-700">
+                      <SidebarMenuSubItem>
+                        <SidebarMenuSubButton
+                          isActive={isDrafts}
+                          onClick={() => navigateTo("/projects/drafts")}
+                          className="flex items-center py-2.5 px-3 w-full rounded-md text-base font-medium hover:bg-accent hover:text-accent-foreground"
+                        >
+                          <SidebarIcon icon={<FileEdit />} isActive={isDrafts} className="h-4 w-4 mr-3" />
+                          Drafts
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                      <SidebarMenuSubItem>
+                        <SidebarMenuSubButton
+                          isActive={isDeployed}
+                          onClick={() => navigateTo("/projects/deployed")}
+                          className="flex items-center py-2.5 px-3 w-full rounded-md text-base font-medium hover:bg-accent hover:text-accent-foreground"
+                        >
+                          <SidebarIcon icon={<ExternalLink />} isActive={isDeployed} className="h-4 w-4 mr-3" />
+                          Deployed
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                    </SidebarMenuSub>
+                  )}
+                </SidebarMenuItem>
+
+                {/* Team */}
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    isActive={location.pathname === "/team"}
+                    tooltip="Team"
+                    onClick={() => navigateTo("/team")}
+                    className="w-full py-3 px-4 text-base font-medium hover:bg-accent hover:text-accent-foreground"
+                  >
+                    <SidebarIcon icon={<Users />} isActive={location.pathname === "/team"} />
+                    <span>Team</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+
+                {/* Domains */}
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    isActive={location.pathname === "/domains"}
+                    tooltip="Domains"
+                    onClick={() => navigateTo("/domains")}
+                    className="w-full py-3 px-4 text-base font-medium hover:bg-accent hover:text-accent-foreground"
+                  >
+                    <SidebarIcon icon={<Globe />} isActive={location.pathname === "/domains"} />
+                    <span>Domains</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
 
@@ -163,7 +230,7 @@ export function DashboardLayout() {
                     onClick={() => navigateTo("/subscription")}
                     className="w-full py-3 px-4 text-base font-medium hover:bg-accent hover:text-accent-foreground"
                   >
-                    <CreditCard className="h-5 w-5 mr-3" />
+                    <SidebarIcon icon={<CreditCard />} isActive={location.pathname === "/subscription"} />
                     <span>Subscription</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -176,64 +243,22 @@ export function DashboardLayout() {
                     onClick={() => navigateTo("/payments")}
                     className="w-full py-3 px-4 text-base font-medium hover:bg-accent hover:text-accent-foreground"
                   >
-                    <FileText className="h-5 w-5 mr-3" />
+                    <SidebarIcon icon={<FileText />} isActive={location.pathname === "/payments"} />
                     <span>Payments</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
 
-                {/* Domains */}
+                {/* Account */}
                 <SidebarMenuItem>
                   <SidebarMenuButton
-                    isActive={location.pathname === "/domains"}
-                    tooltip="Domains"
-                    onClick={() => navigateTo("/domains")}
+                    isActive={location.pathname === "/"}
+                    tooltip="Account"
+                    onClick={() => navigateTo("/")}
                     className="w-full py-3 px-4 text-base font-medium hover:bg-accent hover:text-accent-foreground"
                   >
-                    <Globe className="h-5 w-5 mr-3" />
-                    <span>Domains</span>
+                    <SidebarIcon icon={<UserCircle />} isActive={location.pathname === "/"} />
+                    <span>Account</span>
                   </SidebarMenuButton>
-                </SidebarMenuItem>
-
-                {/* Projects - Modified to remove the arrow */}
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    isActive={isProjectsPage}
-                    tooltip="Projects"
-                    onClick={() => {
-                      toggleSubmenu("projects");
-                      if (!isProjectsPage) {
-                        navigateTo("/projects/drafts");
-                      }
-                    }}
-                    className="w-full py-3 px-4 text-base font-medium hover:bg-accent hover:text-accent-foreground"
-                  >
-                    <Layers className="h-5 w-5 mr-3" />
-                    <span>Projects</span>
-                  </SidebarMenuButton>
-                  {openSubmenu === "projects" && (
-                    <SidebarMenuSub className="mt-1 ml-2 pl-6 border-l-2 border-gray-200 dark:border-gray-700">
-                      <SidebarMenuSubItem>
-                        <SidebarMenuSubButton
-                          isActive={isProjectsDraftsPage}
-                          onClick={() => navigateTo("/projects/drafts")}
-                          className="py-2.5 px-3 text-base font-medium hover:bg-accent hover:text-accent-foreground rounded-md w-full flex items-center"
-                        >
-                          <FileEdit className="h-4 w-4 mr-3" />
-                          Drafts
-                        </SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
-                      <SidebarMenuSubItem>
-                        <SidebarMenuSubButton
-                          isActive={isProjectsDeployedPage}
-                          onClick={() => navigateTo("/projects/deployed")}
-                          className="py-2.5 px-3 text-base font-medium hover:bg-accent hover:text-accent-foreground rounded-md w-full flex items-center"
-                        >
-                          <ExternalLink className="h-4 w-4 mr-3" />
-                          Deployed
-                        </SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
-                    </SidebarMenuSub>
-                  )}
                 </SidebarMenuItem>
 
                 {/* Settings */}
@@ -244,48 +269,40 @@ export function DashboardLayout() {
                     onClick={() => navigateTo("/settings")}
                     className="w-full py-3 px-4 text-base font-medium hover:bg-accent hover:text-accent-foreground"
                   >
-                    <Settings className="h-5 w-5 mr-3" />
+                    <SidebarIcon icon={<Settings />} isActive={location.pathname === "/settings"} />
                     <span>Settings</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-
-                {/* Team */}
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    isActive={location.pathname === "/team"}
-                    tooltip="Team"
-                    onClick={() => navigateTo("/team")}
-                    className="w-full py-3 px-4 text-base font-medium hover:bg-accent hover:text-accent-foreground"
-                  >
-                    <Users className="h-5 w-5 mr-3" />
-                    <span>Team</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>
             </SidebarContent>
+
+            {/* Footer */}
             <SidebarFooter className="mt-auto py-6 px-6">
-              <div className="flex items-center justify-between">
-                <ThemeToggle />
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleLogout}
-                  className="text-muted-foreground hover:text-foreground h-10 w-10 rounded-full"
-                >
-                  <LogOut className="h-5 w-5" />
-                </Button>
-              </div>
+              <button
+                onClick={handleLogout}
+                className="flex w-full items-center justify-between text-muted-foreground hover:text-foreground"
+              >
+                <div className="flex items-center space-x-2">
+                  <div className="h-8 w-8 rounded-full bg-pink-500 flex items-center justify-center text-white text-sm font-medium">
+                    {initial}
+                  </div>
+                  <span>Log out</span>
+                </div>
+                <LogOut className="h-5 w-5" />
+              </button>
             </SidebarFooter>
           </Sidebar>
-          <SidebarInset className="w-full p-0">
-            <div className="md:hidden fixed top-4 left-4 z-30">
-              <SidebarTrigger
-                className="bg-background/80 backdrop-blur-sm shadow-sm border"
-                onClick={toggleSidebar}
-              />
-            </div>
-            <main className="flex-1 overflow-y-auto p-6 pt-16 md:pt-6">
-              <div className="mx-auto max-w-7xl">
+
+          {/* MAIN CONTENT */}
+          <SidebarInset className="w-full p-4 relative z-0">
+            {isMobile && (
+              <div className="fixed top-4 left-4 z-30">
+                <SidebarTrigger onClick={() => setSidebarOpen(!sidebarOpen)} />
+              </div>
+            )}
+
+            <main className="relative flex-1 overflow-y-auto p-6 pt-16 md:pt-6">
+              <div className="rounded-xl bg-black/20 p-6">
                 <Outlet />
               </div>
             </main>
