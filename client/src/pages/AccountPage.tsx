@@ -179,87 +179,64 @@ export function AccountPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Account</h1>
-        <p className="text-muted-foreground">
-          Manage your account details and password
-        </p>
+        <h1 className="text-3xl font-bold">Account settings</h1>
+        <p className="text-muted-foreground">Manage your connected domains</p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Personal Information</CardTitle>
-          <CardDescription>Update your personal details</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <div className="flex items-center gap-2">
-              <Input
-                id="email"
-                value={user?.email || "Loading..."}
-                readOnly
-                className="flex-1 bg-muted"
-              />
-              <Dialog open={emailChangeOpen} onOpenChange={setEmailChangeOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline">Change Email</Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Change Email Address</DialogTitle>
-                    <DialogDescription>
-                      Enter your new email address. A confirmation email will be
-                      sent to your current email address.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="new-email">New Email</Label>
-                      <Input
-                        id="new-email"
-                        placeholder="Enter new email"
-                        value={newEmail}
-                        onChange={(e) => setNewEmail(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <Button
-                      variant="outline"
-                      onClick={() => setEmailChangeOpen(false)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button onClick={handleEmailUpdate}>Request Change</Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            </div>
+      {/* Personal Information Section */}
+      <div className="border-b border-border pb-8 mb-4">
+        <h2 className="text-lg font-semibold mb-4">Personal information</h2>
+        <div className="flex flex-col gap-2">
+          <div>
+            <span className="block text-sm text-muted-foreground">Full name</span>
+            <span className="block text-base">{user?.name || "-"}</span>
           </div>
-
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="receive-updates"
-              checked={receiveUpdates}
-              onCheckedChange={handleReceiveUpdatesChange}
-            />
-            <Label htmlFor="receive-updates">Receive updates via email</Label>
+          <div>
+            <span className="block text-sm text-muted-foreground">Email</span>
+            <span className="block text-base">{user?.email || "-"}</span>
           </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Security</CardTitle>
-          <CardDescription>Update your password</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Dialog
-            open={passwordChangeOpen}
-            onOpenChange={setPasswordChangeOpen}
-          >
+        </div>
+        <div className="flex justify-end mt-4">
+          <Dialog open={emailChangeOpen} onOpenChange={setEmailChangeOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline">Change Password</Button>
+              <Button variant="outline">Change email</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Change Email Address</DialogTitle>
+                <DialogDescription>
+                  Enter your new email address. A confirmation email will be sent to your current email address.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="new-email">New Email</Label>
+                  <Input
+                    id="new-email"
+                    placeholder="Enter new email"
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setEmailChangeOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleEmailUpdate}>Request Change</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
+
+      {/* Password Section */}
+      <div className="border-b border-border pb-8 mb-4">
+        <div className="flex items-center justify-between">
+          <span className="text-base">Password</span>
+          <Dialog open={passwordChangeOpen} onOpenChange={setPasswordChangeOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">Change password</Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
@@ -301,18 +278,30 @@ export function AccountPage() {
                 </div>
               </div>
               <DialogFooter>
-                <Button
-                  variant="outline"
-                  onClick={() => setPasswordChangeOpen(false)}
-                >
+                <Button variant="outline" onClick={() => setPasswordChangeOpen(false)}>
                   Cancel
                 </Button>
-                <Button onClick={handlePasswordUpdate}>Update Password</Button>
+                <Button onClick={handlePasswordUpdate}>Change Password</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+
+      {/* Email Updates Section */}
+      <div className="border-b border-border pb-8 mb-4 flex items-center justify-between">
+        <span className="text-base">Receive updates via email</span>
+        <Checkbox
+          id="receive-updates"
+          checked={receiveUpdates}
+          onCheckedChange={handleReceiveUpdatesChange}
+        />
+      </div>
+
+      {/* Change Plan Button (if needed) */}
+      <div className="flex justify-end pt-4">
+        <Button variant="default">Change plan</Button>
+      </div>
     </div>
   );
 }
