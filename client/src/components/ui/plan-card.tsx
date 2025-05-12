@@ -3,7 +3,7 @@ import StarterIcon from '@/assets/starter.svg';
 import ProIcon from '@/assets/pro.svg';
 import PremiumIcon from '@/assets/premium.svg';
 import EnterpriseIcon from '@/assets/enterprise.svg';
-import { ArrowRight, Check, ChevronRight } from 'lucide-react';
+import { ArrowRight, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
