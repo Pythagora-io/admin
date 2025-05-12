@@ -34,6 +34,7 @@ export function Login() {
       await login(data.email, data.password);
       toast({
         title: "Success",
+        variant: "success",
         description: "Logged in successfully",
       });
       navigate("/");
