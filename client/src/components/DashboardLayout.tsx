@@ -296,7 +296,7 @@ export function DashboardLayout() {
             )}
 
             <main className="relative w-full h-full flex-1 overflow-y-auto p-0 pt-16 md:pt-6">
-              <div className="absolute inset-2 rounded-2xl border border-[rgba(247,248,248,0.10)] bg-[rgba(17,16,22,0.80)] backdrop-blur-[20px] flex flex-col p-6">
+              <div className="absolute inset-2 rounded-2xl border border-[rgba(247,248,248,0.10)] bg-[rgba(17,16,22,0.80)] backdrop-blur-[20px] flex flex-col p-6 overflow-y-auto max-h-screen">
                 <Outlet />
               </div>
             </main>
