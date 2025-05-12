@@ -17,6 +17,7 @@ import {
   updateUserSettings,
   getSettingDescriptions,
 } from "@/api/settings";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export function SettingsPage() {
   const [settings, setSettings] = useState<{ [key: string]: boolean }>({});
@@ -108,56 +109,50 @@ export function SettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Advanced Settings</h1>
+        <h1 className="text-3xl font-bold">Settings</h1>
         <p className="text-muted-foreground">
           Customize your account preferences
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Settings</CardTitle>
-          <CardDescription>Configure your advanced preferences</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {Object.keys(settings).map((key) => (
-            <div
-              key={key}
-              className="flex items-start space-x-3 justify-between"
-            >
-              <div className="flex-1 space-y-1">
-                <Label
-                  htmlFor={key}
-                  className="text-base font-medium cursor-pointer"
-                >
-                  {descriptions[key]?.title}
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  {descriptions[key]?.description}
-                </p>
-              </div>
-              <Switch
-                id={key}
-                checked={settings[key]}
-                onCheckedChange={() => handleToggle(key)}
-              />
-            </div>
-          ))}
-        </CardContent>
-        <Separator />
-        <CardFooter className="p-6 justify-between">
-          <Button
-            variant="outline"
-            onClick={handleResetSettings}
-            disabled={!hasChanges || saving}
+      <div className="bg-transparent divide-y divide-border rounded-2xl overflow-hidden">
+        {Object.keys(settings).map((key) => (
+          <div
+            key={key}
+            className="flex items-center justify-between py-6 px-0"
           >
-            Reset
-          </Button>
-          <Button onClick={handleSaveSettings} disabled={!hasChanges || saving}>
-            {saving ? "Saving..." : "Save Changes"}
-          </Button>
-        </CardFooter>
-      </Card>
+            <div className="flex-1 space-y-1">
+              <Label
+                htmlFor={key}
+                className="text-base font-medium cursor-pointer"
+              >
+                {descriptions[key]?.title}
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                {descriptions[key]?.description}
+              </p>
+            </div>
+            <Checkbox
+              id={key}
+              checked={settings[key]}
+              onCheckedChange={() => handleToggle(key)}
+            />
+          </div>
+        ))}
+      </div>
+
+      <div className="flex justify-end gap-2 pt-4">
+        <Button
+          variant="outline"
+          onClick={handleResetSettings}
+          disabled={!hasChanges || saving}
+        >
+          Cancel
+        </Button>
+        <Button onClick={handleSaveSettings} disabled={!hasChanges || saving}>
+          {saving ? "Saving..." : "Save Changes"}
+        </Button>
+      </div>
     </div>
   );
 }
