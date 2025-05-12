@@ -38,6 +38,7 @@ import {
   deleteDomain,
   verifyDomain,
 } from "@/api/domains";
+import EmptyStateCard from "@/components/ui/EmptyStateCard";
 
 export function DomainsPage() {
   const [domains, setDomains] = useState<any[]>([]);
@@ -215,19 +216,14 @@ export function DomainsPage() {
       </div>
 
       {domains.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-10">
-            <Globe className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium">No domains added yet</h3>
-            <p className="text-muted-foreground text-center mt-2 mb-4">
-              Add your first domain to connect with Pythagora services.
-            </p>
-            <Button onClick={() => setAddDomainOpen(true)}>
-              <PlusCircle className="h-4 w-4 mr-2" />
-              Add Your First Domain
-            </Button>
-          </CardContent>
-        </Card>
+        <EmptyStateCard
+          title="No domains added yet"
+          description="Add your first domain to connect with Pythagora services."
+          buttonText="Add Your First Domain"
+          onButtonClick={() => setAddDomainOpen(true)}
+          icon={<Globe className="h-12 w-12 text-muted-foreground mb-4" />}
+          buttonIcon={<PlusCircle className="mr-2 h-4 w-4" />}
+        />
       ) : (
         <div className="grid gap-4">
           {domains.map((domain) => (
