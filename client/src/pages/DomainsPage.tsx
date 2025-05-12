@@ -2,9 +2,6 @@ import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,13 +26,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
 import {
   Trash,
   ExternalLink,
   PlusCircle,
   Globe,
-  CheckCircle,
 } from "lucide-react";
 import {
   getUserDomains,
