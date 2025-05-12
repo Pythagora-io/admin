@@ -426,71 +426,71 @@ export function SubscriptionPage() {
         </Alert>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            Current Plan{" "}
-            <Badge className="ml-2 bg-yellow-500 hover:bg-yellow-600">
-              {subscription?.plan || "Free"} Plan
-            </Badge>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h3 className="text-xl font-semibold">Price</h3>
-              <p className="text-muted-foreground">
-                {subscription?.amount > 0
-                  ? `${formatCurrency(subscription.amount, subscription.currency)} / month`
-                  : "Free"}
-              </p>
-            </div>
-            <div className="flex gap-2">
-              {hasPaidSubscription && !isSubscriptionCanceled && (
-                <Button
-                  variant="outline"
-                  onClick={() => setCancelDialogOpen(true)}
-                >
-                  Cancel Subscription
-                </Button>
-              )}
-              {isSubscriptionCanceled && (
-                <Badge variant="outline" className="py-1 px-2">
-                  Cancels on{" "}
-                  {new Date(subscription.nextBillingDate).toLocaleDateString()}
-                </Badge>
-              )}
-              <Button onClick={() => setChangePlanOpen(true)}>
-                Change Plan
-              </Button>
-            </div>
-          </div>
-
-          <Separator />
-
-          <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <div className="space-y-1">
-                <h4 className="font-medium">Token Usage</h4>
-                <p className="text-sm text-muted-foreground">
-                  {formatTokens(subscription?.tokens || 0)} tokens available
-                </p>
-              </div>
-              <Button variant="outline" onClick={() => setTopUpOpen(true)}>
-                <Zap className="mr-2 h-4 w-4" />
-                Top Up
-              </Button>
-            </div>
-            <Progress
-              value={subscription?.tokens > 0 ? 50 : 0}
-              className="h-2"
-            />
-            <p className="text-xs text-muted-foreground text-right">
-              {subscription?.tokens || 0} / 600,000 tokens
+      {/* Plan Summary Section */}
+      <div className="pb-6 border-b border-[rgba(247,248,248,0.10)]">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h3 className="text-xl font-semibold">Plan Summary <Badge className="ml-2 bg-yellow-500 hover:bg-yellow-600">{subscription?.plan || "Free"} Plan</Badge></h3>
+            <p className="text-muted-foreground">
+              {subscription?.amount > 0
+                ? `${formatCurrency(subscription.amount, subscription.currency)} / month`
+                : "Free"}
             </p>
           </div>
-        </CardContent>
-      </Card>
+          <div className="flex gap-2">
+            {hasPaidSubscription && !isSubscriptionCanceled && (
+              <Button variant="outline" onClick={() => setCancelDialogOpen(true)}>
+                Cancel Subscription
+              </Button>
+            )}
+            {isSubscriptionCanceled && (
+              <Badge variant="outline" className="py-1 px-2">
+                Cancels on {new Date(subscription.nextBillingDate).toLocaleDateString()}
+              </Badge>
+            )}
+            <Button onClick={() => setChangePlanOpen(true)}>
+              Change Plan
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Token Usage Section */}
+      <div className="py-6 border-b border-[rgba(247,248,248,0.10)]">
+        <div className="flex justify-between items-center mb-2">
+          <div className="space-y-1">
+            <h4 className="font-medium">Token Usage</h4>
+            <p className="text-sm text-muted-foreground">
+              {formatTokens(subscription?.tokens || 0)} tokens available
+            </p>
+          </div>
+          <Button variant="outline" onClick={() => setTopUpOpen(true)}>
+            <Zap className="mr-2 h-4 w-4" />
+            Top Up
+          </Button>
+        </div>
+        <Progress value={subscription?.tokens > 0 ? 50 : 0} className="h-2" />
+        <p className="text-xs text-muted-foreground text-right">
+          {subscription?.tokens || 0} / 600,000 tokens
+        </p>
+      </div>
+
+      {/* Team Members Section */}
+      <div className="py-6 border-b border-[rgba(247,248,248,0.10)]">
+        <div className="flex justify-between items-center mb-2">
+          <div className="space-y-1">
+            <h4 className="font-medium">Team Members</h4>
+            <p className="text-sm text-muted-foreground">
+              {/* NOTE: Placeholder for available seats just for UI work, replace with real data */}
+              7 / 15 seats available
+            </p>
+          </div>
+          <Button variant="outline">
+            Contact sales
+          </Button>
+        </div>
+        <Progress value={47} className="h-2 bg-blue-700" />
+      </div>
 
       {/* Change Plan Dialog */}
       <Dialog open={changePlanOpen} onOpenChange={setChangePlanOpen}>
