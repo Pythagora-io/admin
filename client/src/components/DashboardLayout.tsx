@@ -94,12 +94,6 @@ export function DashboardLayout() {
       {/* BLEED GRAPHIC */}
       <BackgroundImage />
 
-      {/* Dark-mode overlay inset */}
-      <div
-        className="hidden dark:block absolute inset-4 rounded-xl pointer-events-none -z-10"
-        style={{ backgroundColor: "#111016CC" }}
-      />
-
       <SidebarProvider defaultOpen={!isMobile}>
         <div className="flex min-h-screen relative">
           {/* SIDEBAR */}
@@ -301,8 +295,8 @@ export function DashboardLayout() {
               </div>
             )}
 
-            <main className="relative flex-1 overflow-y-auto p-6 pt-16 md:pt-6">
-              <div className="rounded-xl bg-black/20 p-6">
+            <main className="relative w-full h-full flex-1 overflow-y-auto p-0 pt-16 md:pt-6">
+              <div className="absolute inset-2 rounded-2xl border border-[rgba(247,248,248,0.10)] bg-[rgba(17,16,22,0.80)] backdrop-blur-[20px] flex flex-col p-6">
                 <Outlet />
               </div>
             </main>

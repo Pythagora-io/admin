@@ -10,14 +10,14 @@ export function BackgroundImage({ className }: BackgroundImageProps) {
     <div
       className={cn(
         // offset by sidebar width (20rem), span to right
-        "fixed bottom-0 left-80 right-0 h-20 overflow-hidden pointer-events-none -z-10",
+        "fixed bottom-0 left-80 right-0 h-32 pointer-events-none -z-10",
         className
       )}
     >
       <img
         src={bleed}
         alt=""
-        className="absolute bottom--20 left-0 w-full h-auto"
+        className="absolute bottom-0 left-0 w-full h-auto"
       />
     </div>
   )
