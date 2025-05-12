@@ -62,6 +62,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Elements, PaymentElement } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import { PaymentMethodForm } from "@/components/stripe/PaymentMethodForm";
+import { PlanCard } from "@/components/ui/plan-card";
 
 // Stripe promise
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || "");
@@ -500,114 +501,34 @@ export function SubscriptionPage() {
 
       {/* Change Plan Dialog */}
       <Dialog open={changePlanOpen} onOpenChange={setChangePlanOpen}>
-        <DialogContent className="sm:max-w-3xl">
-          <DialogHeader className="relative">
-            <DialogTitle>Change Subscription Plan</DialogTitle>
-            <DialogDescription>
-              Select a new plan. Your billing cycle will update immediately.
-            </DialogDescription>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-0 top-0"
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto p-4">
+          <div className="relative mb-8">
+            <h2 className="text-2xl font-bold mb-0">Change Plan</h2>
+            <button
+              className="absolute right-0 top-1/2 -translate-y-1/2 p-2 text-muted-foreground hover:text-foreground"
               onClick={() => setChangePlanOpen(false)}
+              aria-label="Close"
             >
-              <X className="h-4 w-4" />
-            </Button>
-          </DialogHeader>
-          <div className="py-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {plans.map((plan) => {
-                const isCurrentPlan =
-                  plan.name.toLowerCase() === subscription?.plan?.toLowerCase();
-                const isEnterprisePlan = plan.isEnterprise;
-                const isFreePlan = plan.price === 0;
-                const buttonLabel = isCurrentPlan
-                  ? "Current Plan"
-                  : isFreePlan && subscription?.amount > 0
-                    ? "Downgrade to Free"
-                    : `Upgrade to ${plan.name}`;
+              <X className="h-6 w-6" />
+            </button>
+          </div>
+          <div className="flex flex-row flex-wrap gap-4 pb-2 justify-center">
+            {plans.map((plan) => {
+              const isCurrentPlan =
+                plan.name.toLowerCase() === subscription?.plan?.toLowerCase();
 
-                return (
-                  <div
-                    key={plan.id}
-                    className={`rounded-lg border p-4 flex flex-col h-full ${
-                      selectedPlan === plan.id
-                        ? "border-primary bg-primary/5"
-                        : "border-border"
-                    } ${isEnterprisePlan ? "border-dashed" : ""}`}
-                    onClick={() =>
-                      !isEnterprisePlan && setSelectedPlan(plan.id)
-                    }
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-lg font-semibold">{plan.name}</span>
-                      <span className="font-bold">
-                        {plan.price === 0 ? (
-                          "Free"
-                        ) : plan.price === null ? (
-                          "Custom"
-                        ) : (
-                          <>
-                            {formatCurrency(plan.price, plan.currency)}
-                            <span className="text-sm font-normal text-muted-foreground">
-                              /month
-                            </span>
-                          </>
-                        )}
-                      </span>
-                    </div>
-
-                    {plan.tokens !== null && (
-                      <div className="text-sm text-muted-foreground mb-4">
-                        {plan.tokens === 0
-                          ? "No tokens included"
-                          : `${formatTokens(plan.tokens)} tokens included`}
-                      </div>
-                    )}
-
-                    <div className="flex-grow space-y-2 mb-6">
-                      {plan.features.map((feature, index) => (
-                        <div key={index} className="flex items-start gap-2">
-                          <Check className="h-4 w-4 text-primary flex-shrink-0 mt-1" />
-                          <span className="text-sm">{feature}</span>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="mt-auto">
-                      {isEnterprisePlan ? (
-                        <Button
-                          className="w-full"
-                          variant="outline"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleContactForEnterprise();
-                          }}
-                        >
-                          <ExternalLink className="h-4 w-4 mr-2" />
-                          Get in Touch
-                        </Button>
-                      ) : isCurrentPlan ? (
-                        <Button className="w-full" variant="secondary" disabled>
-                          Current Plan
-                        </Button>
-                      ) : (
-                        <Button
-                          className="w-full"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleInitiatePlanChange(plan);
-                          }}
-                        >
-                          {buttonLabel}
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+              return (
+                <PlanCard
+                  key={plan.id}
+                  plan={plan}
+                  isCurrent={isCurrentPlan}
+                  isSelected={selectedPlan === plan.id}
+                  onCardClick={(p) => !p.isEnterprise && setSelectedPlan(p.id)}
+                  onActionClick={(p) => handleInitiatePlanChange(p)}
+                  onContactForEnterprise={handleContactForEnterprise}
+                />
+              );
+            })}
           </div>
         </DialogContent>
       </Dialog>
