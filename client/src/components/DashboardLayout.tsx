@@ -106,7 +106,7 @@ export function DashboardLayout() {
           <Sidebar
             open={sidebarOpen}
             onOpenChange={setSidebarOpen}
-            className="border-r fixed md:relative"
+            className="border-r fixed"
           >
             <SidebarHeader className="pt-6 pb-4">
               <div className="flex items-center px-6">
@@ -294,7 +294,7 @@ export function DashboardLayout() {
           </Sidebar>
 
           {/* MAIN CONTENT */}
-          <SidebarInset className="w-full p-4 relative z-0">
+          <SidebarInset className="w-full p-4 relative z-0 ml-0 md:ml-80">
             {isMobile && (
               <div className="fixed top-4 left-4 z-30">
                 <SidebarTrigger onClick={() => setSidebarOpen(!sidebarOpen)} />
