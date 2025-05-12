@@ -494,18 +494,18 @@ export function SubscriptionPage() {
 
       {/* Change Plan Dialog */}
       <Dialog open={changePlanOpen} onOpenChange={setChangePlanOpen}>
-        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto p-4">
-          <div className="relative mb-8">
-            <h2 className="text-2xl font-bold mb-0">Change Plan</h2>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto px-8 py-8">
+          <div className="flex items-center mb-8 w-full">
+            <h2 className="text-2xl font-bold mb-0 flex-1 text-left">Change Plan</h2>
             <button
-              className="absolute right-0 top-1/2 -translate-y-1/2 p-2 text-muted-foreground hover:text-foreground"
+              className="p-2 text-muted-foreground hover:text-foreground"
               onClick={() => setChangePlanOpen(false)}
               aria-label="Close"
             >
               <X className="h-6 w-6" />
             </button>
           </div>
-          <div className="flex flex-row flex-wrap gap-4 pb-2 justify-center">
+          <div className="flex flex-row flex-wrap gap-6 pb-2 w-full">
             {plans.map((plan) => {
               const isCurrentPlan =
                 plan.name.toLowerCase() === subscription?.plan?.toLowerCase();
