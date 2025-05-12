@@ -23,7 +23,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
 import { Trash, ExternalLink, Plus, Globe, CheckCircle } from "lucide-react";
 import {
   getUserDomains,
@@ -137,7 +136,6 @@ export function DomainsPage() {
     setVerifyingDomain(domainId);
     try {
       const response = await verifyDomain(domainId);
-      // Update the domain in the local state
       setDomains(
         domains.map((domain) =>
           domain._id === domainId ? { ...domain, verified: true } : domain,
@@ -238,35 +236,45 @@ export function DomainsPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4">
-          {domains.map((domain) => (
-            <Card key={domain._id}>
-              <CardContent className="flex items-center justify-between p-4">
-                <div className="flex items-center gap-3">
-                  <Globe className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <h3 className="text-base font-medium">{domain.domain}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Added on {formatDate(domain.createdAt)}
-                    </p>
-                  </div>
+        <div className="rounded-lg overflow-hidden">
+          {/* Header Row */}
+          <div className="flex items-center py-3 border-border text-body-sm font-medium text-foreground/60">
+            <div className="min-w-[400px] w-[40%]">Domain name</div>
+            <div className="min-w-[140px] w-[20%]">Date</div>
+            <div className="min-w-[100px] w-[20%]">Status</div>
+            <div className="min-w-[130px] w-[20%] text-right"></div>
+          </div>
+
+          {/* Domain Rows */}
+          <div className="flex flex-col">
+            {domains.map((domain) => (
+              <div
+                key={domain._id}
+                className="flex items-center py-3 text-body-sm text-foreground border-b"
+                tabIndex={0}
+                aria-label={`Domain ${domain.domain}, added on ${formatDate(domain.createdAt)}, status: ${domain.verified ? "Verified" : "Pending Verification"}`}
+              >
+                <div className="min-w-[400px] w-[40%] flex items-center gap-2">
+                  <Globe className="h-5 w-5" />
+                  <span className="font-medium tracking-wider">
+                    {domain.domain}
+                  </span>
+                </div>
+                <div className="min-w-[140px] w-[20%] font-medium">
+                  {formatDate(domain.createdAt)}
+                </div>
+                <div className="min-w-[100px] w-[20%]">
                   {domain.verified ? (
-                    <Badge
-                      variant="outline"
-                      className="bg-green-50 text-green-600 dark:bg-green-600/10 dark:text-green-400 border-green-200 dark:border-green-600/20"
-                    >
+                    <div className="inline-flex items-center justify-center px-2 py-1 rounded-lg bg-success text-success-foreground text-xs font-medium tracking-wide">
                       Verified
-                    </Badge>
+                    </div>
                   ) : (
-                    <Badge
-                      variant="outline"
-                      className="bg-yellow-50 text-yellow-600 dark:bg-yellow-600/10 dark:text-yellow-400 border-yellow-200 dark:border-yellow-600/20"
-                    >
+                    <div className="inline-flex items-center justify-center px-2 py-1 rounded-lg bg-warning text-warning-foreground text-xs font-medium tracking-wide">
                       Pending Verification
-                    </Badge>
+                    </div>
                   )}
                 </div>
-                <div className="flex gap-2">
+                <div className="min-w-[130px] w-[20%] flex justify-end gap-2">
                   {!domain.verified && (
                     <Button
                       variant="outline"
@@ -301,9 +309,9 @@ export function DomainsPage() {
                     <Trash className="h-4 w-4" />
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
