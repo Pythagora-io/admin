@@ -626,14 +626,6 @@ export function SubscriptionPage() {
             <DialogDescription>
               Select a new plan. Your billing cycle will update immediately.
             </DialogDescription>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-0 top-0"
-              onClick={() => setChangePlanOpen(false)}
-            >
-              <X className="h-4 w-4" />
-            </Button>
           </DialogHeader>
           <div className="py-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
