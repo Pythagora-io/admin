@@ -531,10 +531,10 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="rounded-full bg-background/80 backdrop-blur-sm"
+                            className="w-6 h-6 rounded-[6px]" style={{ background: '#0B091299' }}
                             onClick={(e) => e.stopPropagation()}
                           >
-                            <MoreHorizontal className="h-4 w-4" />
+                            <MoreHorizontal className="h-6 w-6" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-[180px] bg-[#222029] rounded-[16px] p-3">
@@ -610,7 +610,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
                     )}
                   </div>
                   <div
-                    className="h-[248px] bg-cover bg-center border border-[#222029] rounded-[16px]"
+                    className="h-[220px] bg-cover bg-center border border-[#222029] rounded-[16px]"
                     style={{ backgroundImage: `url(${project.thumbnail})` }}
                   />
                 </div>
