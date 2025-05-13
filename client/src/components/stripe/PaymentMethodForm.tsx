@@ -86,14 +86,15 @@ export function PaymentMethodForm({
                 base: {
                   fontSize: "16px",
                   color: "#424770",
-                  "::placeholder": {
-                    color: "#aab7c4",
+                  '::placeholder': {
+                    color: "#F7F8F8",
                   },
                 },
                 invalid: {
                   color: "#9e2146",
                 },
               },
+              placeholder: "Card number MM/YY CVC",
             }}
           />
         </div>

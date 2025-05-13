@@ -494,7 +494,7 @@ export function SubscriptionPage() {
 
       {/* Change Plan Dialog */}
       <Dialog open={changePlanOpen} onOpenChange={setChangePlanOpen}>
-        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto px-8 py-8">
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto px-8 py-8 bg-[#222029]">
           <div className="flex items-center mb-8 w-full">
             <h2 className="text-2xl font-bold mb-0 flex-1 text-left">Change Plan</h2>
             <button
@@ -581,7 +581,7 @@ export function SubscriptionPage() {
 
       {/* Top Up Dialog */}
       <Dialog open={topUpOpen} onOpenChange={setTopUpOpen}>
-        <DialogContent className="sm:max-w-md" style={{ backgroundColor: '#222029' }}>
+        <DialogContent className="sm:max-w-md bg-[#222029]">
           <DialogHeader>
             <DialogTitle>Top Up Tokens</DialogTitle>
             <DialogDescription>
@@ -682,7 +682,7 @@ export function SubscriptionPage() {
 
       {/* Cancel Subscription Dialog */}
       <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md bg-[#222029]">
           <DialogHeader>
             <DialogTitle>Cancel Subscription</DialogTitle>
             <DialogDescription>

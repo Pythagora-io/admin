@@ -308,7 +308,7 @@ export function TeamPage() {
               Invite Member
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-md bg-[#222029]">
             <DialogHeader>
               <DialogTitle>Invite Team Member</DialogTitle>
               <DialogDescription>
@@ -330,7 +330,10 @@ export function TeamPage() {
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setInviteOpen(false)}>
+              <Button 
+                variant="cancel"
+                onClick={() => setInviteOpen(false)}
+              >
                 Cancel
               </Button>
               <Button
@@ -409,7 +412,7 @@ export function TeamPage() {
         open={accessManagementOpen}
         onOpenChange={setAccessManagementOpen}
       >
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md bg-[#222029]">
           <DialogHeader>
             <DialogTitle>Manage Project Access</DialogTitle>
             <DialogDescription>
@@ -490,7 +493,7 @@ export function TeamPage() {
 
       {/* Remove Member Confirmation Dialog */}
       <AlertDialog open={removeConfirmOpen} onOpenChange={setRemoveConfirmOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-[#222029]">
           <AlertDialogHeader>
             <AlertDialogTitle>Remove Team Member</AlertDialogTitle>
             <AlertDialogDescription>
@@ -499,7 +502,10 @@ export function TeamPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setRemoveConfirmOpen(false)}>
+            <AlertDialogCancel 
+              className="border-none bg-transparent shadow-none hover:bg-transparent focus:bg-transparent"
+              onClick={() => setRemoveConfirmOpen(false)}
+            >
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction

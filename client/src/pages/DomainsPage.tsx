@@ -185,7 +185,7 @@ export function DomainsPage() {
               Add Domain
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-md bg-[#222029]">
             <DialogHeader>
               <DialogTitle>Add a Domain</DialogTitle>
               <DialogDescription>
@@ -206,7 +206,10 @@ export function DomainsPage() {
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setAddDomainOpen(false)}>
+              <Button 
+                variant="cancel"
+                onClick={() => setAddDomainOpen(false)}
+              >
                 Cancel
               </Button>
               <Button onClick={handleAddDomain}>Add Domain</Button>

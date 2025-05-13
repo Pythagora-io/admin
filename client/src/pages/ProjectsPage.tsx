@@ -641,7 +641,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-[#222029]">
           <AlertDialogHeader>
             <AlertDialogTitle>
               Delete Project{selectedProjects.length > 1 ? "s" : ""}
@@ -655,7 +655,10 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setDeleteConfirmOpen(false)}>
+            <AlertDialogCancel 
+              className="border-none bg-transparent shadow-none hover:bg-transparent focus:bg-transparent"
+              onClick={() => setDeleteConfirmOpen(false)}
+            >
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
@@ -670,7 +673,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
 
       {/* Rename Dialog */}
       <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md bg-[#222029]">
           <DialogHeader>
             <DialogTitle>Rename Project</DialogTitle>
             <DialogDescription>
@@ -707,7 +710,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
 
       {/* Deploy Confirmation Dialog */}
       <AlertDialog open={deployConfirmOpen} onOpenChange={setDeployConfirmOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-[#222029]">
           <AlertDialogHeader>
             <AlertDialogTitle>Deploy Project</AlertDialogTitle>
             <AlertDialogDescription>
@@ -716,7 +719,10 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setDeployConfirmOpen(false)}>
+            <AlertDialogCancel 
+              className="border-none bg-transparent shadow-none hover:bg-transparent focus:bg-transparent"
+              onClick={() => setDeployConfirmOpen(false)}
+            >
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction onClick={handleDeploy} disabled={isDeploying}>
@@ -731,7 +737,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
         open={accessManagementOpen}
         onOpenChange={setAccessManagementOpen}
       >
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md bg-[#222029]">
           <DialogHeader>
             <DialogTitle>Manage Project Access</DialogTitle>
             <DialogDescription>

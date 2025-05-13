@@ -265,7 +265,7 @@ export function PaymentsPage() {
 
       {/* Edit Billing Dialog (unchanged) */}
       <Dialog open={editBillingOpen} onOpenChange={setEditBillingOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md bg-[#222029]">
           <DialogHeader>
             <DialogTitle>Edit Billing Information</DialogTitle>
             <DialogDescription>
@@ -333,7 +333,10 @@ export function PaymentsPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditBillingOpen(false)}>
+            <Button 
+              variant="cancel"
+              onClick={() => setEditBillingOpen(false)}
+            >
               Cancel
             </Button>
             <Button onClick={handleUpdateBillingInfo}>Save</Button>
