@@ -94,7 +94,6 @@ export function PaymentMethodForm({
                   color: "#9e2146",
                 },
               },
-              placeholder: "Card number MM/YY CVC",
             }}
           />
         </div>
