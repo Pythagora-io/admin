@@ -581,7 +581,7 @@ export function SubscriptionPage() {
 
       {/* Top Up Dialog */}
       <Dialog open={topUpOpen} onOpenChange={setTopUpOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md" style={{ backgroundColor: '#222029' }}>
           <DialogHeader>
             <DialogTitle>Top Up Tokens</DialogTitle>
             <DialogDescription>
@@ -593,11 +593,12 @@ export function SubscriptionPage() {
               {topUpPackages.map((pkg) => (
                 <div
                   key={pkg.id}
-                  className={`rounded-lg border p-4 cursor-pointer transition-colors hover:border-primary ${
-                    selectedTopUp === pkg.id
-                      ? "border-primary bg-primary/5"
-                      : "border-border"
-                  }`}
+                  className={`rounded-lg p-4 cursor-pointer transition-colors 
+                    ${selectedTopUp === pkg.id
+                      ? ""
+                      : "border bg-transparent border-border"}
+                  `}
+                  style={selectedTopUp === pkg.id ? { backgroundColor: '#393744', border: 'none' } : {}}
                   onClick={() => setSelectedTopUp(pkg.id)}
                 >
                   <div className="text-center">
@@ -613,7 +614,10 @@ export function SubscriptionPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setTopUpOpen(false)}>
+            <Button 
+              className="border-none bg-transparent shadow-none hover:bg-transparent focus:bg-transparent"
+              onClick={() => setTopUpOpen(false)}
+            >
               Cancel
             </Button>
             <AlertDialog
