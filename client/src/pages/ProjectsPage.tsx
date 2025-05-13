@@ -103,11 +103,11 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       try {
         const response = await getUserProjects(type);
         setProjects(response.projects);
-      } catch (error) {
+      } catch (error: unknown) {
         toast({
           variant: "destructive",
           title: "Error",
-          description: error.message || "Failed to fetch projects",
+          description: error instanceof Error ? error.message : "Failed to fetch projects",
         });
       } finally {
         setLoading(false);
@@ -149,11 +149,11 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       setSelectedProjects([]);
       setIsSelecting(false);
       setDeleteConfirmOpen(false);
-    } catch (error) {
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to delete projects",
+        description: error instanceof Error ? error.message : "Failed to delete projects",
       });
     }
   };
@@ -177,11 +177,11 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
 
       // You could also navigate to an editor with the new project ID
       // navigate(`/editor/${response.project._id}`);
-    } catch (error) {
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to create new project",
+        description: error instanceof Error ? error.message : "Failed to create new project",
       });
     }
   };
@@ -212,11 +212,11 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       setRenameDialogOpen(false);
       setProjectToRename(null);
       setNewProjectTitle("");
-    } catch (error) {
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to rename project",
+        description: error instanceof Error ? error.message : "Failed to rename project",
       });
     } finally {
       setIsRenaming(false);
@@ -244,11 +244,11 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
 
       setDeployConfirmOpen(false);
       setProjectToDeploy(null);
-    } catch (error) {
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to deploy project",
+        description: error instanceof Error ? error.message : "Failed to deploy project",
       });
     } finally {
       setIsDeploying(false);
@@ -264,11 +264,11 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
     try {
       const response = await getProjectAccess(project._id);
       setProjectUsers(response.users);
-    } catch (error) {
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to fetch project access",
+        description: error instanceof Error ? error.message : "Failed to fetch project access",
       });
     }
   };
@@ -286,13 +286,13 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       // Filter out users that are already in projectUsers
       const existingUserIds = projectUsers.map((p) => p._id);
       setUserSearchResults(
-        response.users.filter((user) => !existingUserIds.includes(user._id)),
+        (response as { users: any[] }).users.filter((user) => !existingUserIds.includes(user._id)),
       );
-    } catch (error) {
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to search users",
+        description: error instanceof Error ? error.message : "Failed to search users",
       });
     }
   };
@@ -330,11 +330,11 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
         description: "Project access updated successfully",
       });
       setAccessManagementOpen(false);
-    } catch (error) {
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to update project access",
+        description: error instanceof Error ? error.message : "Failed to update project access",
       });
     } finally {
       setSavingAccess(false);
@@ -384,7 +384,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
             toast({
               variant: "destructive",
               title: "Error",
-              description: error.message || "Failed to duplicate project",
+              description: error instanceof Error ? error.message : "Failed to duplicate project",
             });
           });
         break;
@@ -691,7 +691,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
           </div>
           <DialogFooter>
             <Button
-              variant="outline"
+              variant="cancel"
               onClick={() => setRenameDialogOpen(false)}
             >
               Cancel
@@ -805,7 +805,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
           </div>
           <DialogFooter>
             <Button
-              variant="outline"
+              variant="cancel"
               onClick={() => setAccessManagementOpen(false)}
             >
               Cancel

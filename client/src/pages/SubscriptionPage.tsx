@@ -126,7 +126,7 @@ export function SubscriptionPage() {
         // Set the current plan as selected by default
         if (subscriptionData.subscription?.plan) {
           const currentPlanId = plansData.plans.find(
-            (p) =>
+            (p: any) =>
               p.name.toLowerCase() ===
               subscriptionData.subscription.plan.toLowerCase(),
           )?.id;
@@ -150,7 +150,7 @@ export function SubscriptionPage() {
     fetchData();
   }, [toast]);
 
-  const handleInitiatePlanChange = async (plan) => {
+  const handleInitiatePlanChange = async (plan: any) => {
     setPlanToChange(plan);
 
     // If the plan is free, we don't need payment processing
@@ -192,11 +192,11 @@ export function SubscriptionPage() {
         });
         setConfirmPlanChangeOpen(false);
         setChangePlanOpen(false);
-      } catch (error) {
+      } catch (error: unknown) {
         toast({
           variant: "destructive",
           title: "Error",
-          description: error.message || "Failed to update subscription",
+          description: error instanceof Error ? error.message : "Failed to update subscription",
         });
       } finally {
         setProcessingPayment(false);
@@ -235,18 +235,18 @@ export function SubscriptionPage() {
 
       setConfirmPlanChangeOpen(false);
       setChangePlanOpen(false);
-    } catch (error) {
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to update subscription",
+        description: error instanceof Error ? error.message : "Failed to update subscription",
       });
     } finally {
       setProcessingPayment(false);
     }
   };
 
-  const handlePaymentMethodSuccess = async (paymentMethod) => {
+  const handlePaymentMethodSuccess = async (paymentMethod: any) => {
     setHasPaymentMethod(true);
     setShowPaymentForm(false);
 
@@ -264,7 +264,7 @@ export function SubscriptionPage() {
     }
   };
 
-  const handleInitiateTopUp = (packageId) => {
+  const handleInitiateTopUp = (packageId: any) => {
     setSelectedTopUp(packageId);
 
     // Check if user has a payment method
@@ -320,11 +320,11 @@ export function SubscriptionPage() {
 
       setConfirmTopUpOpen(false);
       setTopUpOpen(false);
-    } catch (error) {
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to purchase token top-up",
+        description: error instanceof Error ? error.message : "Failed to purchase token top-up",
       });
     } finally {
       setProcessingPayment(false);
@@ -347,11 +347,11 @@ export function SubscriptionPage() {
       });
 
       setCancelDialogOpen(false);
-    } catch (error) {
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to cancel subscription",
+        description: error instanceof Error ? error.message : "Failed to cancel subscription",
       });
     } finally {
       setIsCancelling(false);
@@ -488,8 +488,8 @@ export function SubscriptionPage() {
       {/* Change Plan Dialog */}
       <Dialog open={changePlanOpen} onOpenChange={setChangePlanOpen}>
         <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto px-8 py-8 bg-[#222029]">
-          <div className="flex items-center mb-8 w-full">
-            <h2 className="text-2xl font-bold mb-0 flex-1 text-left">Change Plan</h2>
+          <div className="flex items-center justify-between mb-8 w-full">
+            <h2 className="text-2xl font-bold text-left">Change Plan</h2>
             <button
               className="p-2 text-muted-foreground hover:text-foreground"
               onClick={() => setChangePlanOpen(false)}
@@ -498,11 +498,10 @@ export function SubscriptionPage() {
               <X className="h-6 w-6" />
             </button>
           </div>
-          <div className="flex flex-row flex-wrap gap-6 pb-2 w-full">
+          <div className="flex flex-row flex-wrap gap-6 w-full justify-between">
             {plans.map((plan) => {
               const isCurrentPlan =
                 plan.name.toLowerCase() === subscription?.plan?.toLowerCase();
-
               return (
                 <PlanCard
                   key={plan.id}
