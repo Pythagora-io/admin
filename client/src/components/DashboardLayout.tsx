@@ -16,23 +16,26 @@ import {
   SidebarTrigger,
 } from "./ui/sidebar";
 import {
-  Layers,
-  Users,
-  Globe,
-  CreditCard,
-  FileText,
-  UserCircle,
-  Settings,
-  FileEdit,
-  ExternalLink,
   ChevronDown,
   LogOut,
 } from "lucide-react";
-import { SidebarIcon } from "./ui/sidebaricons";
+import {
+  SidebarIcon,
+  ProjectsIcon,
+  DraftsIcon,
+  DeployedIcon,
+  TeamIcon,
+  DomainsIcon,
+  SubscriptionIcon,
+  PaymentsIcon,
+  AccountIcon,
+  SettingsIcon,
+} from './ui/sidebaricons';
 import { useAuth } from "@/contexts/AuthContext";
 import { getCurrentUser } from "@/api/user";
 import { useMobile } from "@/hooks/useMobile";
 import { BackgroundImage } from "./BackgroundImage";
+import { cn } from "@/lib/utils";
 
 export function DashboardLayout() {
   const location = useLocation();
@@ -152,9 +155,14 @@ export function DashboardLayout() {
                       toggleSubmenu("projects");
                       if (!isProjectsPage) navigateTo("/projects/drafts");
                     }}
-                    className="w-full py-3 px-4 text-base font-medium hover:bg-accent hover:text-accent-foreground"
+                    className={cn(
+                      "w-full py-3 px-4 text-base font-medium",
+                      isProjectsPage ? "bg-primary text-primary-foreground" : "hover:bg-accent hover:text-accent-foreground"
+                    )}
                   >
-                    <SidebarIcon icon={<Layers />} isActive={isProjectsPage} />
+                    <SidebarIcon isActive={isProjectsPage}>
+                      <ProjectsIcon />
+                    </SidebarIcon>
                     <span>Projects</span>
                     <ChevronDown
                       className={`h-4 w-4 ml-auto transition-transform ${
@@ -170,9 +178,14 @@ export function DashboardLayout() {
                         <SidebarMenuSubButton
                           isActive={isDrafts}
                           onClick={() => navigateTo("/projects/drafts")}
-                          className="flex items-center py-2.5 px-3 w-full rounded-md text-base font-medium hover:bg-accent hover:text-accent-foreground"
+                          className={cn(
+                            "flex items-center py-2.5 px-3 w-full rounded-md text-base font-medium",
+                            isDrafts ? "bg-primary text-primary-foreground" : "hover:bg-accent hover:text-accent-foreground"
+                          )}
                         >
-                          <SidebarIcon icon={<FileEdit />} isActive={isDrafts} className="h-4 w-4 mr-3" />
+                          <SidebarIcon isActive={isDrafts} className="h-4 w-4 mr-3">
+                            <DraftsIcon />
+                          </SidebarIcon>
                           Drafts
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
@@ -180,9 +193,14 @@ export function DashboardLayout() {
                         <SidebarMenuSubButton
                           isActive={isDeployed}
                           onClick={() => navigateTo("/projects/deployed")}
-                          className="flex items-center py-2.5 px-3 w-full rounded-md text-base font-medium hover:bg-accent hover:text-accent-foreground"
+                          className={cn(
+                            "flex items-center py-2.5 px-3 w-full rounded-md text-base font-medium",
+                            isDeployed ? "bg-primary text-primary-foreground" : "hover:bg-accent hover:text-accent-foreground"
+                          )}
                         >
-                          <SidebarIcon icon={<ExternalLink />} isActive={isDeployed} className="h-4 w-4 mr-3" />
+                          <SidebarIcon isActive={isDeployed} className="h-4 w-4 mr-3">
+                            <DeployedIcon />
+                          </SidebarIcon>
                           Deployed
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
@@ -196,9 +214,14 @@ export function DashboardLayout() {
                     isActive={location.pathname === "/team"}
                     tooltip="Team"
                     onClick={() => navigateTo("/team")}
-                    className="w-full py-3 px-4 text-base font-medium hover:bg-accent hover:text-accent-foreground"
+                    className={cn(
+                      "w-full py-3 px-4 text-base font-medium",
+                      location.pathname === "/team" ? "bg-primary text-primary-foreground" : "hover:bg-accent hover:text-accent-foreground"
+                    )}
                   >
-                    <SidebarIcon icon={<Users />} isActive={location.pathname === "/team"} />
+                    <SidebarIcon isActive={location.pathname === "/team"}>
+                      <TeamIcon />
+                    </SidebarIcon>
                     <span>Team</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -209,9 +232,14 @@ export function DashboardLayout() {
                     isActive={location.pathname === "/domains"}
                     tooltip="Domains"
                     onClick={() => navigateTo("/domains")}
-                    className="w-full py-3 px-4 text-base font-medium hover:bg-accent hover:text-accent-foreground"
+                    className={cn(
+                      "w-full py-3 px-4 text-base font-medium",
+                      location.pathname === "/domains" ? "bg-primary text-primary-foreground" : "hover:bg-accent hover:text-accent-foreground"
+                    )}
                   >
-                    <SidebarIcon icon={<Globe />} isActive={location.pathname === "/domains"} />
+                    <SidebarIcon isActive={location.pathname === "/domains"}>
+                      <DomainsIcon />
+                    </SidebarIcon>
                     <span>Domains</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -222,9 +250,14 @@ export function DashboardLayout() {
                     isActive={location.pathname === "/subscription"}
                     tooltip="Subscription"
                     onClick={() => navigateTo("/subscription")}
-                    className="w-full py-3 px-4 text-base font-medium hover:bg-accent hover:text-accent-foreground"
+                    className={cn(
+                      "w-full py-3 px-4 text-base font-medium",
+                      location.pathname === "/subscription" ? "bg-primary text-primary-foreground" : "hover:bg-accent hover:text-accent-foreground"
+                    )}
                   >
-                    <SidebarIcon icon={<CreditCard />} isActive={location.pathname === "/subscription"} />
+                    <SidebarIcon isActive={location.pathname === "/subscription"}>
+                      <SubscriptionIcon />
+                    </SidebarIcon>
                     <span>Subscription</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -235,9 +268,14 @@ export function DashboardLayout() {
                     isActive={location.pathname === "/payments"}
                     tooltip="Payments"
                     onClick={() => navigateTo("/payments")}
-                    className="w-full py-3 px-4 text-base font-medium hover:bg-accent hover:text-accent-foreground"
+                    className={cn(
+                      "w-full py-3 px-4 text-base font-medium",
+                      location.pathname === "/payments" ? "bg-primary text-primary-foreground" : "hover:bg-accent hover:text-accent-foreground"
+                    )}
                   >
-                    <SidebarIcon icon={<FileText />} isActive={location.pathname === "/payments"} />
+                    <SidebarIcon isActive={location.pathname === "/payments"}>
+                      <PaymentsIcon />
+                    </SidebarIcon>
                     <span>Payments</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -248,9 +286,14 @@ export function DashboardLayout() {
                     isActive={location.pathname === "/"}
                     tooltip="Account"
                     onClick={() => navigateTo("/")}
-                    className="w-full py-3 px-4 text-base font-medium hover:bg-accent hover:text-accent-foreground"
+                    className={cn(
+                      "w-full py-3 px-4 text-base font-medium",
+                      location.pathname === "/" ? "bg-primary text-primary-foreground" : "hover:bg-accent hover:text-accent-foreground"
+                    )}
                   >
-                    <SidebarIcon icon={<UserCircle />} isActive={location.pathname === "/"} />
+                    <SidebarIcon isActive={location.pathname === "/"}>
+                      <AccountIcon />
+                    </SidebarIcon>
                     <span>Account</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -261,9 +304,14 @@ export function DashboardLayout() {
                     isActive={location.pathname === "/settings"}
                     tooltip="Settings"
                     onClick={() => navigateTo("/settings")}
-                    className="w-full py-3 px-4 text-base font-medium hover:bg-accent hover:text-accent-foreground"
+                    className={cn(
+                      "w-full py-3 px-4 text-base font-medium",
+                      location.pathname === "/settings" ? "bg-primary text-primary-foreground" : "hover:bg-accent hover:text-accent-foreground"
+                    )}
                   >
-                    <SidebarIcon icon={<Settings />} isActive={location.pathname === "/settings"} />
+                    <SidebarIcon isActive={location.pathname === "/settings"}>
+                      <SettingsIcon />
+                    </SidebarIcon>
                     <span>Settings</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

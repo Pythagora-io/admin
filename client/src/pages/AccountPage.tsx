@@ -182,7 +182,7 @@ export function AccountPage() {
             <DialogTrigger asChild>
               <Button variant="outline">Change email</Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="sm:max-w-md bg-[#222029]">
               <DialogHeader>
                 <DialogTitle>Change Email Address</DialogTitle>
                 <DialogDescription>
@@ -201,7 +201,7 @@ export function AccountPage() {
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setEmailChangeOpen(false)}>
+                <Button variant="cancel" onClick={() => setEmailChangeOpen(false)}>
                   Cancel
                 </Button>
                 <Button onClick={handleEmailUpdate}>Request Change</Button>
@@ -219,7 +219,7 @@ export function AccountPage() {
             <DialogTrigger asChild>
               <Button variant="outline">Change password</Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="sm:max-w-md bg-[#222029]">
               <DialogHeader>
                 <DialogTitle>Change Password</DialogTitle>
                 <DialogDescription>
@@ -259,7 +259,7 @@ export function AccountPage() {
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setPasswordChangeOpen(false)}>
+                <Button variant="cancel" onClick={() => setPasswordChangeOpen(false)}>
                   Cancel
                 </Button>
                 <Button onClick={handlePasswordUpdate}>Change Password</Button>

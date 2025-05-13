@@ -98,10 +98,10 @@ export function Sidebar({
       className={cn(
         "h-screen flex-shrink-0 flex flex-col overflow-hidden z-20 bg-background transition-all duration-300 ease-in-out",
         isOpen
-          ? "w-80 translate-x-0"
+          ? "w-64 translate-x-0"
           : isMobile
-            ? "-translate-x-full w-80"
-            : "w-20 translate-x-0",
+            ? "-translate-x-full w-64"
+            : "w-16 translate-x-0",
         className,
       )}
       {...props}
