@@ -336,7 +336,7 @@ export function DashboardLayout() {
           </Sidebar>
 
           {/* MAIN CONTENT */}
-          <SidebarInset className="w-full p-4 relative z-0 ml-0 md:ml-80">
+          <SidebarInset className="w-full p-4 relative z-0 ml-0 md:ml-64">
             {isMobile && (
               <div className="fixed top-4 left-4 z-30">
                 <SidebarTrigger onClick={() => setSidebarOpen(!sidebarOpen)} />

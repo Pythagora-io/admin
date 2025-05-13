@@ -511,7 +511,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
             {projects.map((project) => (
               <Card
                 key={project._id}
-                className={`overflow-hidden transition-all ${
+                className={`overflow-hidden transition-all bg-transparent border-0 ${
                   isSelecting
                     ? "ring-2 ring-offset-2 " +
                       (selectedProjects.includes(project._id)
@@ -537,13 +537,13 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-[180px]">
+                        <DropdownMenuContent align="end" className="w-[180px] bg-[#222029] rounded-[16px] p-3">
                           <DropdownMenuItem
                             onClick={() =>
                               handleProjectAction("open", project._id)
                             }
                           >
-                            <ExternalLink className="mr-2 h-4 w-4" />
+                            <ExternalLink className="mr-2 h-4 w-4" style={{ color: '#7D8294' }} />
                             Open
                           </DropdownMenuItem>
                           <DropdownMenuItem
@@ -551,7 +551,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
                               handleProjectAction("copy-link", project._id)
                             }
                           >
-                            <Link2 className="mr-2 h-4 w-4" />
+                            <Link2 className="mr-2 h-4 w-4" style={{ color: '#7D8294' }} />
                             Copy Link
                           </DropdownMenuItem>
                           <DropdownMenuItem
@@ -559,7 +559,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
                               handleProjectAction("duplicate", project._id)
                             }
                           >
-                            <Copy className="mr-2 h-4 w-4" />
+                            <Copy className="mr-2 h-4 w-4" style={{ color: '#7D8294' }} />
                             Duplicate
                           </DropdownMenuItem>
                           <DropdownMenuItem
@@ -567,7 +567,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
                               handleProjectAction("rename", project._id)
                             }
                           >
-                            <Edit className="mr-2 h-4 w-4" />
+                            <Edit className="mr-2 h-4 w-4" style={{ color: '#7D8294' }} />
                             Rename
                           </DropdownMenuItem>
                           {type === "drafts" && (
@@ -576,7 +576,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
                                 handleProjectAction("deploy", project._id)
                               }
                             >
-                              <Upload className="mr-2 h-4 w-4" />
+                              <Upload className="mr-2 h-4 w-4" style={{ color: '#7D8294' }} />
                               Deploy
                             </DropdownMenuItem>
                           )}
@@ -586,7 +586,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
                                 handleProjectAction("unpublish", project._id)
                               }
                             >
-                              <ExternalLink className="mr-2 h-4 w-4" />
+                              <ExternalLink className="mr-2 h-4 w-4" style={{ color: '#7D8294' }} />
                               Unpublish
                             </DropdownMenuItem>
                           )}
@@ -595,14 +595,12 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
                               handleProjectAction("manage-access", project._id)
                             }
                           >
-                            <Users className="mr-2 h-4 w-4" />
+                            <Users className="mr-2 h-4 w-4" style={{ color: '#7D8294' }} />
                             Manage Access
                           </DropdownMenuItem>
                           <DropdownMenuItem
+                            onClick={() => handleProjectAction("delete", project._id)}
                             className="text-red-500 focus:text-red-500 focus:bg-red-50 dark:focus:bg-red-950/50"
-                            onClick={() =>
-                              handleProjectAction("delete", project._id)
-                            }
                           >
                             <Trash className="mr-2 h-4 w-4" />
                             Delete
@@ -612,7 +610,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
                     )}
                   </div>
                   <div
-                    className="h-36 bg-cover bg-center bg-gray-100 dark:bg-gray-800"
+                    className="h-[248px] bg-cover bg-center border border-[#222029] rounded-[16px]"
                     style={{ backgroundImage: `url(${project.thumbnail})` }}
                   />
                 </div>
