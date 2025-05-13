@@ -794,10 +794,8 @@ export function SubscriptionPage() {
               {topUpPackages.map((pkg: TopUpPackage) => (
                 <div
                   key={pkg.id}
-                  className={`rounded-lg border p-4 cursor-pointer transition-colors hover:border-primary ${
-                    selectedTopUp === pkg.id
-                      ? "border-primary bg-primary/5"
-                      : "border-border"
+                  className={`rounded-lg border p-4 cursor-pointer transition-colors ${
+                    selectedTopUp === pkg.id ? "bg-highlight" : "border-border"
                   }`}
                   onClick={() => setSelectedTopUp(pkg.id)}
                 >
@@ -814,7 +812,7 @@ export function SubscriptionPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setTopUpOpen(false)}>
+            <Button variant="ghost" onClick={() => setTopUpOpen(false)}>
               Cancel
             </Button>
             <AlertDialog
@@ -828,7 +826,7 @@ export function SubscriptionPage() {
                     selectedTopUp && handleInitiateTopUp(selectedTopUp)
                   }
                 >
-                  Continue
+                  Save Changes
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
@@ -855,12 +853,13 @@ export function SubscriptionPage() {
 
                 <AlertDialogFooter>
                   <AlertDialogCancel
+                    className="bg-transparent text-foreground border-none"
                     onClick={() => {
                       setConfirmTopUpOpen(false);
                       setShowPaymentForm(false);
                     }}
                   >
-                    Cancel
+                    Back
                   </AlertDialogCancel>
                   {(!showPaymentForm || hasPaymentMethod) && (
                     <AlertDialogAction

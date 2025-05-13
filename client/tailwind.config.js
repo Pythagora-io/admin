@@ -80,6 +80,7 @@ module.exports = {
             DEFAULT: "hsl(var(--sidebar-hover-background))",
           },
         },
+        highlight: "var(--highlight)",
       },
       fontFamily: {
         geist: ['"Geist"', "sans-serif"],
