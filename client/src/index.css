@@ -32,6 +32,12 @@
     --ring: 228 76% 53%; /* Figma Blue for focus */
     --placeholder: 227 10% 54% / 0.7; /* Figma Grey #7D8294 with opacity */
 
+    /* Plan-specific colors */
+    --plan-starter: 47 100% 55%; /* #FFD11A - Same as warning */
+    --plan-pro: 326 94% 77%; /* #FC8DDD - Same as developer */
+    --plan-premium: 174 90% 31%; /* #07998A - Same as success */
+    --plan-enterprise: 228 76% 53%; /* #3057E1 - Same as primary */
+
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
@@ -72,6 +78,12 @@
     --input: 240 8% 97% / 0.15; /* Figma White #F7F8F8 @ 15% opacity for inputs */
     --ring: 228 76% 65%; /* Lighter Figma Blue for dark mode focus ring */
     --placeholder: 227 10% 54% / 0.7; /* Figma Grey #7D8294 with opacity */
+
+    /* Plan-specific colors */
+    --plan-starter: 47 100% 55%; /* #FFD11A - Same as warning */
+    --plan-pro: 326 94% 77%; /* #FC8DDD - Same as developer */
+    --plan-premium: 174 90% 31%; /* #07998A - Same as success */
+    --plan-enterprise: 228 76% 53%; /* #3057E1 - Same as primary */
 
     /* Sidebar Specific Colors */
     --sidebar-background: 0 0% 0%; /* #000000 for pure black sidebar */

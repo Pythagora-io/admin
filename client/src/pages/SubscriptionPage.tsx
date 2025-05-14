@@ -10,6 +10,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  StarterPlanIcon,
+  ProPlanIcon,
+  PremiumPlanIcon,
+  EnterprisePlanIcon,
+} from "@/components/icons/PlanIcons";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -20,7 +26,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Check, ExternalLink, Zap, X, AlertTriangle } from "lucide-react";
+import { Check, ExternalLink, Zap, AlertTriangle } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
@@ -53,6 +59,7 @@ interface SubscriptionPlan {
   tokens: number | null;
   features: string[];
   isEnterprise?: boolean;
+  description?: string;
 }
 
 interface UserSubscription {
@@ -87,8 +94,6 @@ interface PaymentMethod {
 }
 
 const DISPLAY_TOTAL_TOKENS = 60000000;
-
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || "");
 
 export function SubscriptionPage() {
   const [subscription, setSubscription] = useState<UserSubscription | null>(
@@ -316,7 +321,7 @@ export function SubscriptionPage() {
     }
   };
 
-  const handlePaymentMethodSuccess = async (_paymentMethod: PaymentMethod) => {
+  const handlePaymentMethodSuccess = async () => {
     setHasPaymentMethod(true);
     setShowPaymentForm(false);
 
@@ -479,7 +484,7 @@ export function SubscriptionPage() {
         month: "long",
         day: "numeric",
       });
-    } catch (_e) {
+    } catch {
       return "-";
     }
   };
@@ -490,6 +495,23 @@ export function SubscriptionPage() {
     ? subscription.amount > 0 && subscription.status === "active"
     : false;
   const isSubscriptionCanceled = subscription?.status === "canceled";
+
+  const getPlanBadgeClass = (planName?: string) => {
+    if (!planName) return "bg-warning text-warning-foreground";
+
+    switch (planName.toLowerCase()) {
+      case "free":
+        return "bg-plan-starter text-warning-foreground";
+      case "pro":
+        return "bg-plan-pro text-warning-foreground";
+      case "premium":
+        return "bg-plan-premium text-warning-foreground";
+      case "enterprise":
+        return "bg-plan-enterprise text-warning-foreground";
+      default:
+        return "bg-warning text-warning-foreground";
+    }
+  };
 
   return (
     <div className="flex flex-col gap-14">
@@ -522,8 +544,12 @@ export function SubscriptionPage() {
         <div className="flex flex-col space-y-3">
           <div className="flex items-center space-x-2">
             <h2 className="text-body-lg font-medium">Plan Summary</h2>
-            <Badge className="bg-warning text-warning-foreground hover:bg-warning/90">
-              {subscription?.plan ? `${subscription.plan} plan` : "Free plan"}
+            <Badge
+              className={`${getPlanBadgeClass(subscription?.plan)} hover:opacity-90`}
+            >
+              {subscription?.plan
+                ? `${subscription.plan} plan`
+                : "Starter plan"}
             </Badge>
           </div>
 
@@ -633,65 +659,111 @@ export function SubscriptionPage() {
                 const isCurrentPlan =
                   plan.name.toLowerCase() === subscription?.plan?.toLowerCase();
                 const isEnterprisePlan = plan.isEnterprise;
-                const isFreePlan = plan.price === 0;
-                const buttonLabel = isCurrentPlan
-                  ? "Current Plan"
-                  : isFreePlan &&
-                      (subscription ? subscription.amount > 0 : false)
-                    ? "Downgrade to Free"
-                    : `Upgrade to ${plan.name}`;
+
+                // Get the correct icon based on plan name
+                let planIcon = null;
+                let planBgColor = "bg-background";
+
+                if (
+                  plan.name.toLowerCase() === "starter" ||
+                  plan.name.toLowerCase() === "free"
+                ) {
+                  planIcon = <StarterPlanIcon className="h-7 w-7" />;
+                } else if (plan.name.toLowerCase() === "pro") {
+                  planIcon = <ProPlanIcon className="h-7 w-5" />;
+                } else if (plan.name.toLowerCase() === "premium") {
+                  planIcon = <PremiumPlanIcon className="h-7 w-7" />;
+                } else if (
+                  isEnterprisePlan ||
+                  plan.name.toLowerCase() === "enterprise"
+                ) {
+                  planIcon = <EnterprisePlanIcon className="h-7 w-7" />;
+                }
+
+                // Set different background colors based on selection state
+                if (isCurrentPlan) {
+                  planBgColor = "bg-[#393744]";
+                } else if (selectedPlan === plan.id) {
+                  planBgColor = "bg-primary/5 border-primary";
+                } else {
+                  planBgColor = "bg-black/60 dark:bg-[#0b0912]/60";
+                }
+
+                // We use the features that come from the backend API
+                const planFeatures = plan.features || [];
 
                 return (
                   <div
                     key={plan.id}
-                    className={`rounded-lg border p-4 flex flex-col h-full ${
-                      selectedPlan === plan.id
-                        ? "border-primary bg-primary/5"
-                        : "border-border"
-                    } ${isEnterprisePlan ? "border-dashed" : ""}`}
+                    className={`rounded-2xl border border-border ${planBgColor} p-6 flex flex-col h-full ${
+                      isEnterprisePlan ? "border-dashed" : ""
+                    } transition-colors duration-200 cursor-pointer`}
                     onClick={() =>
                       !isEnterprisePlan && setSelectedPlan(plan.id)
                     }
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-lg font-semibold">{plan.name}</span>
-                      <span className="font-bold">
-                        {plan.price === 0 ? (
-                          "Free"
-                        ) : plan.price === null ? (
-                          "Custom"
-                        ) : (
-                          <>
-                            {formatCurrency(plan.price, plan.currency)}
-                            <span className="text-sm font-normal text-muted-foreground">
-                              /month
-                            </span>
-                          </>
-                        )}
-                      </span>
+                    <div className="flex justify-between items-start mb-4">
+                      {planIcon && <div className="mb-2">{planIcon}</div>}
+
+                      {isCurrentPlan && (
+                        <span className="text-xs font-medium bg-foreground/15 text-foreground rounded-md px-3 py-1">
+                          Current plan
+                        </span>
+                      )}
                     </div>
 
-                    {plan.tokens !== null && (
-                      <div className="text-sm text-muted-foreground mb-4">
-                        {plan.tokens === 0
-                          ? "No tokens included"
-                          : `${formatTokens(plan.tokens)} tokens included`}
+                    <div className="space-y-4 mb-6">
+                      <div>
+                        <h3 className="text-body-lg font-normal">
+                          {plan.name}
+                        </h3>
+                        <p className="text-heading-3 font-medium -tracking-[0.02em] mt-3">
+                          {plan.price === 0
+                            ? "Free"
+                            : plan.price === null
+                              ? "Custom"
+                              : `${formatCurrency(plan.price, plan.currency)}/month`}
+                        </p>
                       </div>
-                    )}
 
-                    <div className="flex-grow space-y-2 mb-6">
-                      {plan.features.map((feature, index) => (
-                        <div key={index} className="flex items-start gap-2">
-                          <Check className="h-4 w-4 text-primary flex-shrink-0 mt-1" />
-                          <span className="text-sm">{feature}</span>
+                      {plan.description && (
+                        <div className="border-t border-foreground/10 pt-4">
+                          <p className="text-sm text-foreground/80 mb-2">
+                            {plan.description}
+                          </p>
                         </div>
-                      ))}
+                      )}
+
+                      <div className="space-y-2">
+                        {planFeatures.map((feature, index) => {
+                          // Check if this is a heading (e.g., "Everything in X, plus:")
+                          const isHeading =
+                            feature.includes("Everything in") &&
+                            feature.includes("plus:");
+
+                          return (
+                            <div
+                              key={index}
+                              className={`flex items-start gap-2 ${isHeading ? "pt-2" : ""}`}
+                            >
+                              {!isHeading && (
+                                <Check className="h-4 w-4 text-foreground mt-1 flex-shrink-0" />
+                              )}
+                              <span
+                                className={`text-sm ${isHeading ? "font-medium" : "text-foreground/80"}`}
+                              >
+                                {feature}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
 
                     <div className="mt-auto">
                       {isEnterprisePlan ? (
                         <Button
-                          className="w-full"
+                          className="w-full rounded-lg"
                           variant="outline"
                           onClick={(e) => {
                             e.stopPropagation();
@@ -702,18 +774,24 @@ export function SubscriptionPage() {
                           Get in Touch
                         </Button>
                       ) : isCurrentPlan ? (
-                        <Button className="w-full" variant="secondary" disabled>
+                        <Button
+                          className="w-full rounded-lg bg-foreground/10 hover:bg-foreground/20 text-foreground"
+                          disabled
+                        >
                           Current Plan
                         </Button>
                       ) : (
                         <Button
-                          className="w-full"
+                          className="w-full rounded-lg"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleInitiatePlanChange(plan);
                           }}
                         >
-                          {buttonLabel}
+                          {plan.price === 0 &&
+                          (subscription ? subscription.amount > 0 : false)
+                            ? "Downgrade to Free"
+                            : `Upgrade to ${plan.name}`}
                         </Button>
                       )}
                     </div>

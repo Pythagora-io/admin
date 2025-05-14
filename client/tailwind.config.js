@@ -55,6 +55,23 @@ module.exports = {
           DEFAULT: "hsl(var(--developer))",
           foreground: "hsl(var(--developer-foreground))",
         },
+        // Plan-specific colors
+        "plan-starter": {
+          DEFAULT: "hsl(var(--plan-starter))",
+          foreground: "hsl(var(--warning-foreground))",
+        },
+        "plan-pro": {
+          DEFAULT: "hsl(var(--plan-pro))",
+          foreground: "hsl(var(--warning-foreground))",
+        },
+        "plan-premium": {
+          DEFAULT: "hsl(var(--plan-premium))",
+          foreground: "hsl(var(--warning-foreground))",
+        },
+        "plan-enterprise": {
+          DEFAULT: "hsl(var(--plan-enterprise))",
+          foreground: "hsl(var(--warning-foreground))",
+        },
         "toast-success-text": "hsl(var(--toast-success-text))",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
