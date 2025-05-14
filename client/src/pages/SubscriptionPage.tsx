@@ -397,6 +397,36 @@ export function SubscriptionPage() {
     subscription?.amount > 0 && subscription?.status === "active";
   const isSubscriptionCanceled = subscription?.status === "canceled";
 
+  // Calculate token usage percentage and determine progress bar color
+  let tokenPercent = 0;
+  let tokenBarColor = '';
+  let tokenBgColor = '';
+  let totalTokens = 0;
+  if (subscription && plans.length > 0) {
+    const plan = plans.find(
+      (p: any) => p.name.toLowerCase() === subscription.plan?.toLowerCase()
+    );
+    totalTokens = plan?.tokens || 0;
+    tokenPercent = totalTokens > 0 ? (subscription.tokens / totalTokens) * 100 : 0;
+    if (subscription.tokens === 0 || tokenPercent < 10) {
+      tokenBarColor = 'bg-[rgba(243,66,34,1)]';
+      tokenBgColor = 'bg-[rgba(243,66,34,0.2)]';
+    } else if (tokenPercent < 50) {
+      tokenBarColor = 'bg-[rgba(48,87,225,1)]';
+      tokenBgColor = 'bg-[rgba(48,87,225,0.2)]';
+    } else {
+      tokenBarColor = 'bg-[rgba(7,153,138,1)]';
+      tokenBgColor = 'bg-[rgba(7,153,138,0.2)]';
+    }
+    // Debug logs
+    console.log('DEBUG token usage:', {
+      subscriptionTokens: subscription.tokens,
+      totalTokens,
+      tokenPercent,
+      plan,
+    });
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -458,9 +488,9 @@ export function SubscriptionPage() {
             Top Up
           </Button>
         </div>
-        <Progress value={subscription?.tokens > 0 ? 50 : 0} className={`h-2${subscription?.tokens === 0 ? ' bg-[rgba(243,66,34,0.1)]' : ''}`} />
+        <Progress value={tokenPercent} className={`h-2 ${tokenBgColor}`} barClassName={tokenBarColor} />
         <p className="text-xs text-muted-foreground text-right">
-          {subscription?.tokens || 0} / 600,000 tokens
+          {subscription?.tokens || 0} / {totalTokens} tokens
         </p>
       </div>
 
