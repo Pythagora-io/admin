@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/useToast";
 import {
@@ -543,20 +542,22 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {projects.length === 0 ? (
-          <Card className="bg-transparent rounded-2xl px-10 py-5 sm:col-span-2 lg:col-span-3 xl:col-span-4">
-            <CardContent className="flex flex-col items-center justify-center py-10 gap-4">
-              <FilePen className="size-6 text-foreground/80" />
-              <p className="text-body-sm font-medium text-foreground/80 text-center max-w-xs">
-                No projects yet. Start your first project to get going.
-              </p>
-              <Button
-                onClick={handleNewProject}
-                className="bg-primary text-primary-foreground text-caption-strong px-3 py-2 h-9 rounded-md"
-              >
-                New project
-              </Button>
-            </CardContent>
-          </Card>
+          <div className="relative overflow-hidden transition-all">
+            <div className="relative rounded-2xl overflow-hidden border border-border">
+              <div className="h-60 w-full bg-cover bg-center flex flex-col items-center justify-center bg-muted/10">
+                <FilePen className="h-16 w-16 text-muted-foreground/30 mb-4" />
+                <p className="text-body-sm font-medium text-foreground/80 text-center max-w-xs px-4">
+                  No projects yet. Start your first project to get going.
+                </p>
+                <Button
+                  onClick={handleNewProject}
+                  className="bg-primary text-primary-foreground text-caption-strong px-3 py-2 h-9 rounded-md mt-4"
+                >
+                  New project
+                </Button>
+              </div>
+            </div>
+          </div>
         ) : (
           <>
             {projects.map((project) => (
