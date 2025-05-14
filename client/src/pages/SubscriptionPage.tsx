@@ -549,7 +549,7 @@ export function SubscriptionPage() {
         open={confirmPlanChangeOpen}
         onOpenChange={setConfirmPlanChangeOpen}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-[#222029]">
           <AlertDialogHeader>
             <AlertDialogTitle>
               {planToChange?.price === 0 && subscription?.amount > 0
@@ -652,7 +652,7 @@ export function SubscriptionPage() {
                   Continue
                 </Button>
               </AlertDialogTrigger>
-              <AlertDialogContent>
+              <AlertDialogContent className="bg-[#222029]">
                 <AlertDialogHeader>
                   <AlertDialogTitle>Confirm Token Purchase</AlertDialogTitle>
                   <AlertDialogDescription>

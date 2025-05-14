@@ -31,6 +31,7 @@ export interface Plan {
   tokens: number | null;
   features: string[];
   isEnterprise?: boolean;
+  description?: string;
 }
 
 export interface PlanCardProps {
@@ -59,7 +60,7 @@ export const PlanCard: React.FC<PlanCardProps> = ({
   onActionClick,
   onContactForEnterprise,
 }) => {
-  const { id, name, price, currency, tokens, features, isEnterprise } = plan;
+  const { id, name, price, currency, tokens, features, isEnterprise, description } = plan;
 
   // Map plan ID to SVG icon
   const icons: Record<string, string> = {
@@ -71,6 +72,16 @@ export const PlanCard: React.FC<PlanCardProps> = ({
   };
   const IconSrc = icons[id];
 
+  // Default descriptions for each plan type
+  const defaultDescriptions: Record<string, string> = {
+    free: "Just getting started? Try building your first app with AI.",
+    starter: "Just getting started? Try building your first app with AI.",
+    pro: "For individuals and small teams ready to ship real products.",
+    premium: "More power, more projects, more room to grow.",
+    enterprise: "Custom solutions for large organizations.",
+  };
+  const planDescription = description || defaultDescriptions[id] || "";
+
   return (
     <div
       className={
@@ -78,8 +89,6 @@ export const PlanCard: React.FC<PlanCardProps> = ({
         + ` ${isEnterprise ? 'border-2 border-dashed border-border' : 'border-2'}`
         + ` ${isCurrent
           ? 'bg-[#393744] border-transparent'
-          : isSelected
-          ? 'bg-background border-primary'
           : 'bg-background border-border'}`
       }
       onClick={() => !isEnterprise && onCardClick(plan)}
@@ -94,28 +103,40 @@ export const PlanCard: React.FC<PlanCardProps> = ({
         <img src={IconSrc} alt={`${name} icon`} className="h-8 w-8 mb-4" />
       )}
 
-      {/* Title & price */}
-      <div className="flex flex-wrap justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold">{name}</h3>
+      {/* Title & price stacked vertically */}
+      <div className="mb-2">
+        <h3 className="text-lg font-semibold mb-1">{id === 'starter' ? 'Starter' : name}</h3>
         <div className="text-xl font-bold">
-          {formatCurrency(price, currency)}
+          {id === 'starter' ? 'Free' : formatCurrency(price, currency)}
           {price && price !== 0 && (
-            <span className="ml-1 text-sm font-normal text-muted-foreground">
-              /month
-            </span>
+            <span className="ml-1">/month</span>
           )}
         </div>
       </div>
 
-      {/* Token info */}
-      <p className="text-sm text-muted-foreground mb-4">{formatTokens(tokens)}</p>
+      {/* Description section with top and bottom border */}
+      <div className="w-full border-t border-b border-[rgba(255,255,255,0.08)] py-4 mb-4">
+        <p className="text-sm text-muted-foreground text-left">{planDescription}</p>
+      </div>
+
+      {/* Plan intro text */}
+      <p className="text-sm text-muted-foreground mb-4">
+        {(id === 'starter' || id === 'free') && 'Starter includes:'}
+        {id === 'pro' && 'Everything in Starter, plus:'}
+        {id === 'premium' && 'Everything in Pro, plus:'}
+      </p>
 
       {/* Feature list */}
       <div className="flex-grow space-y-2 mb-6">
+        {/* Token info as first checklist item */}
+        <div className="flex items-start gap-2">
+          <Check className="h-4 w-4 mt-1 flex-shrink-0" style={{ color: 'rgba(247, 248, 248, 1)' }} />
+          <span className="text-sm" style={{ color: 'rgba(247, 248, 248, 1)' }}>{formatTokens(tokens)}</span>
+        </div>
         {features.map((feature, idx) => (
           <div key={idx} className="flex items-start gap-2">
-            <Check className="h-4 w-4 text-primary mt-1 flex-shrink-0" />
-            <span className="text-sm">{feature}</span>
+            <Check className="h-4 w-4 mt-1 flex-shrink-0" style={{ color: 'rgba(247, 248, 248, 1)' }} />
+            <span className="text-sm" style={{ color: 'rgba(247, 248, 248, 1)' }}>{feature}</span>
           </div>
         ))}
       </div>

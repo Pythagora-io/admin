@@ -293,7 +293,7 @@ export function DomainsPage() {
         open={deleteDomainDialogOpen}
         onOpenChange={setDeleteDomainDialogOpen}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-[#222029]">
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Domain</AlertDialogTitle>
             <AlertDialogDescription>
