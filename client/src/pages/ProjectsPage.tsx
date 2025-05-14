@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   MoreVertical,
   Edit,
@@ -520,7 +521,10 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
                 disabled={selectedProjects.length === 0}
                 onClick={() => setDeleteConfirmOpen(true)}
               >
-                Delete ({selectedProjects.length})
+                Delete
+                {selectedProjects.length > 0
+                  ? ` (${selectedProjects.length})`
+                  : " checked"}
               </Button>
             </>
           ) : (
@@ -559,12 +563,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
               <div
                 key={project._id}
                 className={`relative overflow-hidden transition-all ${
-                  isSelecting
-                    ? "ring-2 ring-offset-2 ring-offset-background " +
-                      (selectedProjects.includes(project._id)
-                        ? "ring-primary"
-                        : "ring-transparent")
-                    : "cursor-pointer"
+                  isSelecting ? "cursor-pointer" : "cursor-pointer"
                 }`}
                 onClick={() => {
                   if (isSelecting) {
@@ -590,6 +589,22 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
                       <Settings2 className="h-16 w-16 text-muted-foreground/30" />
                     )}
                   </div>
+
+                  {/* Checkbox for selection (only visible when isSelecting is true) */}
+                  {isSelecting && (
+                    <div
+                      className="absolute top-3 left-3 z-10"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Checkbox
+                        checked={selectedProjects.includes(project._id)}
+                        onCheckedChange={() =>
+                          toggleProjectSelection(project._id)
+                        }
+                        className="border border-2 border-checkbox-check bg-white data-[state=checked]:text-checkbox-check data-[state=checked]:bg-white size-5"
+                      />
+                    </div>
+                  )}
 
                   {/* More Options Button (three vertical dots) */}
                   {!isSelecting && (
@@ -713,9 +728,11 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
             </AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete{" "}
-              {selectedProjects.length === 1
-                ? "this project"
-                : `these ${selectedProjects.length} projects`}
+              {selectedProjects.length === 0
+                ? "the selected projects"
+                : selectedProjects.length === 1
+                  ? "this project"
+                  : `these ${selectedProjects.length} projects`}
               ? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>

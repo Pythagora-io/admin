@@ -106,6 +106,8 @@ module.exports = {
           },
         },
         highlight: "var(--highlight)",
+        // Checkbox color for selection
+        "checkbox-check": "hsl(var(--checkbox-check))",
       },
       fontFamily: {
         geist: ['"Geist"', "sans-serif"],

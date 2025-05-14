@@ -31,6 +31,7 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 228 76% 53%; /* Figma Blue for focus */
     --placeholder: 227 10% 54% / 0.7; /* Figma Grey #7D8294 with opacity */
+    --checkbox-check: 253 25% 11% / 0.8; /* hsla(253, 25%, 11%, 0.8) for checkbox */
 
     /* Plan-specific colors */
     --plan-starter: 47 100% 55%; /* #FFD11A - Same as warning */
@@ -82,6 +83,7 @@
     --input: 240 8% 97% / 0.15; /* Figma White #F7F8F8 @ 15% opacity for inputs */
     --ring: 228 76% 65%; /* Lighter Figma Blue for dark mode focus ring */
     --placeholder: 227 10% 54% / 0.7; /* Figma Grey #7D8294 with opacity */
+    --checkbox-check: 253 25% 11% / 0.8; /* hsla(253, 25%, 11%, 0.8) for checkbox */
 
     /* Plan-specific colors */
     --plan-starter: 47 100% 55%; /* #FFD11A - Same as warning */
