@@ -235,16 +235,16 @@ export function DashboardLayout() {
                   className={cn(
                     "py-1.5 px-2 text-sm rounded-md w-full flex items-center",
                     isProjectsDraftsPage
-                      ? "text-primary"
-                      : "text-sidebar-foreground hover:text-primary",
+                      ? "text-foreground bg-primary/50"
+                      : "text-sidebar-foreground",
                   )}
                 >
                   <FileEdit
                     className={cn(
                       "h-5 w-5 mr-2",
                       isProjectsDraftsPage
-                        ? "text-primary"
-                        : "text-sidebar-muted group-hover:text-primary",
+                        ? "text-foreground"
+                        : "text-sidebar-muted",
                     )}
                   />
                   <span>Drafts</span>
@@ -257,16 +257,16 @@ export function DashboardLayout() {
                   className={cn(
                     "py-1.5 px-2 text-sm rounded-md w-full flex items-center",
                     isProjectsDeployedPage
-                      ? "text-primary"
-                      : "text-sidebar-foreground hover:text-primary",
+                      ? "text-foreground bg-primary/50"
+                      : "text-sidebar-foreground",
                   )}
                 >
                   <ExternalLink
                     className={cn(
                       "h-5 w-5 mr-2",
                       isProjectsDeployedPage
-                        ? "text-primary"
-                        : "text-sidebar-muted group-hover:text-primary",
+                        ? "text-foreground"
+                        : "text-sidebar-muted",
                     )}
                   />
                   Deployed
