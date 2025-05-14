@@ -165,32 +165,8 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
     }
   };
 
-  const handleNewProject = async () => {
-    try {
-      const response = await createProjectDraft({
-        title: "New Project",
-        description: "Enter project description here",
-        visibility: "private",
-      });
-
-      // Refresh the projects list
-      const updatedResponse = await getUserProjects(type);
-      setProjects(updatedResponse.projects);
-
-      toast({
-        title: "Success",
-        description: "New project created successfully",
-      });
-
-      // You could also navigate to an editor with the new project ID
-      // navigate(`/editor/${response.project._id}`);
-    } catch (error: unknown) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to create new project",
-      });
-    }
+  const handleNewProject = () => {
+    navigate("/projects/create");
   };
 
   const handleRename = async () => {

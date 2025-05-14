@@ -18,6 +18,7 @@ import { DomainsPage } from "./pages/DomainsPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { ProjectsPage } from "./pages/ProjectsPage";
 import { TeamPage } from "./pages/TeamPage";
+import CreateProjectPage from "./pages/CreateProjectPage";
 
 function App() {
   return (
@@ -50,6 +51,7 @@ function App() {
                   path="deployed"
                   element={<ProjectsPage type="deployed" />}
                 />
+                <Route path="create" element={<CreateProjectPage />} />
               </Route>
               <Route path="team" element={<TeamPage />} />
             </Route>
