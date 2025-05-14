@@ -49,6 +49,7 @@ import { Elements, PaymentElement } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import { PaymentMethodForm } from "@/components/stripe/PaymentMethodForm";
 import { PlanCard } from "@/components/ui/plan-card";
+import CircleAlertIcon from "@/assets/svg/warnings/circle-alert.svg";
 
 // Stripe promise
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || "");
@@ -375,6 +376,8 @@ export function SubscriptionPage() {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: currency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     }).format(amount);
   };
 
@@ -404,19 +407,12 @@ export function SubscriptionPage() {
       </div>
 
       {isOutOfTokens && (
-        <Alert
-          variant="destructive"
-          className="bg-red-50 dark:bg-red-950/30 border-red-300 dark:border-red-800 text-red-800 dark:text-red-300"
-        >
-          <AlertTriangle className="h-5 w-5" />
-          <AlertTitle className="font-semibold">
-            You've run out of tokens!
-          </AlertTitle>
-          <AlertDescription>
-            To continue building your apps, please top up your tokens or upgrade
-            your plan.
-          </AlertDescription>
-        </Alert>
+        <div className="flex items-center gap-3" style={{ background: 'rgba(243, 66, 34, 0.1)', borderRadius: 8, padding: '12px 16px' }}>
+          <img src={CircleAlertIcon} alt="Warning" className="w-6 h-6" style={{ color: '#F34222' }} />
+          <span className="font-medium text-sm" style={{ color: '#F34222' }}>
+            You've run out of tokens! To continue building your apps, please top up your tokens or upgrade your plan.
+          </span>
+        </div>
       )}
 
       {/* Plan Summary Section */}
@@ -575,9 +571,9 @@ export function SubscriptionPage() {
       <Dialog open={topUpOpen} onOpenChange={setTopUpOpen}>
         <DialogContent className="sm:max-w-md bg-[#222029]">
           <DialogHeader>
-            <DialogTitle>Top Up Tokens</DialogTitle>
+            <DialogTitle>Top up Pythagora</DialogTitle>
             <DialogDescription>
-              Select a token package to add to your account.
+            Choose a one-time token top up or upgrade your plan.
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">

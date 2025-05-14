@@ -62,6 +62,13 @@ import {
 } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
 import EmptyStateCard from "@/components/ui/EmptyStateCard";
+// Import SVG icons
+import OpenIcon from "@/assets/svg/dropdown-icons/open.svg";
+import CopyLinkIcon from "@/assets/svg/dropdown-icons/copy-link.svg";
+import DuplicateIcon from "@/assets/svg/dropdown-icons/duplicate-project.svg";
+import RenameIcon from "@/assets/svg/dropdown-icons/rename.svg";
+import ManageAccessIcon from "@/assets/svg/dropdown-icons/manage-access.svg";
+import DeleteIcon from "@/assets/svg/dropdown-icons/delete-project.svg";
 
 interface ProjectsPageProps {
   type?: "drafts" | "deployed";
@@ -543,7 +550,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
                               handleProjectAction("open", project._id)
                             }
                           >
-                            <ExternalLink className="mr-2 h-4 w-4" style={{ color: '#7D8294' }} />
+                            <img src={OpenIcon} className="mr-2 h-4 w-4" style={{ color: '#7D8294' }} />
                             Open
                           </DropdownMenuItem>
                           <DropdownMenuItem
@@ -551,7 +558,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
                               handleProjectAction("copy-link", project._id)
                             }
                           >
-                            <Link2 className="mr-2 h-4 w-4" style={{ color: '#7D8294' }} />
+                            <img src={CopyLinkIcon} className="mr-2 h-4 w-4" style={{ color: '#7D8294' }} />
                             Copy Link
                           </DropdownMenuItem>
                           <DropdownMenuItem
@@ -559,7 +566,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
                               handleProjectAction("duplicate", project._id)
                             }
                           >
-                            <Copy className="mr-2 h-4 w-4" style={{ color: '#7D8294' }} />
+                            <img src={DuplicateIcon} className="mr-2 h-4 w-4" style={{ color: '#7D8294' }} />
                             Duplicate
                           </DropdownMenuItem>
                           <DropdownMenuItem
@@ -567,7 +574,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
                               handleProjectAction("rename", project._id)
                             }
                           >
-                            <Edit className="mr-2 h-4 w-4" style={{ color: '#7D8294' }} />
+                            <img src={RenameIcon} className="mr-2 h-4 w-4" style={{ color: '#7D8294' }} />
                             Rename
                           </DropdownMenuItem>
                           {type === "drafts" && (
@@ -595,14 +602,14 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
                               handleProjectAction("manage-access", project._id)
                             }
                           >
-                            <Users className="mr-2 h-4 w-4" style={{ color: '#7D8294' }} />
+                            <img src={ManageAccessIcon} className="mr-2 h-4 w-4" style={{ color: '#7D8294' }} />
                             Manage Access
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => handleProjectAction("delete", project._id)}
                             className="text-red-500 focus:text-red-500 focus:bg-red-50 dark:focus:bg-red-950/50"
                           >
-                            <Trash className="mr-2 h-4 w-4" />
+                            <img src={DeleteIcon} className="mr-2 h-4 w-4" style={{ color: '#ef4444' }} />
                             Delete
                           </DropdownMenuItem>
                         </DropdownMenuContent>
