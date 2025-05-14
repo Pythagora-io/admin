@@ -12,7 +12,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -24,7 +23,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  MoreHorizontal,
+  MoreVertical,
   Edit,
   Link2,
   Copy,
@@ -35,6 +34,7 @@ import {
   Search,
   Upload,
   FilePen,
+  Settings2,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -320,7 +320,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       // Filter out users that are already in projectUsers
       const existingUserIds = projectUsers.map((p) => p._id);
       setUserSearchResults(
-        (response.users as SearchedUser[]).filter(
+        (response as { users: SearchedUser[] }).users.filter(
           (user) => !existingUserIds.includes(user._id),
         ),
       );
@@ -529,9 +529,9 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {projects.length === 0 ? (
-          <Card className="bg-transparent rounded-2xl px-10 py-5">
+          <Card className="bg-transparent rounded-2xl px-10 py-5 sm:col-span-2 lg:col-span-3 xl:col-span-4">
             <CardContent className="flex flex-col items-center justify-center py-10 gap-4">
               <FilePen className="size-6 text-foreground/80" />
               <p className="text-body-sm font-medium text-foreground/80 text-center max-w-xs">
@@ -548,72 +548,98 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
         ) : (
           <>
             {projects.map((project) => (
-              <Card
+              <div
                 key={project._id}
-                className={`overflow-hidden transition-all ${
+                className={`relative overflow-hidden transition-all ${
                   isSelecting
-                    ? "ring-2 ring-offset-2 " +
+                    ? "ring-2 ring-offset-2 ring-offset-background " +
                       (selectedProjects.includes(project._id)
                         ? "ring-primary"
                         : "ring-transparent")
-                    : ""
+                    : "cursor-pointer"
                 }`}
-                onClick={() =>
-                  isSelecting && toggleProjectSelection(project._id)
-                }
+                onClick={() => {
+                  if (isSelecting) {
+                    toggleProjectSelection(project._id);
+                  } else {
+                    // Default action for non-select mode, e.g., open project
+                    // window.open(`/editor/${project._id}`, "_blank");
+                  }
+                }}
               >
-                <div className="relative">
-                  <div className="absolute top-2 right-2 z-10">
-                    {!isSelecting && (
+                {/* Image Container */}
+                <div className="relative rounded-2xl overflow-hidden border border-border">
+                  {/* Thumbnail Image */}
+                  <div
+                    className="h-60 w-full bg-cover bg-center flex items-center justify-center"
+                    style={{
+                      backgroundImage: project.thumbnail
+                        ? `url(${project.thumbnail})`
+                        : "none",
+                    }}
+                  >
+                    {!project.thumbnail && (
+                      <Settings2 className="h-16 w-16 text-muted-foreground/30" />
+                    )}
+                  </div>
+
+                  {/* More Options Button (three vertical dots) */}
+                  {!isSelecting && (
+                    <div className="absolute top-3 right-3 z-10">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="rounded-full bg-background/80 backdrop-blur-sm"
-                            onClick={(e) => e.stopPropagation()}
+                            className="h-7 w-7 rounded-md bg-background/60 hover:bg-background/80 backdrop-blur-sm data-[state=open]:bg-background/90"
+                            onClick={(e) => e.stopPropagation()} // Prevent card click
                           >
-                            <MoreHorizontal className="h-4 w-4" />
+                            <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-[180px]">
                           <DropdownMenuItem
-                            onClick={() =>
-                              handleProjectAction("open", project._id)
-                            }
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleProjectAction("open", project._id);
+                            }}
                           >
                             <ExternalLink className="mr-2 h-4 w-4" />
-                            Open
+                            Open in Editor
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() =>
-                              handleProjectAction("copy-link", project._id)
-                            }
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleProjectAction("copy-link", project._id);
+                            }}
                           >
                             <Link2 className="mr-2 h-4 w-4" />
                             Copy Link
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() =>
-                              handleProjectAction("duplicate", project._id)
-                            }
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleProjectAction("duplicate", project._id);
+                            }}
                           >
                             <Copy className="mr-2 h-4 w-4" />
                             Duplicate
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() =>
-                              handleProjectAction("rename", project._id)
-                            }
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleProjectAction("rename", project._id);
+                            }}
                           >
                             <Edit className="mr-2 h-4 w-4" />
                             Rename
                           </DropdownMenuItem>
                           {type === "drafts" && (
                             <DropdownMenuItem
-                              onClick={() =>
-                                handleProjectAction("deploy", project._id)
-                              }
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleProjectAction("deploy", project._id);
+                              }}
                             >
                               <Upload className="mr-2 h-4 w-4" />
                               Deploy
@@ -621,58 +647,50 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
                           )}
                           {type === "deployed" && (
                             <DropdownMenuItem
-                              onClick={() =>
-                                handleProjectAction("unpublish", project._id)
-                              }
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleProjectAction("unpublish", project._id);
+                              }}
                             >
-                              <ExternalLink className="mr-2 h-4 w-4" />
+                              <Link2 className="mr-2 h-4 w-4" />
                               Unpublish
                             </DropdownMenuItem>
                           )}
                           <DropdownMenuItem
-                            onClick={() =>
-                              handleProjectAction("manage-access", project._id)
-                            }
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleProjectAction("manage-access", project._id);
+                            }}
                           >
                             <Users className="mr-2 h-4 w-4" />
                             Manage Access
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            className="text-red-500 focus:text-red-500 focus:bg-red-50 dark:focus:bg-red-950/50"
-                            onClick={() =>
-                              handleProjectAction("delete", project._id)
-                            }
+                            className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleProjectAction("delete", project._id);
+                            }}
                           >
                             <Trash className="mr-2 h-4 w-4" />
                             Delete
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
-                    )}
-                  </div>
-                  <div
-                    className="h-36 bg-cover bg-center bg-gray-100 dark:bg-gray-800"
-                    style={{ backgroundImage: `url(${project.thumbnail})` }}
-                  />
-                </div>
-                <CardContent className="p-4">
-                  <div className="flex justify-between items-start gap-2">
-                    <div>
-                      <h3 className="font-medium">{project.title}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Edited {formatTimeAgo(project.lastEdited)}
-                      </p>
                     </div>
-                    <Badge
-                      variant={
-                        project.visibility === "private" ? "outline" : "default"
-                      }
-                    >
-                      {project.visibility === "private" ? "Private" : "Public"}
-                    </Badge>
-                  </div>
-                </CardContent>
-              </Card>
+                  )}
+                </div>
+
+                {/* Text Content Area */}
+                <div className="flex flex-col gap-0 px-4 pt-4">
+                  <h3 className="text-body-md truncate" title={project.title}>
+                    {project.title}
+                  </h3>
+                  <p className="text-xs text-foreground/80">
+                    Edited {formatTimeAgo(project.lastEdited)}
+                  </p>
+                </div>
+              </div>
             ))}
           </>
         )}
