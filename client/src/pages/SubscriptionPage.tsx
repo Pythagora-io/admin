@@ -458,7 +458,7 @@ export function SubscriptionPage() {
             Top Up
           </Button>
         </div>
-        <Progress value={subscription?.tokens > 0 ? 50 : 0} className="h-2" />
+        <Progress value={subscription?.tokens > 0 ? 50 : 0} className={`h-2${subscription?.tokens === 0 ? ' bg-[rgba(243,66,34,0.1)]' : ''}`} />
         <p className="text-xs text-muted-foreground text-right">
           {subscription?.tokens || 0} / 600,000 tokens
         </p>
