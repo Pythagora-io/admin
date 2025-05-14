@@ -620,7 +620,7 @@ export function SubscriptionPage() {
 
       {/* Change Plan Dialog */}
       <Dialog open={changePlanOpen} onOpenChange={setChangePlanOpen}>
-        <DialogContent className="sm:max-w-3xl">
+        <DialogContent className="sm:max-w-7xl w-[95vw] max-h-[90vh] overflow-auto">
           <DialogHeader className="relative">
             <DialogTitle>Change Subscription Plan</DialogTitle>
             <DialogDescription>
@@ -628,7 +628,7 @@ export function SubscriptionPage() {
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {plans.map((plan) => {
                 const isCurrentPlan =
                   plan.name.toLowerCase() === subscription?.plan?.toLowerCase();
