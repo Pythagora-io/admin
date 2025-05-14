@@ -2,8 +2,6 @@ import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -30,18 +28,13 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
-  Check,
-  CreditCard,
-  ExternalLink,
   Zap,
   X,
   AlertTriangle,
 } from "lucide-react";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
   getUserSubscription,
@@ -62,6 +55,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Elements, PaymentElement } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import { PaymentMethodForm } from "@/components/stripe/PaymentMethodForm";
+import { PlanCard } from "@/components/ui/plan-card";
 
 // Stripe promise
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || "");
@@ -432,182 +426,102 @@ export function SubscriptionPage() {
         </Alert>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            Current Plan{" "}
-            <Badge className="ml-2 bg-yellow-500 hover:bg-yellow-600">
-              {subscription?.plan || "Free"} Plan
-            </Badge>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h3 className="text-xl font-semibold">Price</h3>
-              <p className="text-muted-foreground">
-                {subscription?.amount > 0
-                  ? `${formatCurrency(subscription.amount, subscription.currency)} / month`
-                  : "Free"}
-              </p>
-            </div>
-            <div className="flex gap-2">
-              {hasPaidSubscription && !isSubscriptionCanceled && (
-                <Button
-                  variant="outline"
-                  onClick={() => setCancelDialogOpen(true)}
-                >
-                  Cancel Subscription
-                </Button>
-              )}
-              {isSubscriptionCanceled && (
-                <Badge variant="outline" className="py-1 px-2">
-                  Cancels on{" "}
-                  {new Date(subscription.nextBillingDate).toLocaleDateString()}
-                </Badge>
-              )}
-              <Button onClick={() => setChangePlanOpen(true)}>
-                Change Plan
-              </Button>
-            </div>
-          </div>
-
-          <Separator />
-
-          <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <div className="space-y-1">
-                <h4 className="font-medium">Token Usage</h4>
-                <p className="text-sm text-muted-foreground">
-                  {formatTokens(subscription?.tokens || 0)} tokens available
-                </p>
-              </div>
-              <Button variant="outline" onClick={() => setTopUpOpen(true)}>
-                <Zap className="mr-2 h-4 w-4" />
-                Top Up
-              </Button>
-            </div>
-            <Progress
-              value={subscription?.tokens > 0 ? 50 : 0}
-              className="h-2"
-            />
-            <p className="text-xs text-muted-foreground text-right">
-              {subscription?.tokens || 0} / 600,000 tokens
+      {/* Plan Summary Section */}
+      <div className="pb-6 border-b border-[rgba(247,248,248,0.10)]">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h3 className="text-xl font-semibold">Plan Summary <Badge className="ml-2 bg-yellow-500 hover:bg-yellow-600">{subscription?.plan || "Free"} Plan</Badge></h3>
+            <p className="text-muted-foreground">
+              {subscription?.amount > 0
+                ? `${formatCurrency(subscription.amount, subscription.currency)} / month`
+                : "Free"}
             </p>
           </div>
-        </CardContent>
-      </Card>
+          <div className="flex gap-2">
+            {hasPaidSubscription && !isSubscriptionCanceled && (
+              <Button variant="outline" onClick={() => setCancelDialogOpen(true)}>
+                Cancel Subscription
+              </Button>
+            )}
+            {isSubscriptionCanceled && (
+              <Badge variant="outline" className="py-1 px-2">
+                Cancels on {new Date(subscription.nextBillingDate).toLocaleDateString()}
+              </Badge>
+            )}
+            <Button onClick={() => setChangePlanOpen(true)}>
+              Change Plan
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Token Usage Section */}
+      <div className="py-6 border-b border-[rgba(247,248,248,0.10)]">
+        <div className="flex justify-between items-center mb-2">
+          <div className="space-y-1">
+            <h4 className="font-medium">Token Usage</h4>
+            <p className="text-sm text-muted-foreground">
+              {formatTokens(subscription?.tokens || 0)} tokens available
+            </p>
+          </div>
+          <Button variant="outline" onClick={() => setTopUpOpen(true)}>
+            <Zap className="mr-2 h-4 w-4" />
+            Top Up
+          </Button>
+        </div>
+        <Progress value={subscription?.tokens > 0 ? 50 : 0} className="h-2" />
+        <p className="text-xs text-muted-foreground text-right">
+          {subscription?.tokens || 0} / 600,000 tokens
+        </p>
+      </div>
+
+      {/* Team Members Section */}
+      <div className="py-6 border-b border-[rgba(247,248,248,0.10)]">
+        <div className="flex justify-between items-center mb-2">
+          <div className="space-y-1">
+            <h4 className="font-medium">Team Members</h4>
+            <p className="text-sm text-muted-foreground">
+              {/* NOTE: Placeholder for available seats just for UI work, replace with real data */}
+              7 / 15 seats available
+            </p>
+          </div>
+          <Button variant="outline">
+            Contact sales
+          </Button>
+        </div>
+        <Progress value={47} className="h-2 bg-blue-700" />
+      </div>
 
       {/* Change Plan Dialog */}
       <Dialog open={changePlanOpen} onOpenChange={setChangePlanOpen}>
-        <DialogContent className="sm:max-w-3xl">
-          <DialogHeader className="relative">
-            <DialogTitle>Change Subscription Plan</DialogTitle>
-            <DialogDescription>
-              Select a new plan. Your billing cycle will update immediately.
-            </DialogDescription>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-0 top-0"
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto px-8 py-8">
+          <div className="flex items-center mb-8 w-full">
+            <h2 className="text-2xl font-bold mb-0 flex-1 text-left">Change Plan</h2>
+            <button
+              className="p-2 text-muted-foreground hover:text-foreground"
               onClick={() => setChangePlanOpen(false)}
+              aria-label="Close"
             >
-              <X className="h-4 w-4" />
-            </Button>
-          </DialogHeader>
-          <div className="py-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {plans.map((plan) => {
-                const isCurrentPlan =
-                  plan.name.toLowerCase() === subscription?.plan?.toLowerCase();
-                const isEnterprisePlan = plan.isEnterprise;
-                const isFreePlan = plan.price === 0;
-                const buttonLabel = isCurrentPlan
-                  ? "Current Plan"
-                  : isFreePlan && subscription?.amount > 0
-                    ? "Downgrade to Free"
-                    : `Upgrade to ${plan.name}`;
+              <X className="h-6 w-6" />
+            </button>
+          </div>
+          <div className="flex flex-row flex-wrap gap-6 pb-2 w-full">
+            {plans.map((plan) => {
+              const isCurrentPlan =
+                plan.name.toLowerCase() === subscription?.plan?.toLowerCase();
 
-                return (
-                  <div
-                    key={plan.id}
-                    className={`rounded-lg border p-4 flex flex-col h-full ${
-                      selectedPlan === plan.id
-                        ? "border-primary bg-primary/5"
-                        : "border-border"
-                    } ${isEnterprisePlan ? "border-dashed" : ""}`}
-                    onClick={() =>
-                      !isEnterprisePlan && setSelectedPlan(plan.id)
-                    }
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-lg font-semibold">{plan.name}</span>
-                      <span className="font-bold">
-                        {plan.price === 0 ? (
-                          "Free"
-                        ) : plan.price === null ? (
-                          "Custom"
-                        ) : (
-                          <>
-                            {formatCurrency(plan.price, plan.currency)}
-                            <span className="text-sm font-normal text-muted-foreground">
-                              /month
-                            </span>
-                          </>
-                        )}
-                      </span>
-                    </div>
-
-                    {plan.tokens !== null && (
-                      <div className="text-sm text-muted-foreground mb-4">
-                        {plan.tokens === 0
-                          ? "No tokens included"
-                          : `${formatTokens(plan.tokens)} tokens included`}
-                      </div>
-                    )}
-
-                    <div className="flex-grow space-y-2 mb-6">
-                      {plan.features.map((feature, index) => (
-                        <div key={index} className="flex items-start gap-2">
-                          <Check className="h-4 w-4 text-primary flex-shrink-0 mt-1" />
-                          <span className="text-sm">{feature}</span>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="mt-auto">
-                      {isEnterprisePlan ? (
-                        <Button
-                          className="w-full"
-                          variant="outline"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleContactForEnterprise();
-                          }}
-                        >
-                          <ExternalLink className="h-4 w-4 mr-2" />
-                          Get in Touch
-                        </Button>
-                      ) : isCurrentPlan ? (
-                        <Button className="w-full" variant="secondary" disabled>
-                          Current Plan
-                        </Button>
-                      ) : (
-                        <Button
-                          className="w-full"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleInitiatePlanChange(plan);
-                          }}
-                        >
-                          {buttonLabel}
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+              return (
+                <PlanCard
+                  key={plan.id}
+                  plan={plan}
+                  isCurrent={isCurrentPlan}
+                  isSelected={selectedPlan === plan.id}
+                  onCardClick={(p) => !p.isEnterprise && setSelectedPlan(p.id)}
+                  onActionClick={(p) => handleInitiatePlanChange(p)}
+                  onContactForEnterprise={handleContactForEnterprise}
+                />
+              );
+            })}
           </div>
         </DialogContent>
       </Dialog>
@@ -667,7 +581,7 @@ export function SubscriptionPage() {
 
       {/* Top Up Dialog */}
       <Dialog open={topUpOpen} onOpenChange={setTopUpOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md" style={{ backgroundColor: '#222029' }}>
           <DialogHeader>
             <DialogTitle>Top Up Tokens</DialogTitle>
             <DialogDescription>
@@ -679,11 +593,12 @@ export function SubscriptionPage() {
               {topUpPackages.map((pkg) => (
                 <div
                   key={pkg.id}
-                  className={`rounded-lg border p-4 cursor-pointer transition-colors hover:border-primary ${
-                    selectedTopUp === pkg.id
-                      ? "border-primary bg-primary/5"
-                      : "border-border"
-                  }`}
+                  className={`rounded-lg p-4 cursor-pointer transition-colors 
+                    ${selectedTopUp === pkg.id
+                      ? ""
+                      : "border bg-transparent border-border"}
+                  `}
+                  style={selectedTopUp === pkg.id ? { backgroundColor: '#393744', border: 'none' } : {}}
                   onClick={() => setSelectedTopUp(pkg.id)}
                 >
                   <div className="text-center">
@@ -699,7 +614,10 @@ export function SubscriptionPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setTopUpOpen(false)}>
+            <Button 
+              className="border-none bg-transparent shadow-none hover:bg-transparent focus:bg-transparent"
+              onClick={() => setTopUpOpen(false)}
+            >
               Cancel
             </Button>
             <AlertDialog

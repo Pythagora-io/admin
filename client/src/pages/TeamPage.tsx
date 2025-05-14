@@ -344,96 +344,65 @@ export function TeamPage() {
         </Dialog>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Team Members</CardTitle>
-          <CardDescription>View and manage your team members</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {members.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-10">
-              <UserPlus className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium">No team members yet</h3>
-              <p className="text-muted-foreground text-center mt-2 mb-4">
-                Invite colleagues to collaborate on your projects.
-              </p>
-              <Button onClick={() => setInviteOpen(true)}>
-                <UserPlus className="mr-2 h-4 w-4" />
-                Invite Your First Team Member
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {members.map((member) => (
-                <div
-                  key={member._id}
-                  className="flex items-center justify-between p-4 rounded-lg border"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">
-                      {member.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <h3 className="font-medium">{member.name}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {member.email}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <Select
-                      value={member.role}
-                      onValueChange={(value) =>
-                        handleRoleChange(
-                          member._id,
-                          value as "admin" | "developer" | "viewer",
-                        )
-                      }
-                      disabled={updatingRole === member._id}
-                    >
-                      <SelectTrigger
-                        className={`w-32 ${getRoleColor(member.role)} border`}
-                      >
-                        <SelectValue placeholder="Select role" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="admin">Admin</SelectItem>
-                        <SelectItem value="developer">Developer</SelectItem>
-                        <SelectItem value="viewer">Viewer</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => openAccessManagement(member)}
-                        >
-                          <Settings className="mr-2 h-4 w-4" />
-                          Manage Access
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-red-500 focus:text-red-500"
-                          onClick={() => {
-                            setMemberToRemove(member);
-                            setRemoveConfirmOpen(true);
-                          }}
-                        >
-                          <UserMinus className="mr-2 h-4 w-4" />
-                          Remove Member
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
+      {/* Team Members Section */}
+      <div className="pt-8 pb-4 border-b border-[rgba(247,248,248,0.10)]">
+        <h2 className="text-2xl font-bold mb-2">Team members</h2>
+        {/* Table header */}
+        <div className="flex w-full text-muted-foreground text-sm font-medium border-b border-[rgba(247,248,248,0.10)] pb-2">
+          <div className="flex-1">Email</div>
+          <div className="w-48">Role</div>
+          <div className="w-32">Access</div>
+          <div className="w-8"></div>
+        </div>
+        {/* Table rows */}
+        {members.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-10">
+            <UserPlus className="h-12 w-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium">No team members yet</h3>
+            <p className="text-muted-foreground text-center mt-2 mb-4">
+              Invite colleagues to collaborate on your projects.
+            </p>
+            <Button onClick={() => setInviteOpen(true)}>
+              <UserPlus className="mr-2 h-4 w-4" />
+              Invite Your First Team Member
+            </Button>
+          </div>
+        ) : (
+          <div className="divide-y divide-[rgba(247,248,248,0.10)]">
+            {members.map((member) => (
+              <div
+                key={member._id}
+                className="flex items-center py-4"
+              >
+                <div className="flex-1 text-base">{member.email}</div>
+                <div className="w-48">{member.role}</div>
+                <div className="w-32">
+                  {/* Access badge or button here */}
+                  <span className="inline-block px-3 py-1 rounded bg-emerald-900 text-emerald-200 text-xs font-semibold">Admin</span>
                 </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                <div className="w-8 text-right">
+                  {/* Actions menu here */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <MoreHorizontal className="h-5 w-5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => openAccessManagement(member)}>
+                        Manage Access
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => { setRemoveConfirmOpen(true); setMemberToRemove(member); }}>
+                        Remove
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Access Management Dialog */}
       <Dialog

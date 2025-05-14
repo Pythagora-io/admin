@@ -2,9 +2,6 @@ import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,13 +26,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
 import {
   Trash,
   ExternalLink,
   PlusCircle,
   Globe,
-  CheckCircle,
 } from "lucide-react";
 import {
   getUserDomains,
@@ -43,6 +38,7 @@ import {
   deleteDomain,
   verifyDomain,
 } from "@/api/domains";
+import EmptyStateCard from "@/components/ui/EmptyStateCard";
 
 export function DomainsPage() {
   const [domains, setDomains] = useState<any[]>([]);
@@ -220,85 +216,71 @@ export function DomainsPage() {
       </div>
 
       {domains.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-10">
-            <Globe className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium">No domains added yet</h3>
-            <p className="text-muted-foreground text-center mt-2 mb-4">
-              Add your first domain to connect with Pythagora services.
-            </p>
-            <Button onClick={() => setAddDomainOpen(true)}>
-              <PlusCircle className="h-4 w-4 mr-2" />
-              Add Your First Domain
-            </Button>
-          </CardContent>
-        </Card>
+        <EmptyStateCard
+          title="No domains added yet"
+          description="Add your first domain to connect with Pythagora services."
+          buttonText="Add Your First Domain"
+          onButtonClick={() => setAddDomainOpen(true)}
+          icon={<Globe className="h-12 w-12 text-muted-foreground mb-4" />}
+          buttonIcon={<PlusCircle className="mr-2 h-4 w-4" />}
+        />
       ) : (
         <div className="grid gap-4">
           {domains.map((domain) => (
-            <Card key={domain._id}>
-              <CardContent className="flex items-center justify-between p-4">
-                <div className="flex items-center gap-3">
-                  <Globe className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <h3 className="text-base font-medium">{domain.domain}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Added on {formatDate(domain.createdAt)}
-                    </p>
-                  </div>
-                  {domain.verified ? (
-                    <Badge
-                      variant="outline"
-                      className="bg-green-50 text-green-600 dark:bg-green-600/10 dark:text-green-400 border-green-200 dark:border-green-600/20"
-                    >
-                      Verified
-                    </Badge>
-                  ) : (
-                    <Badge
-                      variant="outline"
-                      className="bg-yellow-50 text-yellow-600 dark:bg-yellow-600/10 dark:text-yellow-400 border-yellow-200 dark:border-yellow-600/20"
-                    >
-                      Pending Verification
-                    </Badge>
-                  )}
-                </div>
-                <div className="flex gap-2">
-                  {!domain.verified && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleVerifyDomain(domain._id)}
-                      disabled={verifyingDomain === domain._id}
-                      className="text-green-600 border-green-200 hover:bg-green-50 hover:text-green-700 dark:border-green-800 dark:hover:bg-green-900/20"
-                    >
-                      {verifyingDomain === domain._id ? (
-                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-green-500 border-t-transparent" />
-                      ) : (
-                        <CheckCircle className="h-4 w-4 mr-2" />
-                      )}
-                      Verify
-                    </Button>
-                  )}
+            <div
+              key={domain._id}
+              className="grid grid-cols-12 items-center px-6 py-4 border-b border-border last:border-b-0"
+            >
+              <div className="col-span-5 flex items-center gap-3">
+                <Globe className="h-5 w-5 text-muted-foreground" />
+                <span className="font-medium text-base">{domain.domain}</span>
+              </div>
+              <div className="col-span-3 text-sm text-muted-foreground">
+                {formatDate(domain.createdAt)}
+              </div>
+              <div className="col-span-4 flex items-center justify-end">
+                {domain.verified ? (
                   <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => openInNewTab(domain.domain)}
-                    title="Open domain"
+                    className="bg-[#07998A] hover:bg-[#07998A] text-white cursor-default"
+                    disabled
                   >
-                    <ExternalLink className="h-4 w-4" />
+                    Verified
                   </Button>
+                ) : domain.pendingVerification ? (
                   <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => openDeleteDomainDialog(domain._id)}
-                    className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50"
-                    title="Delete domain"
+                    className="bg-[#FFD11A] hover:bg-[#FFD11A] text-black cursor-default"
+                    disabled
                   >
-                    <Trash className="h-4 w-4" />
+                    Pending Verification
                   </Button>
-                </div>
-              </CardContent>
-            </Card>
+                ) : (
+                  <Button
+                    className="bg-primary hover:bg-primary/90 text-white"
+                    onClick={() => handleVerifyDomain(domain._id)}
+                    disabled={verifyingDomain === domain._id}
+                  >
+                    {verifyingDomain === domain._id ? (
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2" />
+                    ) : null}
+                    Verify
+                  </Button>
+                )}
+                <button
+                  className="ml-2 p-2 rounded hover:bg-muted/10"
+                  onClick={() => openInNewTab(domain.domain)}
+                  title="Open domain"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                </button>
+                <button
+                  className="ml-2 p-2 rounded hover:bg-red-900/10 text-red-500"
+                  onClick={() => openDeleteDomainDialog(domain._id)}
+                  title="Delete domain"
+                >
+                  <Trash className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
           ))}
         </div>
       )}
