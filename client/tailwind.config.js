@@ -51,6 +51,10 @@ module.exports = {
           DEFAULT: "hsl(var(--warning))",
           foreground: "hsl(var(--warning-foreground))",
         },
+        developer: {
+          DEFAULT: "hsl(var(--developer))",
+          foreground: "hsl(var(--developer-foreground))",
+        },
         "toast-success-text": "hsl(var(--toast-success-text))",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

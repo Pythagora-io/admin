@@ -1,11 +1,4 @@
 import { useState, useEffect } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -24,20 +17,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useToast } from "@/hooks/useToast";
 import {
-  MoreHorizontal,
   UserPlus,
   Settings,
   UserMinus,
   Search,
+  ChevronDown,
+  Check,
+  MoreVertical,
 } from "lucide-react";
 import {
   getTeamMembers,
@@ -59,21 +47,36 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+// Define interfaces
+interface Project {
+  _id: string;
+  name: string;
+  access: "view" | "edit";
+}
+
+interface TeamMember {
+  _id: string;
+  name: string;
+  email: string;
+  role: "admin" | "developer" | "viewer";
+}
+
 export function TeamPage() {
-  const [members, setMembers] = useState<any[]>([]);
+  const [members, setMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [accessManagementOpen, setAccessManagementOpen] = useState(false);
-  const [selectedMember, setSelectedMember] = useState<any>(null);
-  const [memberProjects, setMemberProjects] = useState<any[]>([]);
+  const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
+  const [memberProjects, setMemberProjects] = useState<Project[]>([]);
   const [projectSearchQuery, setProjectSearchQuery] = useState("");
-  const [projectSearchResults, setProjectSearchResults] = useState<any[]>([]);
+  const [projectSearchResults, setProjectSearchResults] = useState<Project[]>(
+    [],
+  );
   const [sendingInvite, setSendingInvite] = useState(false);
   const [removeConfirmOpen, setRemoveConfirmOpen] = useState(false);
-  const [memberToRemove, setMemberToRemove] = useState<any>(null);
+  const [memberToRemove, setMemberToRemove] = useState<TeamMember | null>(null);
   const [savingAccess, setSavingAccess] = useState(false);
-  const [updatingRole, setUpdatingRole] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -84,12 +87,15 @@ export function TeamPage() {
         console.log("Team members response:", response);
         console.log("Members array:", response.members);
         setMembers(response.members);
-      } catch (error) {
+      } catch (error: unknown) {
         console.error("Error in fetchMembers:", error);
         toast({
-          variant: "destructive",
+          variant: "error",
           title: "Error",
-          description: error.message || "Failed to fetch team members",
+          description:
+            error instanceof Error
+              ? error.message
+              : "Failed to fetch team members",
         });
       } finally {
         setLoading(false);
@@ -104,7 +110,7 @@ export function TeamPage() {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(inviteEmail)) {
       toast({
-        variant: "destructive",
+        variant: "error",
         title: "Error",
         description: "Please enter a valid email address",
       });
@@ -120,16 +126,18 @@ export function TeamPage() {
       setMembers(updatedMembers.members);
 
       toast({
+        variant: "success",
         title: "Success",
         description: response.message || "Invitation sent successfully",
       });
       setInviteEmail("");
       setInviteOpen(false);
-    } catch (error) {
+    } catch (error: unknown) {
       toast({
-        variant: "destructive",
+        variant: "error",
         title: "Error",
-        description: error.message || "Failed to send invitation",
+        description:
+          error instanceof Error ? error.message : "Failed to send invitation",
       });
     } finally {
       setSendingInvite(false);
@@ -143,14 +151,18 @@ export function TeamPage() {
       await removeTeamMember(memberToRemove._id);
       setMembers(members.filter((member) => member._id !== memberToRemove._id));
       toast({
+        variant: "success",
         title: "Success",
         description: "Team member removed successfully",
       });
-    } catch (error) {
+    } catch (error: unknown) {
       toast({
-        variant: "destructive",
+        variant: "error",
         title: "Error",
-        description: error.message || "Failed to remove team member",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to remove team member",
       });
     } finally {
       setRemoveConfirmOpen(false);
@@ -162,7 +174,6 @@ export function TeamPage() {
     memberId: string,
     role: "admin" | "developer" | "viewer",
   ) => {
-    setUpdatingRole(memberId);
     try {
       await updateTeamMemberRole(memberId, { role });
       setMembers(
@@ -171,32 +182,35 @@ export function TeamPage() {
         ),
       );
       toast({
+        variant: "success",
         title: "Success",
         description: `Role updated to ${role}`,
       });
-    } catch (error) {
+    } catch (error: unknown) {
       toast({
-        variant: "destructive",
+        variant: "error",
         title: "Error",
-        description: error.message || "Failed to update role",
+        description:
+          error instanceof Error ? error.message : "Failed to update role",
       });
-    } finally {
-      setUpdatingRole(null);
     }
   };
 
-  const openAccessManagement = async (member: any) => {
+  const openAccessManagement = async (member: TeamMember) => {
     setSelectedMember(member);
     setAccessManagementOpen(true);
 
     try {
       const response = await getMemberAccess(member._id);
       setMemberProjects(response.projects);
-    } catch (error) {
+    } catch (error: unknown) {
       toast({
-        variant: "destructive",
+        variant: "error",
         title: "Error",
-        description: error.message || "Failed to fetch member access",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch member access",
       });
     }
   };
@@ -212,20 +226,25 @@ export function TeamPage() {
     try {
       const response = await searchProjects(query);
       // Filter out projects that are already in memberProjects
-      const existingProjectIds = memberProjects.map((p) => p._id);
-      setProjectSearchResults(
-        response.projects.filter((p) => !existingProjectIds.includes(p._id)),
+      const existingProjectIds = memberProjects.map(
+        (p: { _id: string }) => p._id,
       );
-    } catch (error) {
+      setProjectSearchResults(
+        response.projects.filter(
+          (p: { _id: string }) => !existingProjectIds.includes(p._id),
+        ),
+      );
+    } catch (error: unknown) {
       toast({
-        variant: "destructive",
+        variant: "error",
         title: "Error",
-        description: error.message || "Failed to search projects",
+        description:
+          error instanceof Error ? error.message : "Failed to search projects",
       });
     }
   };
 
-  const addProjectToMember = (project: any) => {
+  const addProjectToMember = (project: Project) => {
     // Add project to memberProjects with 'view' access as default
     setMemberProjects([...memberProjects, { ...project, access: "view" }]);
     // Clear search results
@@ -246,25 +265,31 @@ export function TeamPage() {
 
     setSavingAccess(true);
     try {
-      const projectsToUpdate = memberProjects.map((p) => ({
-        id: p._id,
-        access: p.access,
-      }));
+      const projectsToUpdate = memberProjects.map(
+        (p: { _id: string; access: "view" | "edit" }) => ({
+          id: p._id,
+          access: p.access,
+        }),
+      );
 
       await updateMemberAccess(selectedMember._id, {
         projects: projectsToUpdate,
       });
 
       toast({
+        variant: "success",
         title: "Success",
         description: "Project access updated successfully",
       });
       setAccessManagementOpen(false);
-    } catch (error) {
+    } catch (error: unknown) {
       toast({
-        variant: "destructive",
+        variant: "error",
         title: "Error",
-        description: error.message || "Failed to update project access",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to update project access",
       });
     } finally {
       setSavingAccess(false);
@@ -274,13 +299,26 @@ export function TeamPage() {
   const getRoleColor = (role: string) => {
     switch (role) {
       case "admin":
-        return "bg-red-100 text-red-800 dark:bg-red-700/20 dark:text-red-400 border-red-200";
+        return "bg-success text-warning-foreground";
       case "developer":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-700/20 dark:text-blue-400 border-blue-200";
+        return "bg-developer text-warning-foreground";
       case "viewer":
-        return "bg-green-100 text-green-800 dark:bg-green-700/20 dark:text-green-400 border-green-200";
+        return "bg-warning text-warning-foreground";
       default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-700/20 dark:text-gray-400 border-gray-200";
+        return "bg-gray-100 text-gray-800 dark:bg-gray-700/20 dark:text-gray-400";
+    }
+  };
+
+  const getRoleText = (role: string) => {
+    switch (role) {
+      case "admin":
+        return "Admin";
+      case "developer":
+        return "Developer";
+      case "viewer":
+        return "Viewer";
+      default:
+        return role;
     }
   };
 
@@ -293,49 +331,62 @@ export function TeamPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Team Management</h1>
-          <p className="text-muted-foreground">
+    <div className="mx-auto flex flex-col gap-14 text-foreground">
+      <div className="flex justify-between items-start">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-heading-3 text-foreground">My Team</h1>
+          <p className="text-body-sm text-foreground/60">
             Manage your team members and their access
           </p>
         </div>
         <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="bg-primary text-primary-foreground text-body-md px-3 py-2 h-auto rounded-lg">
               <UserPlus className="mr-2 h-4 w-4" />
               Invite Member
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="bg-card border-none rounded-2xl p-8 w-[90%] sm:w-[500px]">
             <DialogHeader>
-              <DialogTitle>Invite Team Member</DialogTitle>
-              <DialogDescription>
+              <DialogTitle className="text-xl font-medium text-foreground">
+                Invite Team Member
+              </DialogTitle>
+              <DialogDescription className="text-sm text-foreground/60 text-left pt-1">
                 Send an invitation to join your team.
               </DialogDescription>
             </DialogHeader>
             <div className="py-4">
               <div className="flex items-end gap-2">
                 <div className="grid flex-1 gap-2">
-                  <Label htmlFor="email">Email Address</Label>
+                  <Label
+                    htmlFor="email"
+                    className="text-sm font-medium text-foreground"
+                  >
+                    Email Address
+                  </Label>
                   <Input
                     id="email"
                     type="email"
                     value={inviteEmail}
                     onChange={(e) => setInviteEmail(e.target.value)}
                     placeholder="colleague@example.com"
+                    className="bg-foreground/10 border border-border rounded-lg p-4 placeholder:text-foreground/60 text-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
                   />
                 </div>
               </div>
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setInviteOpen(false)}>
+            <DialogFooter className="mt-6 sm:justify-end gap-2">
+              <Button
+                variant="ghost"
+                onClick={() => setInviteOpen(false)}
+                className="rounded-lg px-4 py-3 text-sm font-medium text-foreground hover:bg-foreground/10"
+              >
                 Cancel
               </Button>
               <Button
                 onClick={handleInviteMember}
                 disabled={sendingInvite || !inviteEmail.trim()}
+                className="bg-primary text-primary-foreground rounded-lg px-4 py-3 text-sm font-medium hover:bg-primary/90"
               >
                 {sendingInvite ? "Sending..." : "Invite"}
               </Button>
@@ -344,124 +395,182 @@ export function TeamPage() {
         </Dialog>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Team Members</CardTitle>
-          <CardDescription>View and manage your team members</CardDescription>
-        </CardHeader>
-        <CardContent>
+      <div className="flex flex-col gap-5">
+        <div className="flex justify-between items-center">
+          <div className="space-y-1.5">
+            <h2 className="text-heading-3 font-normal text-foreground">
+              Team Members
+            </h2>
+          </div>
+        </div>
+
+        {/* Team Members Table */}
+        <div className="flex flex-col space-y-5">
           {members.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-10">
+            <div className="flex flex-col items-center justify-center py-10 border border-dashed border-border rounded-lg">
               <UserPlus className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium">No team members yet</h3>
-              <p className="text-muted-foreground text-center mt-2 mb-4">
+              <h3 className="text-body-lg-medium text-foreground">
+                No team members yet
+              </h3>
+              <p className="text-body-sm text-foreground/60 mt-1 mb-4">
                 Invite colleagues to collaborate on your projects.
               </p>
-              <Button onClick={() => setInviteOpen(true)}>
+              <Button
+                onClick={() => setInviteOpen(true)}
+                className="bg-primary text-primary-foreground text-body-md px-3 py-2 h-auto rounded-lg"
+              >
                 <UserPlus className="mr-2 h-4 w-4" />
                 Invite Your First Team Member
               </Button>
             </div>
           ) : (
-            <div className="space-y-4">
-              {members.map((member) => (
-                <div
-                  key={member._id}
-                  className="flex items-center justify-between p-4 rounded-lg border"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">
-                      {member.name.charAt(0).toUpperCase()}
+            <div>
+              {/* Header Row */}
+              <div className="flex items-center py-3 border-border text-body-sm font-medium text-foreground/60">
+                <div className="w-[45%]">Email</div>
+                <div className="w-[25%]">Role</div>
+                <div className="w-[25%]">Access</div>
+                <div className="w-[5%] text-right"></div>
+              </div>
+              {/* Member Rows */}
+              <div className="flex flex-col">
+                {members.map((member) => (
+                  <div
+                    key={member._id}
+                    className="flex items-center py-3 border-t border-border text-caption-strong text-foreground"
+                    tabIndex={0}
+                  >
+                    <div className="w-[45%]">{member.email}</div>
+                    <div className="w-[25%]">{member.role}</div>
+                    <div className="w-[25%]">
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={`px-2 py-1 rounded text-caption-strong ${getRoleColor(member.role)}`}
+                        >
+                          {getRoleText(member.role)}
+                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 p-0"
+                            >
+                              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent
+                            align="end"
+                            className="min-w-[120px] p-1 space-y-0.5"
+                          >
+                            <DropdownMenuItem
+                              className="bg-success text-warning-foreground focus:bg-success/90 focus:text-warning-foreground text-xs py-1 px-2 h-6"
+                              onClick={() =>
+                                handleRoleChange(member._id, "admin")
+                              }
+                            >
+                              <span className="flex-1">Admin</span>
+                              {member.role === "admin" && (
+                                <Check className="h-3 w-3 ml-1" />
+                              )}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="bg-developer text-warning-foreground focus:bg-developer/90 focus:text-warning-foreground text-xs py-1 px-2 h-6"
+                              onClick={() =>
+                                handleRoleChange(member._id, "developer")
+                              }
+                            >
+                              <span className="flex-1">Developer</span>
+                              {member.role === "developer" && (
+                                <Check className="h-3 w-3 ml-1" />
+                              )}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="bg-warning text-warning-foreground focus:bg-warning/90 focus:text-warning-foreground text-xs py-1 px-2 h-6"
+                              onClick={() =>
+                                handleRoleChange(member._id, "viewer")
+                              }
+                            >
+                              <span className="flex-1">Viewer</span>
+                              {member.role === "viewer" && (
+                                <Check className="h-3 w-3 ml-1" />
+                              )}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-medium">{member.name}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {member.email}
-                      </p>
+                    <div className="w-[5%] text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                          >
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => openAccessManagement(member)}
+                          >
+                            <Settings className="mr-2 h-4 w-4" />
+                            Manage Access
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="text-destructive focus:text-destructive"
+                            onClick={() => {
+                              setMemberToRemove(member);
+                              setRemoveConfirmOpen(true);
+                            }}
+                          >
+                            <UserMinus className="mr-2 h-4 w-4" />
+                            Remove Member
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <Select
-                      value={member.role}
-                      onValueChange={(value) =>
-                        handleRoleChange(
-                          member._id,
-                          value as "admin" | "developer" | "viewer",
-                        )
-                      }
-                      disabled={updatingRole === member._id}
-                    >
-                      <SelectTrigger
-                        className={`w-32 ${getRoleColor(member.role)} border`}
-                      >
-                        <SelectValue placeholder="Select role" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="admin">Admin</SelectItem>
-                        <SelectItem value="developer">Developer</SelectItem>
-                        <SelectItem value="viewer">Viewer</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => openAccessManagement(member)}
-                        >
-                          <Settings className="mr-2 h-4 w-4" />
-                          Manage Access
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-red-500 focus:text-red-500"
-                          onClick={() => {
-                            setMemberToRemove(member);
-                            setRemoveConfirmOpen(true);
-                          }}
-                        >
-                          <UserMinus className="mr-2 h-4 w-4" />
-                          Remove Member
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Access Management Dialog */}
       <Dialog
         open={accessManagementOpen}
         onOpenChange={setAccessManagementOpen}
       >
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="bg-card border-none rounded-2xl p-8 w-[90%] sm:w-[500px]">
           <DialogHeader>
-            <DialogTitle>Manage Project Access</DialogTitle>
-            <DialogDescription>
-              {selectedMember && `Configure access for ${selectedMember.name}`}
+            <DialogTitle className="text-xl font-medium text-foreground">
+              Manage Project Access
+            </DialogTitle>
+            <DialogDescription className="text-sm text-foreground/60 text-left pt-1">
+              {selectedMember &&
+                `Configure access for ${selectedMember.name || selectedMember.email}`}
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4 space-y-4">
+          <div className="py-4 space-y-6">
             <div className="relative">
-              <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search projects..."
-                className="pl-8"
-                value={projectSearchQuery}
-                onChange={(e) => handleProjectSearch(e.target.value)}
-              />
+              <div className="flex items-center w-full bg-foreground/10 rounded-lg border border-border">
+                <Search className="h-4 w-4 ml-3 text-foreground/60 flex-shrink-0" />
+                <Input
+                  placeholder="Search for projects"
+                  className="border-0 bg-transparent px-2 py-3 placeholder:text-foreground/60 text-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
+                  value={projectSearchQuery}
+                  onChange={(e) => handleProjectSearch(e.target.value)}
+                />
+              </div>
               {projectSearchResults.length > 0 && (
-                <div className="absolute z-10 w-full mt-1 bg-background border rounded-md shadow-lg max-h-60 overflow-auto">
+                <div className="absolute z-10 w-full mt-1 bg-card border border-border rounded-md shadow-lg max-h-60 overflow-auto">
                   {projectSearchResults.map((project) => (
                     <div
                       key={project._id}
-                      className="p-2 hover:bg-accent cursor-pointer"
+                      className="p-2 hover:bg-highlight cursor-pointer text-foreground"
                       onClick={() => addProjectToMember(project)}
                     >
                       {project.name}
@@ -471,7 +580,7 @@ export function TeamPage() {
               )}
             </div>
 
-            <div className="space-y-3 max-h-60 overflow-auto">
+            <div className="space-y-4 max-h-60 overflow-auto">
               {memberProjects.length === 0 ? (
                 <p className="text-center text-muted-foreground py-4">
                   No projects assigned yet. Search and add projects above.
@@ -480,39 +589,66 @@ export function TeamPage() {
                 memberProjects.map((project) => (
                   <div
                     key={project._id}
-                    className="flex items-center justify-between p-2 rounded border"
+                    className="flex items-center justify-between py-2 border-none border-border"
                   >
-                    <span>{project.name}</span>
-                    <Select
-                      defaultValue={project.access}
-                      onValueChange={(value) =>
-                        handleAccessChange(
-                          project._id,
-                          value as "view" | "edit",
-                        )
-                      }
-                    >
-                      <SelectTrigger className="w-[120px]">
-                        <SelectValue placeholder="Select access" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="view">View</SelectItem>
-                        <SelectItem value="edit">Edit</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <span className="text-foreground text-body-lg">
+                      {project.name}
+                    </span>
+                    <div className="flex items-center space-x-1 text-foreground/80">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button className="flex items-center text-body-md opacity-70 hover:opacity-100">
+                            <span className="capitalize">{project.access}</span>
+                            <ChevronDown className="h-4 w-4 ml-1" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                          align="end"
+                          className="min-w-[100px] p-1"
+                        >
+                          <DropdownMenuItem
+                            className="text-xs py-1 px-2 cursor-pointer flex items-center justify-between"
+                            onClick={() =>
+                              handleAccessChange(project._id, "view")
+                            }
+                          >
+                            View
+                            {project.access === "view" && (
+                              <Check className="h-3 w-3 ml-2" />
+                            )}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="text-xs py-1 px-2 cursor-pointer flex items-center justify-between"
+                            onClick={() =>
+                              handleAccessChange(project._id, "edit")
+                            }
+                          >
+                            Edit
+                            {project.access === "edit" && (
+                              <Check className="h-3 w-3 ml-2" />
+                            )}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </div>
                 ))
               )}
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="mt-6 sm:justify-end gap-2">
             <Button
-              variant="outline"
+              variant="ghost"
               onClick={() => setAccessManagementOpen(false)}
+              className="rounded-lg px-4 py-3 text-sm font-medium text-foreground hover:bg-foreground/10"
             >
               Cancel
             </Button>
-            <Button onClick={saveAccessChanges} disabled={savingAccess}>
+            <Button
+              onClick={saveAccessChanges}
+              disabled={savingAccess}
+              className="bg-primary text-primary-foreground rounded-lg px-4 py-3 text-sm font-medium hover:bg-primary/90"
+            >
               {savingAccess ? "Saving..." : "Save Changes"}
             </Button>
           </DialogFooter>
@@ -521,20 +657,22 @@ export function TeamPage() {
 
       {/* Remove Member Confirmation Dialog */}
       <AlertDialog open={removeConfirmOpen} onOpenChange={setRemoveConfirmOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-card border-none rounded-2xl p-8">
           <AlertDialogHeader>
-            <AlertDialogTitle>Remove Team Member</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="text-xl font-medium text-foreground">
+              Remove Team Member
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-sm text-foreground/60">
               {memberToRemove &&
-                `Are you sure you want to remove ${memberToRemove.name} from the team? They will lose access to all projects.`}
+                `Are you sure you want to remove ${memberToRemove.name || memberToRemove.email} from the team? They will lose access to all projects.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setRemoveConfirmOpen(false)}>
+          <AlertDialogFooter className="mt-6 sm:justify-end gap-2">
+            <AlertDialogCancel className="rounded-lg px-4 py-3 text-sm font-medium text-foreground hover:bg-foreground/10">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
-              className="bg-red-500 hover:bg-red-600 text-white"
+              className="bg-destructive text-destructive-foreground rounded-lg px-4 py-3 text-sm font-medium hover:bg-destructive/90"
               onClick={handleRemoveMember}
             >
               Remove
