@@ -26,7 +26,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Check, ExternalLink, Zap, AlertTriangle } from "lucide-react";
+import { Check, ExternalLink, Zap, AlertCircle } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
@@ -46,7 +46,7 @@ import {
   getPaymentMethods,
 } from "@/api/stripe";
 import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Alert } from "@/components/ui/alert";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import { PaymentMethodForm } from "@/components/stripe/PaymentMethodForm";
@@ -107,6 +107,8 @@ export function SubscriptionPage() {
   const [confirmTopUpOpen, setConfirmTopUpOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [selectedTopUp, setSelectedTopUp] = useState<string | null>(null);
+  // Used in handlePaymentMethodSuccess
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [hasPaymentMethod, setHasPaymentMethod] = useState(false);
   const [showPaymentForm, setShowPaymentForm] = useState(false);
@@ -525,18 +527,14 @@ export function SubscriptionPage() {
       </div>
 
       {isOutOfTokens && (
-        <Alert
-          variant="destructive"
-          className="bg-red-50 dark:bg-red-950/30 border-red-300 dark:border-red-800 text-red-800 dark:text-red-300"
-        >
-          <AlertTriangle className="h-5 w-5" />
-          <AlertTitle className="font-semibold">
-            You've run out of tokens!
-          </AlertTitle>
-          <AlertDescription>
-            To continue building your apps, please top up your tokens or upgrade
-            your plan.
-          </AlertDescription>
+        <Alert className="bg-token-alert-background border-none flex items-center py-3 px-4 rounded-lg">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="h-5 w-5 flex-shrink-0 text-token-alert" />
+            <p className="text-[14px] font-medium leading-[1.3em] tracking-[-0.02em] text-token-alert">
+              You've run out of tokens. To continue building your apps, please
+              top up your tokens or upgrade your plan.
+            </p>
+          </div>
         </Alert>
       )}
 

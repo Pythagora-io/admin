@@ -38,6 +38,10 @@
     --plan-premium: 174 90% 31%; /* #07998A - Same as success */
     --plan-enterprise: 228 76% 53%; /* #3057E1 - Same as primary */
 
+    /* Token alert colors */
+    --token-alert: 9 89% 54%; /* #F34222 - Red for token alerts */
+    --token-alert-bg: 9 89% 54% / 0.1; /* #F34222 with 10% opacity */
+
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
@@ -84,6 +88,10 @@
     --plan-pro: 326 94% 77%; /* #FC8DDD - Same as developer */
     --plan-premium: 174 90% 31%; /* #07998A - Same as success */
     --plan-enterprise: 228 76% 53%; /* #3057E1 - Same as primary */
+
+    /* Token alert colors */
+    --token-alert: 9 89% 54%; /* #F34222 - Red for token alerts */
+    --token-alert-bg: 9 89% 54% / 0.1; /* #F34222 with 10% opacity */
 
     /* Sidebar Specific Colors */
     --sidebar-background: 0 0% 0%; /* #000000 for pure black sidebar */

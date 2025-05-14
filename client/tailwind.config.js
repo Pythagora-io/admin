@@ -72,6 +72,10 @@ module.exports = {
           DEFAULT: "hsl(var(--plan-enterprise))",
           foreground: "hsl(var(--warning-foreground))",
         },
+        "token-alert": {
+          DEFAULT: "hsl(var(--token-alert))",
+          background: "hsl(var(--token-alert-bg))",
+        },
         "toast-success-text": "hsl(var(--toast-success-text))",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
