@@ -126,7 +126,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
         setProjects(response.projects);
       } catch (error) {
         toast({
-          variant: "destructive",
+          variant: "error",
           title: "Error",
           description:
             error instanceof Error ? error.message : "Failed to fetch projects",
@@ -164,6 +164,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       );
 
       toast({
+        variant: "success",
         title: "Success",
         description: `Successfully deleted ${selectedProjects.length} project(s)`,
       });
@@ -173,7 +174,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       setDeleteConfirmOpen(false);
     } catch (error) {
       toast({
-        variant: "destructive",
+        variant: "error",
         title: "Error",
         description:
           error instanceof Error ? error.message : "Failed to delete projects",
@@ -197,6 +198,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       setProjects(updatedResponse.projects);
 
       toast({
+        variant: "success",
         title: "Success",
         description: "New project created successfully",
       });
@@ -205,7 +207,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       // navigate(`/editor/${response.project._id}`);
     } catch (error) {
       toast({
-        variant: "destructive",
+        variant: "error",
         title: "Error",
         description:
           error instanceof Error
@@ -234,6 +236,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       );
 
       toast({
+        variant: "success",
         title: "Success",
         description: response.message || "Project renamed successfully",
       });
@@ -243,7 +246,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       setNewProjectTitle("");
     } catch (error) {
       toast({
-        variant: "destructive",
+        variant: "error",
         title: "Error",
         description:
           error instanceof Error ? error.message : "Failed to rename project",
@@ -261,6 +264,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       const response = await deployProject(projectToDeploy);
 
       toast({
+        variant: "success",
         title: "Success",
         description: response.message || "Project deployed successfully",
       });
@@ -276,7 +280,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       setProjectToDeploy(null);
     } catch (error) {
       toast({
-        variant: "destructive",
+        variant: "error",
         title: "Error",
         description:
           error instanceof Error ? error.message : "Failed to deploy project",
@@ -297,7 +301,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       setProjectUsers(response.users);
     } catch (error) {
       toast({
-        variant: "destructive",
+        variant: "error",
         title: "Error",
         description:
           error instanceof Error
@@ -326,7 +330,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       );
     } catch (error) {
       toast({
-        variant: "destructive",
+        variant: "error",
         title: "Error",
         description:
           error instanceof Error ? error.message : "Failed to search users",
@@ -363,13 +367,14 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       await updateProjectAccess(selectedProject._id, { users: usersToUpdate });
 
       toast({
+        variant: "success",
         title: "Success",
         description: "Project access updated successfully",
       });
       setAccessManagementOpen(false);
     } catch (error) {
       toast({
-        variant: "destructive",
+        variant: "error",
         title: "Error",
         description:
           error instanceof Error
@@ -395,6 +400,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
           `${window.location.origin}/p/${projectId}`,
         );
         toast({
+          variant: "success",
           title: "Link Copied",
           description: "Project link copied to clipboard",
         });
@@ -414,6 +420,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
               setProjects(updatedResponse.projects);
 
               toast({
+                variant: "success",
                 title: "Success",
                 description:
                   response.message || "Project duplicated successfully",
@@ -422,7 +429,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
           })
           .catch((error) => {
             toast({
-              variant: "destructive",
+              variant: "error",
               title: "Error",
               description:
                 error instanceof Error
@@ -442,6 +449,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
         break;
       case "unpublish":
         toast({
+          variant: "success",
           title: "Feature Coming Soon",
           description: "Project unpublishing will be available shortly",
         });
