@@ -784,7 +784,7 @@ export function SubscriptionPage() {
       <Dialog open={topUpOpen} onOpenChange={setTopUpOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Top Up Tokens</DialogTitle>
+            <DialogTitle>Top Up Pythagora</DialogTitle>
             <DialogDescription>
               Select a token package to add to your account.
             </DialogDescription>
@@ -800,10 +800,10 @@ export function SubscriptionPage() {
                   onClick={() => setSelectedTopUp(pkg.id)}
                 >
                   <div className="text-center">
-                    <div className="text-xl font-bold">
+                    <div className="text-subheading">
                       {formatCurrency(pkg.price, pkg.currency)}
                     </div>
-                    <div className="mt-2 text-sm font-medium">
+                    <div className="mt-2 text-body-md">
                       {formatTokens(pkg.tokens)} tokens
                     </div>
                   </div>
