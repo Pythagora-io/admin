@@ -21,10 +21,10 @@ import {
 import {
   UserCircle,
   CreditCard,
-  FileText,
+  ReceiptText,
   Globe,
-  Settings,
-  Layers,
+  Settings2,
+  Folder,
   Users,
   LogOut,
   FileEdit,
@@ -109,100 +109,6 @@ export function DashboardLayout() {
       <SidebarMenu className="space-y-1 px-2">
         <SidebarMenuItem>
           <SidebarMenuButton
-            isActive={location.pathname === "/"}
-            tooltip="Account"
-            onClick={() => navigateTo("/")}
-            className={cn(
-              navButtonBaseClasses,
-              location.pathname === "/"
-                ? navButtonActiveClasses
-                : navButtonInactiveClasses,
-            )}
-          >
-            <UserCircle
-              className={cn(
-                iconClasses,
-                location.pathname === "/" ? "text-white" : "text-sidebar-muted",
-              )}
-            />
-            <span>Account</span>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-
-        <SidebarMenuItem>
-          <SidebarMenuButton
-            isActive={location.pathname === "/subscription"}
-            tooltip="Subscription"
-            onClick={() => navigateTo("/subscription")}
-            className={cn(
-              navButtonBaseClasses,
-              location.pathname === "/subscription"
-                ? navButtonActiveClasses
-                : navButtonInactiveClasses,
-            )}
-          >
-            <CreditCard
-              className={cn(
-                iconClasses,
-                location.pathname === "/subscription"
-                  ? "text-white"
-                  : "text-sidebar-muted",
-              )}
-            />
-            <span>Subscription</span>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-
-        <SidebarMenuItem>
-          <SidebarMenuButton
-            isActive={location.pathname === "/payments"}
-            tooltip="Payments"
-            onClick={() => navigateTo("/payments")}
-            className={cn(
-              navButtonBaseClasses,
-              location.pathname === "/payments"
-                ? navButtonActiveClasses
-                : navButtonInactiveClasses,
-            )}
-          >
-            <FileText
-              className={cn(
-                iconClasses,
-                location.pathname === "/payments"
-                  ? "text-white"
-                  : "text-sidebar-muted",
-              )}
-            />
-            <span>Payments</span>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-
-        <SidebarMenuItem>
-          <SidebarMenuButton
-            isActive={location.pathname === "/domains"}
-            tooltip="Domains"
-            onClick={() => navigateTo("/domains")}
-            className={cn(
-              navButtonBaseClasses,
-              location.pathname === "/domains"
-                ? navButtonActiveClasses
-                : navButtonInactiveClasses,
-            )}
-          >
-            <Globe
-              className={cn(
-                iconClasses,
-                location.pathname === "/domains"
-                  ? "text-white"
-                  : "text-sidebar-muted",
-              )}
-            />
-            <span>Domains</span>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-
-        <SidebarMenuItem>
-          <SidebarMenuButton
             isActive={isProjectsPage}
             tooltip="Projects"
             onClick={() => {
@@ -218,7 +124,7 @@ export function DashboardLayout() {
                 : navButtonInactiveClasses,
             )}
           >
-            <Layers
+            <Folder
               className={cn(
                 iconClasses,
                 isProjectsPage ? "text-white" : "text-sidebar-muted",
@@ -278,30 +184,6 @@ export function DashboardLayout() {
 
         <SidebarMenuItem>
           <SidebarMenuButton
-            isActive={location.pathname === "/settings"}
-            tooltip="Settings"
-            onClick={() => navigateTo("/settings")}
-            className={cn(
-              navButtonBaseClasses,
-              location.pathname === "/settings"
-                ? navButtonActiveClasses
-                : navButtonInactiveClasses,
-            )}
-          >
-            <Settings
-              className={cn(
-                iconClasses,
-                location.pathname === "/settings"
-                  ? "text-white"
-                  : "text-sidebar-muted",
-              )}
-            />
-            <span>Settings</span>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-
-        <SidebarMenuItem>
-          <SidebarMenuButton
             isActive={location.pathname === "/team"}
             tooltip="Team"
             onClick={() => navigateTo("/team")}
@@ -321,6 +203,124 @@ export function DashboardLayout() {
               )}
             />
             <span>Team</span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            isActive={location.pathname === "/domains"}
+            tooltip="Domains"
+            onClick={() => navigateTo("/domains")}
+            className={cn(
+              navButtonBaseClasses,
+              location.pathname === "/domains"
+                ? navButtonActiveClasses
+                : navButtonInactiveClasses,
+            )}
+          >
+            <Globe
+              className={cn(
+                iconClasses,
+                location.pathname === "/domains"
+                  ? "text-white"
+                  : "text-sidebar-muted",
+              )}
+            />
+            <span>Domains</span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            isActive={location.pathname === "/subscription"}
+            tooltip="Subscription"
+            onClick={() => navigateTo("/subscription")}
+            className={cn(
+              navButtonBaseClasses,
+              location.pathname === "/subscription"
+                ? navButtonActiveClasses
+                : navButtonInactiveClasses,
+            )}
+          >
+            <CreditCard
+              className={cn(
+                iconClasses,
+                location.pathname === "/subscription"
+                  ? "text-white"
+                  : "text-sidebar-muted",
+              )}
+            />
+            <span>Subscription</span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            isActive={location.pathname === "/payments"}
+            tooltip="Payments"
+            onClick={() => navigateTo("/payments")}
+            className={cn(
+              navButtonBaseClasses,
+              location.pathname === "/payments"
+                ? navButtonActiveClasses
+                : navButtonInactiveClasses,
+            )}
+          >
+            <ReceiptText
+              className={cn(
+                iconClasses,
+                location.pathname === "/payments"
+                  ? "text-white"
+                  : "text-sidebar-muted",
+              )}
+            />
+            <span>Payments</span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            isActive={location.pathname === "/"}
+            tooltip="Account"
+            onClick={() => navigateTo("/")}
+            className={cn(
+              navButtonBaseClasses,
+              location.pathname === "/"
+                ? navButtonActiveClasses
+                : navButtonInactiveClasses,
+            )}
+          >
+            <UserCircle
+              className={cn(
+                iconClasses,
+                location.pathname === "/" ? "text-white" : "text-sidebar-muted",
+              )}
+            />
+            <span>Account</span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            isActive={location.pathname === "/settings"}
+            tooltip="Settings"
+            onClick={() => navigateTo("/settings")}
+            className={cn(
+              navButtonBaseClasses,
+              location.pathname === "/settings"
+                ? navButtonActiveClasses
+                : navButtonInactiveClasses,
+            )}
+          >
+            <Settings2
+              className={cn(
+                iconClasses,
+                location.pathname === "/settings"
+                  ? "text-white"
+                  : "text-sidebar-muted",
+              )}
+            />
+            <span>Settings</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>
@@ -385,7 +385,7 @@ export function DashboardLayout() {
             className="w-60 bg-sidebar text-sidebar-foreground p-0 flex flex-col"
           >
             <SidebarProvider>
-              <SheetHeader className="pt-6 pb-4 px-4 border-b border-sidebar-border">
+              <SheetHeader className="pt-6 pb-4 px-4 border-sidebar-border">
                 <div className="flex items-center justify-between">
                   <div
                     onClick={handleLogoClick}
