@@ -89,7 +89,7 @@ export function TeamPage() {
         toast({
           variant: "destructive",
           title: "Error",
-          description: error.message || "Failed to fetch team members",
+          description: error instanceof Error ? error.message : String(error) || "Failed to fetch team members",
         });
       } finally {
         setLoading(false);
@@ -129,7 +129,7 @@ export function TeamPage() {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to send invitation",
+        description: error instanceof Error ? error.message : String(error) || "Failed to send invitation",
       });
     } finally {
       setSendingInvite(false);
@@ -150,7 +150,7 @@ export function TeamPage() {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to remove team member",
+        description: error instanceof Error ? error.message : String(error) || "Failed to remove team member",
       });
     } finally {
       setRemoveConfirmOpen(false);
@@ -178,7 +178,7 @@ export function TeamPage() {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to update role",
+        description: error instanceof Error ? error.message : String(error) || "Failed to update role",
       });
     } finally {
       setUpdatingRole(null);
@@ -196,7 +196,7 @@ export function TeamPage() {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to fetch member access",
+        description: error instanceof Error ? error.message : String(error) || "Failed to fetch member access",
       });
     }
   };
@@ -212,15 +212,15 @@ export function TeamPage() {
     try {
       const response = await searchProjects(query);
       // Filter out projects that are already in memberProjects
-      const existingProjectIds = memberProjects.map((p) => p._id);
+      const existingProjectIds = memberProjects.map((p: any) => p._id);
       setProjectSearchResults(
-        response.projects.filter((p) => !existingProjectIds.includes(p._id)),
+        response.projects.filter((p: any) => !existingProjectIds.includes(p._id)),
       );
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to search projects",
+        description: error instanceof Error ? error.message : String(error) || "Failed to search projects",
       });
     }
   };
@@ -264,7 +264,7 @@ export function TeamPage() {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to update project access",
+        description: error instanceof Error ? error.message : String(error) || "Failed to update project access",
       });
     } finally {
       setSavingAccess(false);
@@ -274,13 +274,13 @@ export function TeamPage() {
   const getRoleColor = (role: string) => {
     switch (role) {
       case "admin":
-        return "bg-red-100 text-red-800 dark:bg-red-700/20 dark:text-red-400 border-red-200";
+        return "bg-[#07998A]";
       case "developer":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-700/20 dark:text-blue-400 border-blue-200";
+        return "bg-[#FC8DDD]";
       case "viewer":
-        return "bg-green-100 text-green-800 dark:bg-green-700/20 dark:text-green-400 border-green-200";
+        return "bg-[#FFD11A]";
       default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-700/20 dark:text-gray-400 border-gray-200";
+        return "bg-gray-200";
     }
   };
 
@@ -296,7 +296,7 @@ export function TeamPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Team Management</h1>
+          <h1 className="text-3xl font-bold mb-2">My team</h1>
           <p className="text-muted-foreground">
             Manage your team members and their access
           </p>
@@ -304,13 +304,12 @@ export function TeamPage() {
         <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
           <DialogTrigger asChild>
             <Button>
-              <UserPlus className="mr-2 h-4 w-4" />
-              Invite Member
+              Invite member
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-md bg-[#222029]">
             <DialogHeader>
-              <DialogTitle>Invite Team Member</DialogTitle>
+              <DialogTitle>Invite team member</DialogTitle>
               <DialogDescription>
                 Send an invitation to join your team.
               </DialogDescription>
@@ -351,7 +350,9 @@ export function TeamPage() {
       <div className="pt-8 pb-4 border-b border-[rgba(247,248,248,0.10)]">
         <h2 className="text-2xl font-bold mb-2">Team members</h2>
         {/* Table header */}
-        <div className="flex w-full text-muted-foreground text-sm font-medium border-b border-[rgba(247,248,248,0.10)] pb-2">
+        <div className="mb-5"></div>
+        <div className="flex w-full border-b border-[rgba(247,248,248,0.10)] pb-2"
+          style={{ color: '#F7F8F8', fontFamily: 'Geist, sans-serif', fontSize: 14, fontWeight: 500, fontStyle: 'normal', lineHeight: 'normal', letterSpacing: '-0.28px' }}>
           <div className="flex-1">Email</div>
           <div className="w-48">Role</div>
           <div className="w-32">Access</div>
@@ -360,14 +361,12 @@ export function TeamPage() {
         {/* Table rows */}
         {members.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-10">
-            <UserPlus className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium">No team members yet</h3>
+            <h3 className="text-lg font-medium">Invite member</h3>
             <p className="text-muted-foreground text-center mt-2 mb-4">
               Invite colleagues to collaborate on your projects.
             </p>
             <Button onClick={() => setInviteOpen(true)}>
-              <UserPlus className="mr-2 h-4 w-4" />
-              Invite Your First Team Member
+              Invite member
             </Button>
           </div>
         ) : (
@@ -375,13 +374,32 @@ export function TeamPage() {
             {members.map((member) => (
               <div
                 key={member._id}
-                className="flex items-center py-4"
+                className="flex items-center py-2.5"
               >
-                <div className="flex-1 text-base">{member.email}</div>
-                <div className="w-48">{member.role}</div>
+                <div className="flex-1 text-base"
+                  style={{ color: 'rgba(242,242,242,0.80)', fontFamily: 'Geist, sans-serif', fontSize: 12, fontWeight: 500, fontStyle: 'normal', lineHeight: 'normal' }}
+                >{member.email}</div>
+                <div className="w-48"
+                  style={{ color: 'rgba(242,242,242,0.80)', fontFamily: 'Geist, sans-serif', fontSize: 12, fontWeight: 500, fontStyle: 'normal', lineHeight: 'normal' }}
+                >
+                  {member.role.split(' ').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ')}
+                </div>
                 <div className="w-32">
                   {/* Access badge or button here */}
-                  <span className="inline-block px-3 py-1 rounded bg-emerald-900 text-emerald-200 text-xs font-semibold">Admin</span>
+                  <span
+                    className={`inline-block px-3 py-1 rounded-lg ${getRoleColor(member.role)}`}
+                    style={{
+                      color: '#060218',
+                      borderRadius: 8,
+                      fontFamily: 'Geist, sans-serif',
+                      fontSize: 12,
+                      fontWeight: 500,
+                      fontStyle: 'normal',
+                      lineHeight: 'normal',
+                    }}
+                  >
+                    {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
+                  </span>
                 </div>
                 <div className="w-8 text-right">
                   {/* Actions menu here */}
@@ -414,7 +432,7 @@ export function TeamPage() {
       >
         <DialogContent className="sm:max-w-md bg-[#222029]">
           <DialogHeader>
-            <DialogTitle>Manage Project Access</DialogTitle>
+            <DialogTitle>Manage project access</DialogTitle>
             <DialogDescription>
               {selectedMember && `Configure access for ${selectedMember.name}`}
             </DialogDescription>
@@ -485,7 +503,7 @@ export function TeamPage() {
               Cancel
             </Button>
             <Button onClick={saveAccessChanges} disabled={savingAccess}>
-              {savingAccess ? "Saving..." : "Save Changes"}
+              {savingAccess ? "Saving..." : "Save changes"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -495,7 +513,7 @@ export function TeamPage() {
       <AlertDialog open={removeConfirmOpen} onOpenChange={setRemoveConfirmOpen}>
         <AlertDialogContent className="bg-[#222029]">
           <AlertDialogHeader>
-            <AlertDialogTitle>Remove Team Member</AlertDialogTitle>
+            <AlertDialogTitle>Remove team member</AlertDialogTitle>
             <AlertDialogDescription>
               {memberToRemove &&
                 `Are you sure you want to remove ${memberToRemove.name} from the team? They will lose access to all projects.`}

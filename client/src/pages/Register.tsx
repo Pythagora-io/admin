@@ -112,7 +112,7 @@ export function Register() {
               />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold">Create an Account</h1>
+          <h1 className="text-2xl font-bold">Create an account</h1>
           <p className="text-muted-foreground">
             Sign up to get started with Pythagora
           </p>

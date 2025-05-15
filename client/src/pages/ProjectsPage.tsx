@@ -461,7 +461,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
                 </Button>
               )}
               <Button onClick={handleNewProject}>
-                New Project
+                New project
               </Button>
             </>
           )}
@@ -657,14 +657,14 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
         <DialogContent className="sm:max-w-md bg-[#222029]">
           <DialogHeader>
-            <DialogTitle>Rename Project</DialogTitle>
+            <DialogTitle>Rename project</DialogTitle>
             <DialogDescription>
               Enter a new name for your project.
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <div className="grid gap-2">
-              <Label htmlFor="project-name">Project Name</Label>
+              <Label htmlFor="project-name">Project name</Label>
               <Input
                 id="project-name"
                 value={newProjectTitle}
@@ -694,7 +694,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       <AlertDialog open={deployConfirmOpen} onOpenChange={setDeployConfirmOpen}>
         <AlertDialogContent className="bg-[#222029]">
           <AlertDialogHeader>
-            <AlertDialogTitle>Deploy Project</AlertDialogTitle>
+            <AlertDialogTitle>Deploy project</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to deploy this project? The project will be
               accessible to others based on your visibility settings.
@@ -721,7 +721,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       >
         <DialogContent className="sm:max-w-md bg-[#222029]">
           <DialogHeader>
-            <DialogTitle>Manage Project Access</DialogTitle>
+            <DialogTitle>Manage project access</DialogTitle>
             <DialogDescription>
               Configure who can access this project and their permission level.
             </DialogDescription>
@@ -795,7 +795,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
               Cancel
             </Button>
             <Button onClick={saveAccessChanges} disabled={savingAccess}>
-              {savingAccess ? "Saving..." : "Save Changes"}
+              {savingAccess ? "Saving..." : "Save changes"}
             </Button>
           </DialogFooter>
         </DialogContent>

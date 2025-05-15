@@ -70,7 +70,7 @@ export function Login() {
       <div className="relative z-20 w-full max-w-xl min-h-[600px] flex flex-col items-center rounded-2xl bg-[#181523CC] shadow-xl p-0 mx-auto mt-12">
         <div className="flex-1 flex flex-col items-center px-8 pb-8 w-full">
           <div className="w-full max-w-md mx-auto">
-            <h2 className="text-2xl font-semibold text-white text-center mb-2">Welcome to Pythagora</h2>
+            <h1 className="text-2xl font-bold">Sign in</h1>
             <p className="text-center text-muted-foreground mb-8">
               Don&apos;t have an account?{' '}
               <button

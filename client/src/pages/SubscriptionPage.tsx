@@ -438,7 +438,7 @@ export function SubscriptionPage() {
       <div>
         <h1 className="text-[24px] font-medium text-[#F7F8F8] leading-[1.25] tracking-[-0.28px]">Subscription</h1>
         <p className="mt-2 text-[14px] font-normal text-[#F7F8F8] leading-[1.3] tracking-[-0.28px] opacity-60">
-          Manage your subscription and token usage
+          Manage your subscription and billing details
         </p>
       </div>
 
@@ -455,8 +455,7 @@ export function SubscriptionPage() {
       <div className="border-b border-[rgba(247,248,248,0.10)] mb-10 pb-10">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h3 className="text-[16px] font-normal text-[#F7F8F8] leading-[1.4]">Plan Summary <Badge className="ml-2 bg-yellow-500 hover:bg-yellow-600 text-xs font-medium text-[#060218]">
-              {subscription?.plan || "Free"} Plan</Badge></h3>
+            <h3 className="text-[16px] font-normal text-[#F7F8F8] leading-[1.4]">Plan summary <Badge className="ml-2 bg-yellow-500 hover:bg-yellow-600 text-xs font-medium text-[#060218]">{subscription?.plan || "Free"} plan</Badge></h3>
             <div className="flex flex-row gap-x-5 mt-5 flex-nowrap min-w-0">
               <div className="flex flex-col items-start gap-y-2">
                 <div className="text-[14px] font-medium text-[#F7F8F8] tracking-[-0.28px] opacity-60">Price/month</div>
@@ -497,7 +496,7 @@ export function SubscriptionPage() {
       <div className="border-b border-[rgba(247,248,248,0.10)] mb-10">
         <div className="flex justify-between items-center">
           <div className="flex-1 space-y-5 pb-10">
-            <h4 className="font-medium">Token Usage</h4>
+            <h4 className="font-medium">Token usage</h4>
             <div className="space-y-2">
               <p className="text-[14px] font-medium text-[#F7F8F8] tracking-[-0.28px] opacity-60">
                 Available tokens
@@ -539,7 +538,7 @@ export function SubscriptionPage() {
       <div className="border-b border-[rgba(247,248,248,0.10)] mb-10">
         <div className="flex justify-between items-center">
           <div className="flex-1 space-y-5 pb-10">
-            <h4 className="font-medium">Team Members</h4>
+            <h4 className="font-medium">Team members</h4>
             <div className="space-y-2">
               <p className="text-[14px] font-medium text-[#F7F8F8] tracking-[-0.28px] opacity-60">
                 Available seats
@@ -560,7 +559,7 @@ export function SubscriptionPage() {
       <Dialog open={changePlanOpen} onOpenChange={setChangePlanOpen}>
         <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto px-8 py-8 bg-[#222029]">
           <div className="flex items-center justify-between mb-8 w-full">
-            <h2 className="text-2xl font-bold text-left">Change Plan</h2>
+            <h2 className="text-2xl font-bold text-left">Change plan</h2>
             <button
               className="p-2 text-muted-foreground hover:text-foreground"
               onClick={() => setChangePlanOpen(false)}
@@ -747,7 +746,7 @@ export function SubscriptionPage() {
       <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
         <DialogContent className="sm:max-w-md bg-[#222029]">
           <DialogHeader>
-            <DialogTitle>Cancel Subscription</DialogTitle>
+            <DialogTitle>Cancel subscription</DialogTitle>
             <DialogDescription>
               Your subscription will remain active until the end of the current
               billing period.
@@ -755,9 +754,7 @@ export function SubscriptionPage() {
           </DialogHeader>
           <div className="py-4 space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="cancelReason">
-                Reason for cancellation (optional)
-              </Label>
+              <Label htmlFor="cancelReason">Reason for cancellation</Label>
               <Textarea
                 id="cancelReason"
                 placeholder="Please let us know why you're canceling..."

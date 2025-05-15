@@ -64,7 +64,7 @@ const EmptyStateCard: React.FC<EmptyStateCardProps> = ({
       </svg>
       <div className="relative z-10 w-full h-full flex flex-col items-center justify-center p-10 text-center">
         {showIcon && <div className="flex justify-center mb-4">{icon}</div>}
-        <h3 className="text-lg font-medium text-center">{title}</h3>
+        <h3 className="text-lg font-medium text-center">{title && title.charAt(0).toUpperCase() + title.slice(1).toLowerCase()}</h3>
         {showDescription && (
           <p className="text-muted-foreground text-center mt-4 mb-4">
             {description}
@@ -74,7 +74,7 @@ const EmptyStateCard: React.FC<EmptyStateCardProps> = ({
           <div className="flex justify-center mt-4">
             <Button onClick={onButtonClick}>
               {buttonIcon}
-              {buttonText}
+              {buttonText && buttonText.charAt(0).toUpperCase() + buttonText.slice(1).toLowerCase()}
             </Button>
           </div>
         )}
