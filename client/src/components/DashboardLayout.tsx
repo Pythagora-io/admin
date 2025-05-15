@@ -32,7 +32,6 @@ import {
   Menu,
 } from "lucide-react";
 import { Button } from "./ui/button";
-import { ThemeToggle } from "./ui/theme-toggle";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import {
@@ -351,16 +350,18 @@ export function DashboardLayout() {
             {renderSidebarContent()}
           </SidebarContent>
           <CustomSidebarFooter className="mt-auto py-4 px-4">
-            <div className="flex items-center justify-between">
-              <ThemeToggle />
+            <div className="flex items-center justify-end px-5">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={handleLogout}
-                className="text-sidebar-muted hover:text-sidebar-active-foreground rounded-lg"
+                className="text-sidebar-active-foreground rounded-lg hover:bg-transparent flex items-center gap-2 cursor-pointer"
                 aria-label="Log out"
               >
-                <LogOut className="h-5 w-5 stroke-current" />
+                <div className="flex items-center gap-2">
+                  <span>Logout</span>
+                  <LogOut className="h-5 w-5 stroke-current" />
+                </div>
               </Button>
             </div>
           </CustomSidebarFooter>
@@ -404,18 +405,20 @@ export function DashboardLayout() {
               <div className="flex-1 overflow-y-auto py-4">
                 {renderSidebarContent()}
               </div>
-              <SheetFooter className="mt-auto py-4 px-4 border-t border-sidebar-border">
-                <div className="flex items-center justify-between">
-                  <ThemeToggle />
+              <SheetFooter className="mt-auto py-4 px-4 border-sidebar-border">
+                <div className="flex items-center justify-end px-5">
                   <SheetClose asChild>
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={handleLogout}
-                      className="text-sidebar-muted hover:text-sidebar-active-foreground rounded-lg"
+                      className="text-sidebar-active-foreground rounded-lg hover:bg-transparent flex items-center gap-2 cursor-pointer"
                       aria-label="Log out"
                     >
-                      <LogOut className="h-5 w-5 stroke-current" />
+                      <div className="flex items-center gap-2">
+                        <span>Logout</span>
+                        <LogOut className="h-5 w-5 stroke-current cursor-pointer" />
+                      </div>
                     </Button>
                   </SheetClose>
                 </div>
