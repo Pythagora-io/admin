@@ -274,21 +274,19 @@ export function PaymentsPage() {
             <h2 className="text-body-lg font-normal text-foreground">
               Payment History
             </h2>
-            <p className="text-body-sm text-foreground/60">
-              View and download receipts for your payments
-            </p>
+            {payments.length === 0 ? (
+              <p className="text-body-sm text-foreground/60">
+                No invoices available.
+              </p>
+            ) : (
+              <p className="text-body-sm text-foreground/60">
+                View and download receipts for your payments
+              </p>
+            )}
           </div>
           <div>
             {payments.length === 0 ? (
-              <div className="text-center py-10 border border-dashed border-border rounded-lg mt-4">
-                <FileText className="h-10 w-10 text-foreground/60 mx-auto mb-3" />
-                <h3 className="text-body-lg-medium text-foreground">
-                  No payment history yet
-                </h3>
-                <p className="text-body-sm text-foreground/60 mt-1">
-                  No invoices available.
-                </p>
-              </div>
+              <div></div>
             ) : (
               <div className="rounded-lg overflow-hidden">
                 {/* Header Row */}
