@@ -72,7 +72,7 @@ const EmptyStateCard: React.FC<EmptyStateCardProps> = ({
         )}
         {showButton && (
           <div className="flex justify-center mt-4">
-            <Button onClick={onButtonClick}>
+            <Button onClick={onButtonClick} className="flex justify-center items-center">
               {buttonIcon}
               {buttonText && buttonText.charAt(0).toUpperCase() + buttonText.slice(1).toLowerCase()}
             </Button>
