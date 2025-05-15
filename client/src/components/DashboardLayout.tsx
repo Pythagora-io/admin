@@ -27,9 +27,11 @@ import {
   Folder,
   Users,
   LogOut,
-  FileEdit,
+  SquarePen,
   ExternalLink,
   Menu,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -124,13 +126,22 @@ export function DashboardLayout() {
                 : navButtonInactiveClasses,
             )}
           >
-            <Folder
-              className={cn(
-                iconClasses,
-                isProjectsPage ? "text-white" : "text-sidebar-muted",
+            <div className="flex items-center justify-between w-full">
+              <div className="flex items-center">
+                <Folder
+                  className={cn(
+                    iconClasses,
+                    isProjectsPage ? "text-white" : "text-sidebar-muted",
+                  )}
+                />
+                <span>Projects</span>
+              </div>
+              {openSubmenu === "projects" ? (
+                <ChevronUp className="h-5 w-5 text-sidebar-muted" />
+              ) : (
+                <ChevronDown className="h-5 w-5 text-sidebar-muted" />
               )}
-            />
-            <span>Projects</span>
+            </div>
           </SidebarMenuButton>
           {openSubmenu === "projects" && (
             <SidebarMenuSub className="mt-1 ml-4 pl-4 border-l border-sidebar-border">
@@ -145,7 +156,7 @@ export function DashboardLayout() {
                       : "text-sidebar-foreground",
                   )}
                 >
-                  <FileEdit
+                  <SquarePen
                     className={cn(
                       "h-5 w-5 mr-2",
                       isProjectsDraftsPage
