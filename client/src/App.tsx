@@ -22,7 +22,7 @@ import { TeamPage } from "./pages/TeamPage";
 function App() {
   return (
     <AuthProvider>
-      <ThemeProvider defaultTheme="light" storageKey="ui-theme">
+      <ThemeProvider defaultTheme="dark" storageKey="ui-theme">
         <Router>
           <Routes>
             <Route path="/login" element={<Login />} />

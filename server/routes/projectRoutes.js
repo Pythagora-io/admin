@@ -55,11 +55,9 @@ router.get("/", requireUser, async (req, res) => {
     const { type = "drafts" } = req.query;
 
     if (!["drafts", "deployed"].includes(type)) {
-      return res
-        .status(400)
-        .json({
-          error: 'Invalid project type. Must be either "drafts" or "deployed"',
-        });
+      return res.status(400).json({
+        error: 'Invalid project type. Must be either "drafts" or "deployed"',
+      });
     }
 
     const projects = await ProjectService.getUserProjects(req.user._id, type);
