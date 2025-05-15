@@ -16,12 +16,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/useToast";
 import {
   UserPlus,
-  Settings,
-  UserMinus,
   Search,
   ChevronDown,
   Check,
@@ -342,55 +339,59 @@ export function TeamPage() {
         <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
           <DialogTrigger asChild>
             <Button className="bg-primary text-primary-foreground text-body-md px-3 py-2 h-auto rounded-lg">
-              <UserPlus className="mr-2 h-4 w-4" />
               Invite Member
             </Button>
           </DialogTrigger>
-          <DialogContent className="bg-card border-none rounded-2xl p-8 w-[90%] sm:w-[500px]">
-            <DialogHeader>
-              <DialogTitle className="text-xl font-medium text-foreground">
-                Invite Team Member
+          <DialogContent className="flex flex-col gap-6 bg-card border-none rounded-2xl p-6 w-[90%] sm:max-w-lg">
+            <DialogHeader className="flex flex-row justify-between items-center">
+              <DialogTitle className="!text-subheading text-foreground">
+                Invite a team member
               </DialogTitle>
-              <DialogDescription className="text-sm text-foreground/60 text-left pt-1">
-                Send an invitation to join your team.
-              </DialogDescription>
             </DialogHeader>
-            <div className="py-4">
-              <div className="flex items-end gap-2">
-                <div className="grid flex-1 gap-2">
-                  <Label
-                    htmlFor="email"
-                    className="text-sm font-medium text-foreground"
-                  >
-                    Email Address
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={inviteEmail}
-                    onChange={(e) => setInviteEmail(e.target.value)}
-                    placeholder="colleague@example.com"
-                    className="bg-foreground/10 border border-border rounded-lg p-4 placeholder:text-foreground/60 text-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
-                  />
-                </div>
-              </div>
-            </div>
-            <DialogFooter className="mt-6 sm:justify-end gap-2">
-              <Button
-                variant="ghost"
-                onClick={() => setInviteOpen(false)}
-                className="rounded-lg px-4 py-3 text-sm font-medium text-foreground hover:bg-foreground/10"
-              >
-                Cancel
-              </Button>
+
+            <div className="flex items-center justify-between bg-foreground/10 border border-border rounded-lg p-1">
+              <Input
+                id="email"
+                type="email"
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+                placeholder="Invite others by email"
+                className="flex-grow bg-transparent border-0 px-3 py-2 placeholder:text-foreground/60 text-foreground focus-visible:ring-0 focus-visible:ring-offset-0 text-body-lg"
+              />
               <Button
                 onClick={handleInviteMember}
                 disabled={sendingInvite || !inviteEmail.trim()}
-                className="bg-primary text-primary-foreground rounded-lg px-4 py-3 text-sm font-medium hover:bg-primary/90"
+                className="bg-primary text-primary-foreground rounded-md px-4 py-2 text-sm font-medium hover:bg-primary/90 h-auto m-[1px] flex-shrink-0"
               >
                 {sendingInvite ? "Sending..." : "Invite"}
               </Button>
-            </DialogFooter>
+            </div>
+
+            <div>
+              {members.length > 0 ? (
+                <div className="max-h-60 overflow-y-auto flex flex-col gap-1">
+                  {members.map((member) => (
+                    <div
+                      key={member._id}
+                      className="flex justify-between items-center"
+                    >
+                      <span className="text-foreground/80 text-body-sm">
+                        {member.email}
+                      </span>
+                      <div className="flex items-center text-body-sm text-foreground/50">
+                        <span className="capitalize mr-1">
+                          {getRoleText(member.role)}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-body-sm text-foreground/60 text-center py-4">
+                  No other members in the team
+                </p>
+              )}
+            </div>
           </DialogContent>
         </Dialog>
       </div>
@@ -515,17 +516,14 @@ export function TeamPage() {
                           <DropdownMenuItem
                             onClick={() => openAccessManagement(member)}
                           >
-                            <Settings className="mr-2 h-4 w-4" />
-                            Manage Access
+                            Manage access
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            className="text-destructive focus:text-destructive"
                             onClick={() => {
                               setMemberToRemove(member);
                               setRemoveConfirmOpen(true);
                             }}
                           >
-                            <UserMinus className="mr-2 h-4 w-4" />
                             Remove Member
                           </DropdownMenuItem>
                         </DropdownMenuContent>
