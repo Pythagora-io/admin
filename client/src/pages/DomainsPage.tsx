@@ -180,7 +180,12 @@ export function DomainsPage() {
         <Dialog open={addDomainOpen} onOpenChange={setAddDomainOpen}>
           <DialogTrigger asChild>
             <Button>
-              <span className="mr-2 flex items-center"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" clipRule="evenodd" d="M3.33203 9.99935C3.33203 9.53911 3.70513 9.16602 4.16536 9.16602H15.832C16.2923 9.16602 16.6654 9.53911 16.6654 9.99935C16.6654 10.4596 16.2923 10.8327 15.832 10.8327H4.16536C3.70513 10.8327 3.33203 10.4596 3.33203 9.99935Z" fill="#F7F8F8"/><path fillRule="evenodd" clipRule="evenodd" d="M10.0013 3.33398C10.4615 3.33398 10.8346 3.70708 10.8346 4.16732V15.834C10.8346 16.2942 10.4615 16.6673 10.0013 16.6673C9.54106 16.6673 9.16797 16.2942 9.16797 15.834V4.16732C9.16797 3.70708 9.54106 3.33398 10.0013 3.33398Z" fill="#F7F8F8"/></svg></span>
+              <span className="mr-2 flex items-center">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path fillRule="evenodd" clipRule="evenodd" d="M3.33203 9.99935C3.33203 9.53911 3.70513 9.16602 4.16536 9.16602H15.832C16.2923 9.16602 16.6654 9.53911 16.6654 9.99935C16.6654 10.4596 16.2923 10.8327 15.832 10.8327H4.16536C3.70513 10.8327 3.33203 10.4596 3.33203 9.99935Z" fill="#F7F8F8"/>
+                  <path fillRule="evenodd" clipRule="evenodd" d="M10.0013 3.33398C10.4615 3.33398 10.8346 3.70708 10.8346 4.16732V15.834C10.8346 16.2942 10.4615 16.6673 10.0013 16.6673C9.54106 16.6673 9.16797 16.2942 9.16797 15.834V4.16732C9.16797 3.70708 9.54106 3.33398 10.0013 3.33398Z" fill="#F7F8F8"/>
+                </svg>
+              </span>
               Add domain
             </Button>
           </DialogTrigger>
@@ -199,7 +204,8 @@ export function DomainsPage() {
                     id="domain"
                     value={newDomain}
                     onChange={(e) => setNewDomain(e.target.value)}
-                    placeholder="example.com"
+                    placeholder="Enter domain name"
+                    className="placeholder:text-[#F7F8F8] placeholder:opacity-60 placeholder:font-normal placeholder:text-[14px] placeholder:leading-[1.4] font-geist text-[14px] font-normal leading-[1.4] text-[#F7F8F8]"
                   />
                 </div>
               </div>
@@ -211,7 +217,9 @@ export function DomainsPage() {
               >
                 Cancel
               </Button>
-              <Button onClick={handleAddDomain}>Add Domain</Button>
+              <Button onClick={handleAddDomain}>
+                Add domain
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -219,12 +227,13 @@ export function DomainsPage() {
 
       {domains.length === 0 ? (
         <EmptyStateCard
-          title="No domains added yet"
+          title=""
           description="Add your first domain to connect with Pythagora services."
-          buttonText="Add Your First Domain"
+          buttonText="Add domain"
           onButtonClick={() => setAddDomainOpen(true)}
-          icon={<Globe className="h-12 w-12 text-muted-foreground mb-4" />}
+          icon={<Globe className="w-5 h-5 text-muted-foreground" style={{ width: 20, height: 20 }} />}
           buttonIcon={<span className="mr-2 flex items-center"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" clipRule="evenodd" d="M3.33203 9.99935C3.33203 9.53911 3.70513 9.16602 4.16536 9.16602H15.832C16.2923 9.16602 16.6654 9.53911 16.6654 9.99935C16.6654 10.4596 16.2923 10.8327 15.832 10.8327H4.16536C3.70513 10.8327 3.33203 10.4596 3.33203 9.99935Z" fill="#F7F8F8"/><path fillRule="evenodd" clipRule="evenodd" d="M10.0013 3.33398C10.4615 3.33398 10.8346 3.70708 10.8346 4.16732V15.834C10.8346 16.2942 10.4615 16.6673 10.0013 16.6673C9.54106 16.6673 9.16797 16.2942 9.16797 15.834V4.16732C9.16797 3.70708 9.54106 3.33398 10.0013 3.33398Z" fill="#F7F8F8"/></svg></span>}
+          className="flex flex-col items-center gap-4"
         />
       ) : (
         <div className="grid gap-4">
