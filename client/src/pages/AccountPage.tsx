@@ -160,21 +160,21 @@ export function AccountPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Account settings</h1>
-        <p className="text-muted-foreground">Manage your connected domains</p>
+        <h1 className="text-3xl font-bold font-geist">Account settings</h1>
+        <p className="text-muted-foreground font-geist">Manage your connected domains</p>
       </div>
 
       {/* Personal Information Section */}
       <div className="border-b border-border pb-8 mb-4">
-        <h2 className="text-lg font-semibold mb-4">Personal information</h2>
+        <h2 className="text-lg font-semibold mb-4 font-geist">Personal information</h2>
         <div className="flex flex-col gap-2">
           <div>
-            <span className="block text-sm text-muted-foreground">Full name</span>
-            <span className="block text-base">{user?.name || "-"}</span>
+            <span className="block text-sm text-muted-foreground font-geist">Full name</span>
+            <span className="block text-base font-geist">{user?.name || "-"}</span>
           </div>
           <div>
-            <span className="block text-sm text-muted-foreground">Email</span>
-            <span className="block text-base">{user?.email || "-"}</span>
+            <span className="block text-sm text-muted-foreground font-geist">Email</span>
+            <span className="block text-base font-geist">{user?.email || "-"}</span>
           </div>
         </div>
         <div className="flex justify-end mt-4">
@@ -184,14 +184,14 @@ export function AccountPage() {
             </DialogTrigger>
             <DialogContent className="sm:max-w-md bg-[#222029]">
               <DialogHeader>
-                <DialogTitle>Change Email Address</DialogTitle>
-                <DialogDescription>
+                <DialogTitle className="font-geist">Change Email Address</DialogTitle>
+                <DialogDescription className="font-geist">
                   Enter your new email address. A confirmation email will be sent to your current email address.
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="new-email">New Email</Label>
+                  <Label htmlFor="new-email" className="font-geist">New Email</Label>
                   <Input
                     id="new-email"
                     placeholder="Enter new email"
@@ -214,21 +214,21 @@ export function AccountPage() {
       {/* Password Section */}
       <div className="border-b border-border pb-8 mb-4">
         <div className="flex items-center justify-between">
-          <span className="text-base">Password</span>
+          <span className="text-base font-geist">Password</span>
           <Dialog open={passwordChangeOpen} onOpenChange={setPasswordChangeOpen}>
             <DialogTrigger asChild>
               <Button variant="outline">Change password</Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md bg-[#222029]">
               <DialogHeader>
-                <DialogTitle>Change Password</DialogTitle>
-                <DialogDescription>
+                <DialogTitle className="font-geist">Change Password</DialogTitle>
+                <DialogDescription className="font-geist">
                   Enter your current password and a new password.
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="current-password">Current Password</Label>
+                  <Label htmlFor="current-password" className="font-geist">Current Password</Label>
                   <Input
                     id="current-password"
                     type="password"
@@ -238,7 +238,7 @@ export function AccountPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="new-password">New Password</Label>
+                  <Label htmlFor="new-password" className="font-geist">New Password</Label>
                   <Input
                     id="new-password"
                     type="password"
@@ -248,7 +248,7 @@ export function AccountPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="confirm-password">Confirm New Password</Label>
+                  <Label htmlFor="confirm-password" className="font-geist">Confirm New Password</Label>
                   <Input
                     id="confirm-password"
                     type="password"
@@ -271,7 +271,7 @@ export function AccountPage() {
 
       {/* Email Updates Section */}
       <div className="border-b border-border pb-8 mb-4 flex items-center justify-between">
-        <span className="text-base">Receive updates via email</span>
+        <span className="text-base font-geist">Receive updates via email</span>
         <Checkbox
           id="receive-updates"
           checked={receiveUpdates}
