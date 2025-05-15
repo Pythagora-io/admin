@@ -24,17 +24,17 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   MoreVertical,
-  Edit,
-  Link2,
-  Copy,
-  FilePlus,
-  Trash,
-  ExternalLink,
   Users,
   Search,
   Upload,
-  Settings2,
   SquarePen,
+  Settings2,
+  ArrowUpRightSquare,
+  Trash2,
+  Link,
+  Copy,
+  FileEdit,
+  CloudOff,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -644,80 +644,87 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-[180px]">
                           <DropdownMenuItem
+                            className="group"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleProjectAction("open", project._id);
                             }}
                           >
-                            <ExternalLink className="mr-2 h-4 w-4" />
-                            Open in Editor
+                            <ArrowUpRightSquare className="h-4 w-4 text-muted-foreground group-hover:text-accent-foreground group-focus:text-accent-foreground" />
+                            Open
                           </DropdownMenuItem>
                           <DropdownMenuItem
+                            className="group"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleProjectAction("copy-link", project._id);
                             }}
                           >
-                            <Link2 className="mr-2 h-4 w-4" />
+                            <Link className="h-4 w-4 text-muted-foreground group-hover:text-accent-foreground group-focus:text-accent-foreground" />
                             Copy Link
                           </DropdownMenuItem>
                           <DropdownMenuItem
+                            className="group"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleProjectAction("duplicate", project._id);
                             }}
                           >
-                            <Copy className="mr-2 h-4 w-4" />
-                            Duplicate
+                            <Copy className="h-4 w-4 text-muted-foreground group-hover:text-accent-foreground group-focus:text-accent-foreground" />
+                            Duplicate Project
                           </DropdownMenuItem>
                           <DropdownMenuItem
+                            className="group"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleProjectAction("rename", project._id);
                             }}
                           >
-                            <Edit className="mr-2 h-4 w-4" />
+                            <FileEdit className="h-4 w-4 text-muted-foreground group-hover:text-accent-foreground group-focus:text-accent-foreground" />
                             Rename
                           </DropdownMenuItem>
-                          {type === "drafts" && (
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleProjectAction("deploy", project._id);
-                              }}
-                            >
-                              <Upload className="mr-2 h-4 w-4" />
-                              Deploy
-                            </DropdownMenuItem>
-                          )}
-                          {type === "deployed" && (
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleProjectAction("unpublish", project._id);
-                              }}
-                            >
-                              <Link2 className="mr-2 h-4 w-4" />
-                              Unpublish
-                            </DropdownMenuItem>
-                          )}
                           <DropdownMenuItem
+                            className="group"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleProjectAction("manage-access", project._id);
                             }}
                           >
-                            <Users className="mr-2 h-4 w-4" />
+                            <Users className="h-4 w-4 text-muted-foreground group-hover:text-accent-foreground group-focus:text-accent-foreground" />
                             Manage Access
                           </DropdownMenuItem>
+                          {type === "drafts" && (
+                            <DropdownMenuItem
+                              className="group"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleProjectAction("deploy", project._id);
+                              }}
+                            >
+                              <Upload className="h-4 w-4 text-muted-foreground group-hover:text-accent-foreground group-focus:text-accent-foreground" />
+                              Deploy
+                            </DropdownMenuItem>
+                          )}
+                          {type === "deployed" && (
+                            <DropdownMenuItem
+                              className="group"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleProjectAction("unpublish", project._id);
+                              }}
+                            >
+                              <CloudOff className="h-4 w-4 text-muted-foreground group-hover:text-accent-foreground group-focus:text-accent-foreground" />
+                              Unpublish
+                            </DropdownMenuItem>
+                          )}
                           <DropdownMenuItem
-                            className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                            className="group"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleProjectAction("delete", project._id);
                             }}
                           >
-                            <Trash className="mr-2 h-4 w-4" />
+                            <Trash2 className="h-4 w-4 text-muted-foreground group-hover:text-accent-foreground group-focus:text-accent-foreground" />
                             Delete
                           </DropdownMenuItem>
                         </DropdownMenuContent>
