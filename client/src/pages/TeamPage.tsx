@@ -408,7 +408,7 @@ export function TeamPage() {
         {/* Team Members Table */}
         <div className="flex flex-col space-y-5">
           {members.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-10 border border-dashed border-border rounded-lg">
+            <div className="flex flex-col items-center justify-center py-10 border-border rounded-lg">
               <UserPlus className="h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-body-lg-medium text-foreground">
                 No team members yet

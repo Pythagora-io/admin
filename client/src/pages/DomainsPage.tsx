@@ -183,8 +183,10 @@ export function DomainsPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Domains</h1>
-          <p className="text-muted-foreground">Manage your connected domains</p>
+          <h1 className="text-heading-3 font-normal">Domains</h1>
+          <p className="text-body-sm text-foreground/60">
+            Manage your connected domains
+          </p>
         </div>
         <Dialog open={addDomainOpen} onOpenChange={setAddDomainOpen}>
           <DialogTrigger asChild>
@@ -222,7 +224,7 @@ export function DomainsPage() {
       </div>
 
       {domains.length === 0 ? (
-        <Card>
+        <Card className="border-none bg-transparent">
           <CardContent className="flex flex-col items-center justify-center py-10">
             <Globe className="h-12 w-12 text-muted-foreground mb-4" />
             <h3 className="text-lg font-medium">No domains added yet</h3>
