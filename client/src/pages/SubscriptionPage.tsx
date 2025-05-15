@@ -50,6 +50,7 @@ import { loadStripe } from "@stripe/stripe-js";
 import { PaymentMethodForm } from "@/components/stripe/PaymentMethodForm";
 import { PlanCard } from "@/components/ui/plan-card";
 import CircleAlertIcon from "@/assets/svg/warnings/circle-alert.svg";
+import { getTeamMembers } from "@/api/team";
 
 // Stripe promise
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || "");
@@ -80,6 +81,9 @@ export function SubscriptionPage() {
   const [confirmPlanChangeOpen, setConfirmPlanChangeOpen] = useState(false);
   const [planToChange, setPlanToChange] = useState<any>(null);
 
+  const [teamMembers, setTeamMembers] = useState<any[]>([]);
+  const seatLimit = 15;
+
   const { toast } = useToast();
 
   // Load Stripe configuration
@@ -108,12 +112,13 @@ export function SubscriptionPage() {
         setLoading(true);
 
         console.log("Fetching subscription data...");
-        const [subscriptionData, plansData, packagesData, paymentMethodsData] =
+        const [subscriptionData, plansData, packagesData, paymentMethodsData, teamMembersData] =
           await Promise.all([
             getUserSubscription(),
             getSubscriptionPlans(),
             getTopUpPackages(),
             getPaymentMethods(),
+            getTeamMembers(),
           ]);
         console.log("Subscription data received:", subscriptionData);
         console.log("Plans data received:", plansData);
@@ -123,6 +128,7 @@ export function SubscriptionPage() {
         setTopUpPackages(packagesData.packages);
         setPaymentMethods(paymentMethodsData.paymentMethods || []);
         setHasPaymentMethod(paymentMethodsData.paymentMethods?.length > 0);
+        setTeamMembers(teamMembersData.members || []);
 
         // Set the current plan as selected by default
         if (subscriptionData.subscription?.plan) {
@@ -430,8 +436,8 @@ export function SubscriptionPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Subscription</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-[24px] font-medium text-[#F7F8F8] leading-[1.25] tracking-[-0.28px]">Subscription</h1>
+        <p className="mt-2 text-[14px] font-normal text-[#F7F8F8] leading-[1.3] tracking-[-0.28px] opacity-60">
           Manage your subscription and token usage
         </p>
       </div>
@@ -446,22 +452,35 @@ export function SubscriptionPage() {
       )}
 
       {/* Plan Summary Section */}
-      <div className="pb-6 border-b border-[rgba(247,248,248,0.10)]">
+      <div className="border-b border-[rgba(247,248,248,0.10)] mb-10 pb-10">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h3 className="text-xl font-semibold">Plan Summary <Badge className="ml-2 bg-yellow-500 hover:bg-yellow-600">{subscription?.plan || "Free"} Plan</Badge></h3>
-            <p className="text-muted-foreground">
-              {subscription?.amount > 0
-                ? `${formatCurrency(subscription.amount, subscription.currency)} / month`
-                : "Free"}
-            </p>
+            <h3 className="text-[16px] font-normal text-[#F7F8F8] leading-[1.4]">Plan Summary <Badge className="ml-2 bg-yellow-500 hover:bg-yellow-600 text-xs font-medium text-[#060218]">
+              {subscription?.plan || "Free"} Plan</Badge></h3>
+            <div className="flex flex-row gap-x-5 mt-5 flex-nowrap min-w-0">
+              <div className="flex flex-col items-start gap-y-2">
+                <div className="text-[14px] font-medium text-[#F7F8F8] tracking-[-0.28px] opacity-60">Price/month</div>
+                <div className="text-[14px] font-medium text-[#F7F8F8] tracking-[-0.28px]">
+                  {subscription?.amount > 0
+                    ? `${formatCurrency(subscription.amount, subscription.currency)} / month`
+                    : "Free"}
+                </div>
+              </div>
+              <div className="flex flex-col items-start gap-y-2">
+                <div className="text-[14px] font-medium text-[#F7F8F8] tracking-[-0.28px] opacity-60">Start date</div>
+                <div className="text-[14px] font-medium text-[#F7F8F8] tracking-[-0.28px]">
+                  {subscription?.startDate ? new Date(subscription.startDate).toLocaleDateString() : "-"}
+                </div>
+              </div>
+              <div className="flex flex-col items-start gap-y-2">
+                <div className="text-[14px] font-medium text-[#F7F8F8] tracking-[-0.28px] opacity-60">Next Billing date</div>
+                <div className="text-[14px] font-medium text-[#F7F8F8] tracking-[-0.28px] whitespace-nowrap">
+                  {subscription?.nextBillingDate ? new Date(subscription.nextBillingDate).toLocaleDateString() : "-"}
+                </div>
+              </div>
+            </div>
           </div>
           <div className="flex gap-2">
-            {hasPaidSubscription && !isSubscriptionCanceled && (
-              <Button variant="outline" onClick={() => setCancelDialogOpen(true)}>
-                Cancel Subscription
-              </Button>
-            )}
             {isSubscriptionCanceled && (
               <Badge variant="outline" className="py-1 px-2">
                 Cancels on {new Date(subscription.nextBillingDate).toLocaleDateString()}
@@ -475,40 +494,66 @@ export function SubscriptionPage() {
       </div>
 
       {/* Token Usage Section */}
-      <div className="py-6 border-b border-[rgba(247,248,248,0.10)]">
-        <div className="flex justify-between items-center mb-2">
-          <div className="space-y-1">
+      <div className="border-b border-[rgba(247,248,248,0.10)] mb-10">
+        <div className="flex justify-between items-center">
+          <div className="flex-1 space-y-5 pb-10">
             <h4 className="font-medium">Token Usage</h4>
-            <p className="text-sm text-muted-foreground">
-              {formatTokens(subscription?.tokens || 0)} tokens available
-            </p>
+            <div className="space-y-2">
+              <p className="text-[14px] font-medium text-[#F7F8F8] tracking-[-0.28px] opacity-60">
+                Available tokens
+              </p>
+              <p className="text-[14px] font-medium text-[#F7F8F8] tracking-[-0.28px]">
+                {formatTokens(subscription?.tokens || 0)} / {formatTokens(totalTokens)}
+              </p>
+            </div>
+            <Progress value={tokenPercent} className={`h-2 ${tokenBgColor}`} barClassName={tokenBarColor} />
           </div>
           <Button variant="outline" onClick={() => setTopUpOpen(true)}>
             <Zap className="mr-2 h-4 w-4" />
             Top Up
           </Button>
         </div>
-        <Progress value={tokenPercent} className={`h-2 ${tokenBgColor}`} barClassName={tokenBarColor} />
-        <p className="text-xs text-muted-foreground text-right">
-          {subscription?.tokens || 0} / {totalTokens} tokens
-        </p>
       </div>
 
-      {/* Team Members Section */}
-      <div className="py-6 border-b border-[rgba(247,248,248,0.10)]">
-        <div className="flex justify-between items-center mb-2">
-          <div className="space-y-1">
+      {/* Team Members Section (commented out real backend, using hardcoded data for styling) */}
+      {/**
+      {teamMembers.length > 0 && (
+        <div className="py-6 border-b border-[rgba(247,248,248,0.10)]">
+          <div className="flex justify-between items-center mb-2">
+            <div className="space-y-5">
+              <h4 className="font-medium">Team Members</h4>
+              <div className="space-y-2">
+                <p className="text-[14px] font-medium text-[#F7F8F8] tracking-[-0.28px]">
+                  {teamMembers.length} / {seatLimit} seats available
+                </p>
+              </div>
+            </div>
+            <Button variant="outline">
+              Contact sales
+            </Button>
+          </div>
+          <Progress value={(teamMembers.length / seatLimit) * 100} className="h-2 bg-blue-700" />
+        </div>
+      )}
+      */}
+      <div className="border-b border-[rgba(247,248,248,0.10)] mb-10">
+        <div className="flex justify-between items-center">
+          <div className="flex-1 space-y-5 pb-10">
             <h4 className="font-medium">Team Members</h4>
-            <p className="text-sm text-muted-foreground">
-              {/* NOTE: Placeholder for available seats just for UI work, replace with real data */}
-              7 / 15 seats available
-            </p>
+            <div className="space-y-2">
+              <p className="text-[14px] font-medium text-[#F7F8F8] tracking-[-0.28px] opacity-60">
+                Available seats
+              </p>
+              <p className="text-[14px] font-medium text-[#F7F8F8] tracking-[-0.28px]">
+                7 / 15
+              </p>
+            </div>
+            <Progress value={47} className="h-2 bg-blue-700" />
           </div>
           <Button variant="outline">
             Contact sales
           </Button>
         </div>
-        <Progress value={47} className="h-2 bg-blue-700" />
       </div>
 
       {/* Change Plan Dialog */}
