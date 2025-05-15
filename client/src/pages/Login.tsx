@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/useToast";
 import { useAuth } from "@/contexts/AuthContext";
-import { X } from "lucide-react";
+import { X, Eye, EyeOff } from "lucide-react";
 
 // SVG imports
 import PythagoraLogo from "@/assets/svg/pythagora-logo.svg";
@@ -28,6 +28,7 @@ export function Login() {
     handleSubmit,
     formState: { errors, isValid },
   } = useForm<LoginForm>({ mode: "onChange" });
+  const [showPassword, setShowPassword] = useState(false);
 
   const onSubmit = async (data: LoginForm) => {
     try {
@@ -96,17 +97,26 @@ export function Login() {
                 />
                 {errors.email && <span className="text-xs text-red-500">Email is required</span>}
               </div>
-              <div>
+              <div className="relative">
                 <label htmlFor="password" className="block text-sm font-medium text-white mb-2">Password</label>
                 <input
                   id="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
                   placeholder="Enter your password..."
-                  className="w-full rounded-lg bg-[#23222A] border border-[#23222A] text-white placeholder:text-[#7D7A8C] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full rounded-lg bg-[#23222A] border border-[#23222A] text-white placeholder:text-[#7D7A8C] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary pr-12"
                   {...register("password", { required: true })}
                   disabled={loading}
                 />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#7D7A8C] hover:text-[#F7F8F8] focus:outline-none"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
                 {errors.password && <span className="text-xs text-red-500">Password is required</span>}
               </div>
               <div className="flex justify-between items-center text-xs mb-2">

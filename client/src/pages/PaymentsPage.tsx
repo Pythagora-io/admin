@@ -84,12 +84,12 @@ export function PaymentsPage() {
         if (companyData && companyData.companyInfo) {
           setCompanyInfo(companyData.companyInfo);
         }
-      } catch (error) {
+      } catch (error: unknown) {
         console.error("Error fetching data:", error);
         toast({
           variant: "destructive",
           title: "Error",
-          description: error.message || "Failed to fetch payment data",
+          description: error instanceof Error ? error.message : String(error),
         });
       } finally {
         setLoading(false);
@@ -141,18 +141,18 @@ export function PaymentsPage() {
           response.message || "Billing information updated successfully",
       });
       setEditBillingOpen(false);
-    } catch (error) {
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to update billing information",
+        description: error instanceof Error ? error.message : String(error),
       });
     }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormBillingInfo((prev) => ({
+    setFormBillingInfo((prev: any) => ({
       ...prev,
       [name]: value,
     }));
@@ -184,8 +184,8 @@ export function PaymentsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Payments & Billing</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-[24px] font-medium leading-[1.25] tracking-[-0.48px] text-[#F7F8F8] font-geist mb-2">Payments & Billing</h1>
+        <p className="text-[14px] font-normal leading-[1.3] tracking-[-0.28px] text-[#F7F8F8] font-geist opacity-60">
           Manage your billing information and view payment history
         </p>
       </div>
@@ -193,37 +193,38 @@ export function PaymentsPage() {
       {/* Billing Information Section */}
       <div className="border-b border-border pb-8 mb-4 grid grid-cols-1 md:grid-cols-2 gap-8">
         <div>
-          <h2 className="text-lg font-semibold mb-1">Your Billing Information</h2>
-          <p className="text-sm text-muted-foreground mb-4">User for all receipts and invoices</p>
-          <div className="space-y-1 mb-4">
-            <p className="font-medium">{billingInfo.name}</p>
-            <p>{billingInfo.address}</p>
-            <p>
+          <h2 className="text-[16px] font-normal leading-[1.4] text-[#F7F8F8] font-geist mb-2">Your Billing Information</h2>
+          <p className="text-[14px] font-normal leading-[1.3] tracking-[-0.28px] text-[#F7F8F8] font-geist opacity-60 mb-4">User for all receipts and invoices</p>
+          <div className="space-y-2 mb-4">
+            <p className="text-[14px] font-medium text-[#F7F8F8] font-geist tracking-[-0.28px]">{billingInfo.name}</p>
+            <p className="text-[14px] font-medium text-[#F7F8F8] font-geist tracking-[-0.28px]">{billingInfo.address}</p>
+            <p className="text-[14px] font-medium text-[#F7F8F8] font-geist tracking-[-0.28px]">
               {billingInfo.city}, {billingInfo.state} {billingInfo.zip}
             </p>
-            <p>{billingInfo.country}</p>
+            <p className="text-[14px] font-medium text-[#F7F8F8] font-geist tracking-[-0.28px]">{billingInfo.country}</p>
           </div>
           <Button variant="default" onClick={() => setEditBillingOpen(true)}>
             Edit
           </Button>
         </div>
         <div>
-          <h2 className="text-lg font-semibold mb-1">Pythagora Billing Information</h2>
-          <p className="text-sm text-muted-foreground mb-4">For your records</p>
-          <div className="space-y-1">
-            <p className="font-medium">{companyInfo.name}</p>
-            <p>{companyInfo.address}</p>
-            <p>
+          <h2 className="text-[16px] font-normal leading-[1.4] text-[#F7F8F8] font-geist mb-2">Pythagora Billing Information</h2>
+          <p className="text-[14px] font-normal leading-[1.3] tracking-[-0.28px] text-[#F7F8F8] font-geist opacity-60 mb-4">For your records</p>
+          <div className="space-y-2">
+            <p className="text-[14px] font-medium text-[#F7F8F8] font-geist tracking-[-0.28px]">{companyInfo.name}</p>
+            <p className="text-[14px] font-medium text-[#F7F8F8] font-geist tracking-[-0.28px]">{companyInfo.address}</p>
+            <p className="text-[14px] font-medium text-[#F7F8F8] font-geist tracking-[-0.28px]">
               {companyInfo.city}, {companyInfo.state} {companyInfo.zip}
             </p>
-            <p>{companyInfo.country}</p>
+            <p className="text-[14px] font-medium text-[#F7F8F8] font-geist tracking-[-0.28px]">{companyInfo.country}</p>
           </div>
         </div>
       </div>
 
       {/* Payment History Section */}
       <div className="border-b border-border pb-8 mb-4">
-        <h2 className="text-lg font-semibold mb-1">Payment History</h2>
+        <h2 className="text-[16px] font-normal leading-[1.4] text-[#F7F8F8] font-geist mb-2">Payment History</h2>
+        <p className="text-[14px] font-normal leading-[1.3] tracking-[-0.28px] text-[#F7F8F8] font-geist opacity-60 mb-8">View and download receipts for your payments</p>
         {payments.length === 0 ? (
           <p className="text-muted-foreground">No invoices available.</p>
         ) : (
@@ -231,20 +232,18 @@ export function PaymentsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead className="text-right">Receipt</TableHead>
+                  <TableHead className="text-[14px] font-medium text-[#F7F8F8] font-geist tracking-[-0.28px] opacity-60">Date</TableHead>
+                  <TableHead className="text-[14px] font-medium text-[#F7F8F8] font-geist tracking-[-0.28px] opacity-60">Description</TableHead>
+                  <TableHead className="text-[14px] font-medium text-[#F7F8F8] font-geist tracking-[-0.28px] opacity-60">Amount</TableHead>
+                  <TableHead className="text-right text-[14px] font-medium text-[#F7F8F8] font-geist tracking-[-0.28px] opacity-60"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {payments.map((payment) => (
                   <TableRow key={payment.id}>
-                    <TableCell>{formatDate(payment.date)}</TableCell>
-                    <TableCell>{payment.description}</TableCell>
-                    <TableCell>
-                      {formatCurrency(payment.amount, payment.currency)}
-                    </TableCell>
+                    <TableCell className="text-[14px] font-medium text-[#F7F8F8] font-geist tracking-[-0.28px]">{formatDate(payment.date)}</TableCell>
+                    <TableCell className="text-[14px] font-medium text-[#F7F8F8] font-geist tracking-[-0.28px]">{payment.description}</TableCell>
+                    <TableCell className="text-[14px] font-medium text-[#F7F8F8] font-geist tracking-[-0.28px]">{formatCurrency(payment.amount, payment.currency)}</TableCell>
                     <TableCell className="text-right">
                       <Button
                         variant="ghost"
@@ -252,7 +251,7 @@ export function PaymentsPage() {
                         onClick={() => handleDownloadReceipt(payment.id)}
                       >
                         <Download className="h-4 w-4 mr-2" />
-                        Download
+                        <span className="text-[14px] font-medium text-[#F7F8F8] font-geist tracking-[-0.28px]">Download PDF</span>
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -268,7 +267,7 @@ export function PaymentsPage() {
         <DialogContent className="sm:max-w-md bg-[#222029]">
           <DialogHeader>
             <DialogTitle>Edit Billing Information</DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-[#F7F8F8] font-geist text-[14px] font-normal leading-[1.4] opacity-60">
               Update your billing details for receipts and invoices.
             </DialogDescription>
           </DialogHeader>
