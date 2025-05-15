@@ -214,8 +214,10 @@ export function SidebarMenuButton({
         isActive
           ? "bg-accent text-accent-foreground font-medium"
           : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground",
-        className,
+        "text-[#F7F8F8] font-geist text-[14px] font-medium",
+        className
       )}
+      style={{ letterSpacing: '-0.28px', fontFamily: 'Geist, sans-serif', ...(props.style || {}) }}
       {...props}
     />
   );
@@ -297,8 +299,10 @@ export function SidebarMenuSubButton({
         isActive
           ? "bg-accent text-accent-foreground font-medium"
           : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground",
-        className,
+        "text-[#F7F8F8] font-geist text-[14px] font-medium",
+        className
       )}
+      style={{ letterSpacing: '-0.28px', fontFamily: 'Geist, sans-serif', ...(props.style || {}) }}
       {...props}
     />
   );

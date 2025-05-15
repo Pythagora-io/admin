@@ -14,7 +14,7 @@ interface SidebarIconProps {
 export function SidebarIcon({ children, isActive, className }: SidebarIconProps) {
   return (
     <div className={cn(
-      "h-5 w-5 mr-3 flex-shrink-0",
+      "h-[20px] w-[20px] mr-3 flex-shrink-0",
       isActive ? "text-primary-foreground" : "text-muted-foreground",
       className
     )}>
