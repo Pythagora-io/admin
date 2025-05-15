@@ -3,6 +3,7 @@ import { Outlet } from "react-router-dom";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import DashboardBackground from "@/assets/dashboard-background.svg";
+import PythagoraIcon from "./icons/PythagoraIcon";
 
 import {
   Sidebar,
@@ -340,20 +341,7 @@ export function DashboardLayout() {
               className="flex items-center cursor-pointer"
               aria-label="Go to homepage"
             >
-              <svg
-                width="22"
-                height="21"
-                viewBox="0 0 22 21"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  fill-rule="evenodd"
-                  clip-rule="evenodd"
-                  d="M9.03434 1.44003C8.51753 1.81812 8.06841 2.631 7.17016 4.25674L1.27418 14.9279C0.462737 16.3965 0.0570166 17.1308 0.00899945 17.725C-0.0888068 18.9353 0.61797 20.0726 1.7701 20.5589C2.33572 20.7977 3.19777 20.7977 4.92186 20.7977H16.7138C18.4379 20.7977 19.2999 20.7977 19.8656 20.5589C21.0177 20.0726 21.7245 18.9353 21.6267 17.725C21.5787 17.1308 21.1729 16.3965 20.3615 14.9279L14.4655 4.25674C13.5673 2.631 13.1181 1.81812 12.6013 1.44003C11.5466 0.668428 10.089 0.668428 9.03434 1.44003ZM10.6494 5.3605C10.2872 5.45603 10.0342 5.91608 9.52829 6.83618L4.36435 16.2274C3.92963 17.018 4.50772 17.9741 5.43453 17.9973C6.89391 18.0339 17.3358 16.3973 15.3793 12.7456L12.2208 6.85007C11.7251 5.9248 11.4772 5.46217 11.1161 5.36291C10.9637 5.32101 10.8023 5.32018 10.6494 5.3605Z"
-                  fill="#FFD11A"
-                />
-              </svg>
+              <PythagoraIcon />
               <span className="ml-2 text-lg font-semibold text-foreground">
                 Pythagora
               </span>
@@ -406,20 +394,7 @@ export function DashboardLayout() {
                     className="flex items-center cursor-pointer"
                     aria-label="Go to homepage"
                   >
-                    <svg
-                      width="22"
-                      height="21"
-                      viewBox="0 0 22 21"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        fill-rule="evenodd"
-                        clip-rule="evenodd"
-                        d="M9.03434 1.44003C8.51753 1.81812 8.06841 2.631 7.17016 4.25674L1.27418 14.9279C0.462737 16.3965 0.0570166 17.1308 0.00899945 17.725C-0.0888068 18.9353 0.61797 20.0726 1.7701 20.5589C2.33572 20.7977 3.19777 20.7977 4.92186 20.7977H16.7138C18.4379 20.7977 19.2999 20.7977 19.8656 20.5589C21.0177 20.0726 21.7245 18.9353 21.6267 17.725C21.5787 17.1308 21.1729 16.3965 20.3615 14.9279L14.4655 4.25674C13.5673 2.631 13.1181 1.81812 12.6013 1.44003C11.5466 0.668428 10.089 0.668428 9.03434 1.44003ZM10.6494 5.3605C10.2872 5.45603 10.0342 5.91608 9.52829 6.83618L4.36435 16.2274C3.92963 17.018 4.50772 17.9741 5.43453 17.9973C6.89391 18.0339 17.3358 16.3973 15.3793 12.7456L12.2208 6.85007C11.7251 5.9248 11.4772 5.46217 11.1161 5.36291C10.9637 5.32101 10.8023 5.32018 10.6494 5.3605Z"
-                        fill="#FFD11A"
-                      />
-                    </svg>
+                    <PythagoraIcon />
                     <span className="ml-2 text-lg font-semibold text-foreground">
                       Pythagora
                     </span>
