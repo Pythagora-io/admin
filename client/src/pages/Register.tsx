@@ -16,6 +16,9 @@ import { Input } from "@/components/ui/input";
 import { register as registerUser } from "@/api/auth";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/useToast";
+import { X } from "lucide-react";
+import PythagoraLogo from "@/assets/svg/pythagora-logo.svg";
+import BleedImg from "@/assets/bleed.png";
 
 const registerSchema = z
   .object({
@@ -69,7 +72,7 @@ export function Register() {
       toast({
         variant: "destructive",
         title: "Registration failed",
-        description: error.message || "An error occurred during registration",
+        description: error instanceof Error ? error.message : String(error),
       });
     } finally {
       setIsLoading(false);
@@ -77,125 +80,106 @@ export function Register() {
   }
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center px-4">
-      {/* Background image with blur */}
-      <div
-        className="fixed inset-0 w-[95%] h-[95%] m-auto -z-10 bg-cover bg-center rounded-xl"
-        style={{
-          backgroundImage: "url('/images/abstract-bg.jpg')",
-          filter: "blur(8px)",
-          opacity: 0.15,
-        }}
-      ></div>
-
-      <div className="w-full max-w-md space-y-8 mx-auto">
-        <div className="flex flex-col items-center text-center space-y-2">
-          <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/10">
-            <svg
-              viewBox="0 0 24 24"
-              className="h-6 w-6 text-primary"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2.00001 17.5228 6.47716 22 12 22Z"
-                fill="currentColor"
-                fillOpacity="0.2"
-              />
-              <path
-                d="M15.5 9C15.5 11.2091 13.7091 13 11.5 13H9V9C9 6.79086 10.7909 5 13 5C15.2091 5 15.5 6.79086 15.5 9Z"
-                fill="currentColor"
-              />
-              <path
-                d="M9 13H11.5C13.7091 13 15.5 14.7909 15.5 17C15.5 19.2091 13.2091 20 11 20C8.79086 20 9 18.2091 9 16V13Z"
-                fill="currentColor"
-              />
-            </svg>
-          </div>
-          <h1 className="text-2xl font-bold">Create an account</h1>
-          <p className="text-muted-foreground">
-            Sign up to get started with Pythagora
-          </p>
+    <div className="relative min-h-screen w-full overflow-hidden flex items-center justify-center">
+      {/* Bleed background image */}
+      <img
+        src={BleedImg}
+        alt="bleed background"
+        className="pointer-events-none select-none fixed bottom-0 left-0 w-full max-h-[40vh] object-cover z-0"
+        style={{ objectFit: "cover" }}
+      />
+      {/* Blurred area */}
+      <div className="fixed inset-0 m-4 rounded-2xl bg-[#111016CC] backdrop-blur-lg z-10 border" style={{ borderColor: '#F7F8F81A', borderWidth: 1 }}>
+        {/* Logo and X icon at top inside blurred area */}
+        <div className="absolute top-0 left-0 w-full flex items-center justify-between p-8">
+          <img src={PythagoraLogo} alt="Pythagora Logo" className="h-8 w-auto" />
+          <X className="h-7 w-7 text-white opacity-70 cursor-default" />
         </div>
-
-        <div className="bg-card border rounded-xl shadow-sm p-6">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter your name" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter your email" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="Create a password"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="confirmPassword"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Confirm Password</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="Confirm your password"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Creating account..." : "Create Account"}
-              </Button>
-            </form>
-          </Form>
-          <div className="mt-4 text-center text-sm">
-            <p>
-              Already have an account?{" "}
+      </div>
+      {/* Modal/Dialog with form */}
+      <div className="relative z-20 w-full max-w-md flex flex-col items-center rounded-2xl bg-[rgba(24,21,35,0.80)] shadow-xl p-0 mx-auto my-auto border border-[rgba(247,248,248,0.10)]" style={{ padding: '20px 32px' }}>
+        <div className="flex-1 flex flex-col items-center justify-center px-4 py-8 w-full">
+          <div className="w-full max-w-md mx-auto">
+            <h1 className="text-2xl font-bold text-center mb-3">Create an account</h1>
+            <p className="text-center text-muted-foreground mb-8" style={{ color: 'rgba(255, 255, 255, 0.50)', fontFamily: 'Geist', fontSize: '14px', fontStyle: 'normal', fontWeight: '400', lineHeight: '130%', letterSpacing: '-0.28px' }}>
+              Already have an account?{' '}
               <Link
                 to="/login"
-                className="underline underline-offset-4 hover:text-primary"
+                className="text-primary underline underline-offset-2 hover:text-primary/80"
+                style={{ color: '#F7F8F8', fontFamily: 'Geist', fontSize: '14px', fontStyle: 'normal', fontWeight: '400', lineHeight: '130%', letterSpacing: '-0.28px' }}
               >
                 Sign in
               </Link>
             </p>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter your name" className="w-full rounded-lg bg-[#23222A] border border-[#23222A] text-white placeholder:text-[#7D7A8C] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter your email" className="w-full rounded-lg bg-[#23222A] border border-[#23222A] text-white placeholder:text-[#7D7A8C] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="password"
+                          placeholder="Create a password"
+                          className="w-full rounded-lg bg-[#23222A] border border-[#23222A] text-white placeholder:text-[#7D7A8C] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="confirmPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Confirm Password</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="password"
+                          placeholder="Confirm your password"
+                          className="w-full rounded-lg bg-[#23222A] border border-[#23222A] text-white placeholder:text-[#7D7A8C] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? "Creating account..." : "Create Account"}
+                </Button>
+              </form>
+            </Form>
           </div>
         </div>
       </div>

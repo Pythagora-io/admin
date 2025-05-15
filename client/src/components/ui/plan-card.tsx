@@ -82,6 +82,8 @@ export const PlanCard: React.FC<PlanCardProps> = ({
   };
   const planDescription = description || defaultDescriptions[id] || "";
 
+  const isStarter = id === 'starter' || id === 'free';
+
   return (
     <div
       className={
@@ -93,22 +95,45 @@ export const PlanCard: React.FC<PlanCardProps> = ({
       }
       onClick={() => !isEnterprise && onCardClick(plan)}
     >
-      {/* "Current plan" badge */}
-      {isCurrent && (
-        <Badge className="absolute top-4 right-4 px-2 py-1">Current plan</Badge>
-      )}
-
-      {/* Plan icon */}
-      {IconSrc && (
-        <img src={IconSrc} alt={`${name} icon`} className="h-8 w-8 mb-4" />
-      )}
+      {/* Plan icon and current plan badge, flex row and vertically centered */}
+      <div className="flex items-center w-full mb-4 gap-2 justify-between">
+        {IconSrc && (
+          <img src={IconSrc} alt={`${name} icon`} className="h-8 w-8" />
+        )}
+        {isCurrent && (
+          <Badge
+            className="px-2 py-1"
+            style={{
+              background: 'rgba(247, 248, 252, 0.15)',
+              color: '#F7F8F8',
+              fontFamily: 'Geist, sans-serif',
+              fontSize: 16,
+              fontWeight: 400,
+              lineHeight: '140%',
+            }}
+          >
+            Current plan
+          </Badge>
+        )}
+      </div>
 
       {/* Title & price stacked vertically */}
       <div className="mb-2">
-        <h3 className="text-lg font-semibold mb-1">{id === 'starter' ? 'Starter' : name}</h3>
+        <h3
+          className="mb-1"
+          style={{
+            color: '#F7F8F8',
+            fontFamily: 'Geist, sans-serif',
+            fontSize: 16,
+            fontWeight: 400,
+            lineHeight: '140%',
+          }}
+        >
+          {isStarter ? 'Starter' : name}
+        </h3>
         <div className="text-xl font-bold">
-          {id === 'starter' ? 'Free' : formatCurrency(price, currency)}
-          {price && price !== 0 && (
+          {isStarter ? 'Free' : formatCurrency(price, currency)}
+          {!isStarter && price && price !== 0 && (
             <span className="ml-1">/month</span>
           )}
         </div>

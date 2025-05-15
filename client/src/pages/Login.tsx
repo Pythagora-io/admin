@@ -42,7 +42,7 @@ export function Login() {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error?.message || String(error),
+        description: error instanceof Error ? error.message : String(error),
       });
     } finally {
       setLoading(false);
@@ -50,7 +50,7 @@ export function Login() {
   };
 
   return (
-    <div className="relative min-h-screen w-full">
+    <div className="relative min-h-screen w-full overflow-hidden">
       {/* Bleed background image */}
       <img
         src={BleedImg}
@@ -67,16 +67,17 @@ export function Login() {
         </div>
       </div>
       {/* Modal/Dialog with form */}
-      <div className="relative z-20 w-full max-w-xl min-h-[600px] flex flex-col items-center rounded-2xl bg-[#181523CC] shadow-xl p-0 mx-auto mt-12">
-        <div className="flex-1 flex flex-col items-center px-8 pb-8 w-full">
+      <div className="relative z-20 w-full max-w-md flex flex-col items-center rounded-2xl bg-[rgba(24,21,35,0.80)] shadow-xl p-0 mx-auto mt-24 border border-[rgba(247,248,248,0.10)]" style={{ padding: '40px 32px' }}>
+        <div className="flex-1 flex flex-col items-center justify-center px-4 py-8 w-full">
           <div className="w-full max-w-md mx-auto">
-            <h1 className="text-2xl font-bold">Sign in</h1>
-            <p className="text-center text-muted-foreground mb-8">
+            <h1 className="text-2xl font-bold text-center mb-3">Welcome to Pythagora</h1>
+            <p className="text-center text-muted-foreground mb-8" style={{ color: 'rgba(255, 255, 255, 0.50)', fontFamily: 'Geist', fontSize: '14px', fontStyle: 'normal', fontWeight: '400', lineHeight: '130%', letterSpacing: '-0.28px' }}>
               Don&apos;t have an account?{' '}
               <button
                 className="text-primary underline underline-offset-2 hover:text-primary/80"
                 type="button"
                 onClick={() => navigate("/register")}
+                style={{ color: '#F7F8F8', fontFamily: 'Geist', fontSize: '14px', fontStyle: 'normal', fontWeight: '400', lineHeight: '130%', letterSpacing: '-0.28px' }}
               >
                 Sign up for free
               </button>
@@ -130,6 +131,7 @@ export function Login() {
               >
                 Sign in
               </button>
+              {/* Commented out OR divider and social logins
               <div className="flex items-center my-4">
                 <div className="flex-grow border-t border-[#23222A]" />
                 <span className="mx-4 text-[#7D7A8C] text-xs">OR</span>
@@ -153,6 +155,7 @@ export function Login() {
                 <img src={GithubIcon} alt="GitHub" className="h-5 w-5" />
                 Continue with GitHub
               </button>
+              */}
             </form>
           </div>
         </div>
