@@ -33,8 +33,8 @@ import {
   Users,
   Search,
   Upload,
-  FilePen,
   Settings2,
+  SquarePen,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -543,16 +543,22 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {projects.length === 0 ? (
           type === "drafts" ? (
-            <div className="relative overflow-hidden transition-all">
-              <div className="relative rounded-2xl overflow-hidden border border-border">
-                <div className="h-60 w-full bg-cover bg-center flex flex-col items-center justify-center bg-muted/10">
-                  <FilePen className="h-16 w-16 text-muted-foreground/30 mb-4" />
+            <div className="relative overflow-hidden transition-all h-60 w-[356px]">
+              <div
+                className="relative rounded-2xl"
+                style={{
+                  backgroundImage:
+                    "url(\"data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='16' ry='16' stroke='rgba(247,248,252,0.15)' stroke-width='1' stroke-dasharray='11,11'/%3e%3c/svg%3e\")",
+                }}
+              >
+                <div className="h-60 w-full bg-cover flex flex-col gap-4 items-center justify-center bg-muted/10 rounded-2xl">
+                  <SquarePen className="h-5 w-5 text-foreground" />
                   <p className="text-body-sm font-medium text-foreground/80 text-center max-w-xs px-4">
                     No projects yet. Start your first project to get going.
                   </p>
                   <Button
                     onClick={handleNewProject}
-                    className="bg-primary text-primary-foreground text-caption-strong px-3 py-2 h-9 rounded-md mt-4"
+                    className="bg-primary text-primary-foreground text-caption-strong px-3 py-2 h-9 rounded-md"
                   >
                     New project
                   </Button>
@@ -561,7 +567,13 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
             </div>
           ) : (
             <div className="relative transition-all">
-              <div className="relative rounded-2xl border-dashed border border-foreground/15 h-60 w-[356px] flex flex-col items-center justify-center">
+              <div
+                className="relative rounded-2xl overflow-hidden h-60 w-[356px] flex flex-col items-center justify-center"
+                style={{
+                  backgroundImage:
+                    "url(\"data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='16' ry='16' stroke='rgba(247,248,252,0.15)' stroke-width='1' stroke-dasharray='11,11'/%3e%3c/svg%3e\")",
+                }}
+              >
                 <p className="text-body-md text-foreground/80 text-center">
                   Your deployed apps will appear here.
                 </p>
