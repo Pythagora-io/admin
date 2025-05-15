@@ -528,13 +528,12 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
             </>
           ) : (
             <>
-              <Button variant="outline" onClick={handleSelectMode}>
-                Select
-              </Button>
-              <Button onClick={handleNewProject}>
-                <FilePlus className="mr-2 h-4 w-4" />
-                New Project
-              </Button>
+              {projects.length > 0 && (
+                <Button variant="ghost" onClick={handleSelectMode}>
+                  Select
+                </Button>
+              )}
+              <Button onClick={handleNewProject}>New Project</Button>
             </>
           )}
         </div>
