@@ -242,7 +242,7 @@ export function Register() {
             <div className="space-y-4">
               <Button
                 type="submit"
-                className="w-full font-medium text-body-md"
+                className="w-full font-medium text-body-md bg-primary-foreground text-[hsl(252,82%,6%)] hover:bg-primary-foreground"
                 disabled={isLoading}
               >
                 {isLoading ? "Creating account..." : "Create Account"}
