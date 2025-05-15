@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/useToast";
 import {
-  MoreHorizontal,
+  MoreVertical,
   UserPlus,
   Settings,
   UserMinus,
@@ -347,7 +347,7 @@ export function TeamPage() {
       </div>
 
       {/* Team Members Section */}
-      <div className="pt-8 pb-4 border-b border-[rgba(247,248,248,0.10)]">
+      <div className="pt-8 pb-0 border-b border-[rgba(247,248,248,0.10)]">
         <h2 className="text-2xl font-bold mb-2">Team members</h2>
         {/* Table header */}
         <div className="mb-5"></div>
@@ -406,15 +406,23 @@ export function TeamPage() {
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon">
-                        <MoreHorizontal className="h-5 w-5" />
+                        <MoreVertical className="h-5 w-5" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => openAccessManagement(member)}>
-                        Manage Access
+                    <DropdownMenuContent align="end" className="bg-[#222029] rounded-[16px] p-4">
+                      <DropdownMenuItem
+                        onClick={() => { setRemoveConfirmOpen(true); setMemberToRemove(member); }}
+                        style={{ color: '#F7F8F8', fontFamily: 'Geist, sans-serif', fontSize: 14, fontWeight: 500, lineHeight: 'normal' }}
+                        className="flex items-center gap-3"
+                      >
+                        Remove member
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => { setRemoveConfirmOpen(true); setMemberToRemove(member); }}>
-                        Remove
+                      <DropdownMenuItem
+                        onClick={() => openAccessManagement(member)}
+                        style={{ color: '#F7F8F8', fontFamily: 'Geist, sans-serif', fontSize: 14, fontWeight: 500, lineHeight: 'normal' }}
+                        className="flex items-center gap-3"
+                      >
+                        Manage access
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>

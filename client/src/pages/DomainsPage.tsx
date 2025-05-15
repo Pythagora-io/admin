@@ -27,7 +27,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  Trash,
   ExternalLink,
   PlusCircle,
   Globe,
@@ -59,7 +58,7 @@ export function DomainsPage() {
         toast({
           variant: "destructive",
           title: "Error",
-          description: error.message || "Failed to fetch domains",
+          description: error instanceof Error ? error.message : String(error) || "Failed to fetch domains",
         });
       } finally {
         setLoading(false);
@@ -94,7 +93,7 @@ export function DomainsPage() {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to add domain",
+        description: error instanceof Error ? error.message : String(error) || "Failed to add domain",
       });
     }
   };
@@ -118,7 +117,7 @@ export function DomainsPage() {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to delete domain",
+        description: error instanceof Error ? error.message : String(error) || "Failed to delete domain",
       });
     } finally {
       setDeleteDomainDialogOpen(false);
@@ -144,7 +143,7 @@ export function DomainsPage() {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to verify domain",
+        description: error instanceof Error ? error.message : String(error) || "Failed to verify domain",
       });
     } finally {
       setVerifyingDomain(null);
@@ -181,8 +180,8 @@ export function DomainsPage() {
         <Dialog open={addDomainOpen} onOpenChange={setAddDomainOpen}>
           <DialogTrigger asChild>
             <Button>
-              <PlusCircle className="h-4 w-4 mr-2" />
-              Add Domain
+              <span className="mr-2 flex items-center"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" clipRule="evenodd" d="M3.33203 9.99935C3.33203 9.53911 3.70513 9.16602 4.16536 9.16602H15.832C16.2923 9.16602 16.6654 9.53911 16.6654 9.99935C16.6654 10.4596 16.2923 10.8327 15.832 10.8327H4.16536C3.70513 10.8327 3.33203 10.4596 3.33203 9.99935Z" fill="#F7F8F8"/><path fillRule="evenodd" clipRule="evenodd" d="M10.0013 3.33398C10.4615 3.33398 10.8346 3.70708 10.8346 4.16732V15.834C10.8346 16.2942 10.4615 16.6673 10.0013 16.6673C9.54106 16.6673 9.16797 16.2942 9.16797 15.834V4.16732C9.16797 3.70708 9.54106 3.33398 10.0013 3.33398Z" fill="#F7F8F8"/></svg></span>
+              Add domain
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-md bg-[#222029]">
@@ -225,37 +224,67 @@ export function DomainsPage() {
           buttonText="Add Your First Domain"
           onButtonClick={() => setAddDomainOpen(true)}
           icon={<Globe className="h-12 w-12 text-muted-foreground mb-4" />}
-          buttonIcon={<PlusCircle className="mr-2 h-4 w-4" />}
+          buttonIcon={<span className="mr-2 flex items-center"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" clipRule="evenodd" d="M3.33203 9.99935C3.33203 9.53911 3.70513 9.16602 4.16536 9.16602H15.832C16.2923 9.16602 16.6654 9.53911 16.6654 9.99935C16.6654 10.4596 16.2923 10.8327 15.832 10.8327H4.16536C3.70513 10.8327 3.33203 10.4596 3.33203 9.99935Z" fill="#F7F8F8"/><path fillRule="evenodd" clipRule="evenodd" d="M10.0013 3.33398C10.4615 3.33398 10.8346 3.70708 10.8346 4.16732V15.834C10.8346 16.2942 10.4615 16.6673 10.0013 16.6673C9.54106 16.6673 9.16797 16.2942 9.16797 15.834V4.16732C9.16797 3.70708 9.54106 3.33398 10.0013 3.33398Z" fill="#F7F8F8"/></svg></span>}
         />
       ) : (
         <div className="grid gap-4">
+          <div className="grid grid-cols-12 items-center px-6 py-4 border-b border-border">
+            <div className="col-span-5">
+              <span style={{ color: '#F7F8F8', fontFamily: 'Geist, sans-serif', fontSize: '14px', fontWeight: 500, lineHeight: 'normal', letterSpacing: '-0.28px' }}>Domain name</span>
+            </div>
+            <div className="col-span-3">
+              <span style={{ color: '#F7F8F8', fontFamily: 'Geist, sans-serif', fontSize: '14px', fontWeight: 500, lineHeight: 'normal', letterSpacing: '-0.28px' }}>Date</span>
+            </div>
+            <div className="col-span-2">
+              <span style={{ color: '#F7F8F8', fontFamily: 'Geist, sans-serif', fontSize: '14px', fontWeight: 500, lineHeight: 'normal', letterSpacing: '-0.28px' }}>Status</span>
+            </div>
+            <div className="col-span-2"></div>
+          </div>
           {domains.map((domain) => (
             <div
               key={domain._id}
               className="grid grid-cols-12 items-center px-6 py-4 border-b border-border last:border-b-0"
             >
               <div className="col-span-5 flex items-center gap-3">
-                <Globe className="h-5 w-5 text-muted-foreground" />
-                <span className="font-medium text-base">{domain.domain}</span>
+                <Globe className="h-5 w-5" style={{ color: '#F7F8F8' }} />
+                <span style={{ color: '#F7F8F8', fontFamily: 'Geist, sans-serif', fontSize: '14px', fontWeight: 500, lineHeight: 'normal', letterSpacing: '-0.28px' }}>{domain.domain}</span>
               </div>
-              <div className="col-span-3 text-sm text-muted-foreground">
+              <div className="col-span-3" style={{ color: '#F7F8F8', fontFamily: 'Geist, sans-serif', fontSize: '14px', fontWeight: 500, lineHeight: 'normal', letterSpacing: '-0.28px' }}>
                 {formatDate(domain.createdAt)}
               </div>
-              <div className="col-span-4 flex items-center justify-end">
+              <div className="col-span-2">
                 {domain.verified ? (
-                  <Button
-                    className="bg-[#07998A] hover:bg-[#07998A] text-white cursor-default"
-                    disabled
+                  <span
+                    className="inline-block px-3 py-1 rounded-lg"
+                    style={{
+                      background: '#07998A',
+                      color: '#060218',
+                      borderRadius: 8,
+                      fontFamily: 'Geist, sans-serif',
+                      fontSize: 12,
+                      fontWeight: 500,
+                      fontStyle: 'normal',
+                      lineHeight: 'normal',
+                    }}
                   >
                     Verified
-                  </Button>
+                  </span>
                 ) : domain.pendingVerification ? (
-                  <Button
-                    className="bg-[#FFD11A] hover:bg-[#FFD11A] text-black cursor-default"
-                    disabled
+                  <span
+                    className="inline-block px-3 py-1 rounded-lg"
+                    style={{
+                      background: '#FFD11A',
+                      color: '#060218',
+                      borderRadius: 8,
+                      fontFamily: 'Geist, sans-serif',
+                      fontSize: 12,
+                      fontWeight: 500,
+                      fontStyle: 'normal',
+                      lineHeight: 'normal',
+                    }}
                   >
-                    Pending Verification
-                  </Button>
+                    Pending
+                  </span>
                 ) : (
                   <Button
                     className="bg-primary hover:bg-primary/90 text-white"
@@ -268,19 +297,27 @@ export function DomainsPage() {
                     Verify
                   </Button>
                 )}
+              </div>
+              <div className="col-span-2 flex items-center justify-end">
                 <button
                   className="ml-2 p-2 rounded hover:bg-muted/10"
                   onClick={() => openInNewTab(domain.domain)}
                   title="Open domain"
                 >
-                  <ExternalLink className="h-4 w-4" />
+                  <ExternalLink className="h-4 w-4" style={{ width: '16px', height: '16px' }} />
                 </button>
                 <button
-                  className="ml-2 p-2 rounded hover:bg-red-900/10 text-red-500"
+                  className="ml-2 p-2 rounded hover:bg-muted/10"
                   onClick={() => openDeleteDomainDialog(domain._id)}
                   title="Delete domain"
                 >
-                  <Trash className="h-4 w-4" />
+                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-4 w-4">
+                    <path fillRule="evenodd" clipRule="evenodd" d="M1.66602 4.99935C1.66602 4.53911 2.03911 4.16602 2.49935 4.16602H17.4993C17.9596 4.16602 18.3327 4.53911 18.3327 4.99935C18.3327 5.45959 17.9596 5.83268 17.4993 5.83268H2.49935C2.03911 5.83268 1.66602 5.45959 1.66602 4.99935Z" fill="#F7F8F8"/>
+                    <path fillRule="evenodd" clipRule="evenodd" d="M4.16732 4.16602C4.62756 4.16602 5.00065 4.53911 5.00065 4.99935V16.666C5.00065 16.8117 5.08186 17.027 5.27741 17.2226C5.47295 17.4181 5.68834 17.4993 5.83398 17.4993H14.1673C14.313 17.4993 14.5283 17.4181 14.7239 17.2226C14.9194 17.027 15.0007 16.8117 15.0007 16.666V4.99935C15.0007 4.53911 15.3737 4.16602 15.834 4.16602C16.2942 4.16602 16.6673 4.53911 16.6673 4.99935V16.666C16.6673 17.3537 16.3319 17.9716 15.9024 18.4011C15.473 18.8306 14.855 19.166 14.1673 19.166H5.83398C5.14629 19.166 4.52835 18.8306 4.0989 18.4011C3.66944 17.9716 3.33398 17.3537 3.33398 16.666V4.99935C3.33398 4.53911 3.70708 4.16602 4.16732 4.16602Z" fill="#F7F8F8"/>
+                    <path fillRule="evenodd" clipRule="evenodd" d="M7.77741 2.77741C7.58186 2.97295 7.50065 3.18834 7.50065 3.33398V5.00065C7.50065 5.46089 7.12756 5.83398 6.66732 5.83398C6.20708 5.83398 5.83398 5.46089 5.83398 5.00065V3.33398C5.83398 2.64629 6.16944 2.02835 6.5989 1.5989C7.02835 1.16944 7.64629 0.833984 8.33398 0.833984H11.6673C12.355 0.833984 12.973 1.16944 13.4024 1.5989C13.8319 2.02835 14.1673 2.64629 14.1673 3.33398V5.00065C14.1673 5.46089 13.7942 5.83398 13.334 5.83398C12.8737 5.83398 12.5007 5.46089 12.5007 5.00065V3.33398C12.5007 3.18834 12.4194 2.97295 12.2239 2.77741C12.0283 2.58186 11.813 2.50065 11.6673 2.50065H8.33398C8.18834 2.50065 7.97295 2.58186 7.77741 2.77741Z" fill="#F7F8F8"/>
+                    <path fillRule="evenodd" clipRule="evenodd" d="M8.33333 8.33398C8.79357 8.33398 9.16667 8.70708 9.16667 9.16732V14.1673C9.16667 14.6276 8.79357 15.0007 8.33333 15.0007C7.8731 15.0007 7.5 14.6276 7.5 14.1673V9.16732C7.5 8.70708 7.8731 8.33398 8.33333 8.33398Z" fill="#F7F8F8"/>
+                    <path fillRule="evenodd" clipRule="evenodd" d="M11.6673 8.33398C12.1276 8.33398 12.5007 8.70708 12.5007 9.16732V14.1673C12.5007 14.6276 12.1276 15.0007 11.6673 15.0007C11.2071 15.0007 10.834 14.6276 10.834 14.1673V9.16732C10.834 8.70708 11.2071 8.33398 11.6673 8.33398Z" fill="#F7F8F8"/>
+                  </svg>
                 </button>
               </div>
             </div>

@@ -24,7 +24,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  MoreHorizontal,
+  MoreVertical,
   Edit,
   Link2,
   Copy,
@@ -521,7 +521,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
                             className="w-6 h-6 rounded-[6px]" style={{ background: '#0B091299' }}
                             onClick={(e) => e.stopPropagation()}
                           >
-                            <MoreHorizontal className="h-6 w-6" />
+                            <MoreVertical className="h-6 w-6" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="bg-[#222029] rounded-[16px] p-4">
