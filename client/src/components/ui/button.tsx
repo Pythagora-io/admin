@@ -19,7 +19,7 @@ const buttonVariants = cva(
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
         cancel: "bg-transparent text-muted-foreground hover:bg-transparent hover:text-foreground",
-        deleteCancel: "bg-[#F7F8F8] text-[#060218] font-geist text-[14px] font-medium leading-normal tracking-[-0.28px] hover:bg-[#F7F8F8]/90",
+        deleteCancel: "bg-[#F7F8F8] text-[#060218] font-geist font-medium tracking-[-0.28px] hover:bg-[#F7F8F8]/90",
       },
       size: {
         default: "h-10 px-4 py-2",
