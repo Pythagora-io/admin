@@ -27,6 +27,8 @@ import {
   getCompanyBillingInfo,
 } from "@/api/payments";
 import { updateBillingInfo } from "@/api/user";
+import { PageTitle } from '@/components/PageTitle';
+import { PageSubtitle } from '@/components/PageSubtitle';
 
 export function PaymentsPage() {
   const [payments, setPayments] = useState<any[]>([]);
@@ -184,10 +186,8 @@ export function PaymentsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-[24px] font-medium leading-[1.25] tracking-[-0.48px] text-[#F7F8F8] font-geist mb-2">Payments & Billing</h1>
-        <p className="text-[14px] font-normal leading-[1.3] tracking-[-0.28px] text-[#F7F8F8] font-geist opacity-60">
-          Manage your billing information and view payment history
-        </p>
+        <PageTitle>Payments & Billing</PageTitle>
+        <PageSubtitle>Manage your billing information and view payment history</PageSubtitle>
       </div>
 
       {/* Billing Information Section */}

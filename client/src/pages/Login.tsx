@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/useToast";
 import { useAuth } from "@/contexts/AuthContext";
 import { X, Eye, EyeOff } from "lucide-react";
+import { PageTitle } from '@/components/PageTitle';
+import { PageSubtitle } from '@/components/PageSubtitle';
 
 // SVG imports
 import PythagoraLogo from "@/assets/svg/pythagora-logo.svg";
@@ -71,8 +73,8 @@ export function Login() {
       <div className="relative z-20 w-full max-w-md flex flex-col items-center rounded-2xl bg-[rgba(24,21,35,0.80)] shadow-xl p-0 mx-auto mt-24 border border-[rgba(247,248,248,0.10)]" style={{ padding: '40px 32px' }}>
         <div className="flex-1 flex flex-col items-center justify-center px-4 py-8 w-full">
           <div className="w-full max-w-md mx-auto">
-            <h1 className="text-2xl font-bold text-center mb-3">Welcome to Pythagora</h1>
-            <p className="text-center text-muted-foreground mb-8" style={{ color: 'rgba(255, 255, 255, 0.50)', fontFamily: 'Geist', fontSize: '14px', fontStyle: 'normal', fontWeight: '400', lineHeight: '130%', letterSpacing: '-0.28px' }}>
+            <PageTitle>Welcome to Pythagora</PageTitle>
+            <PageSubtitle>
               Don&apos;t have an account?{' '}
               <button
                 className="text-primary underline underline-offset-2 hover:text-primary/80"
@@ -82,7 +84,7 @@ export function Login() {
               >
                 Sign up for free
               </button>
-            </p>
+            </PageSubtitle>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-white mb-2">Your email</label>

@@ -19,6 +19,8 @@ import { useToast } from "@/hooks/useToast";
 import { X, Eye, EyeOff } from "lucide-react";
 import PythagoraLogo from "@/assets/svg/pythagora-logo.svg";
 import BleedImg from "@/assets/bleed.png";
+import { PageTitle } from '@/components/PageTitle';
+import { PageSubtitle } from '@/components/PageSubtitle';
 
 const registerSchema = z
   .object({
@@ -102,8 +104,8 @@ export function Register() {
       <div className="relative z-20 w-full max-w-md flex flex-col items-center rounded-2xl bg-[rgba(24,21,35,0.80)] shadow-xl p-0 mx-auto my-auto border border-[rgba(247,248,248,0.10)]" style={{ padding: '20px 32px' }}>
         <div className="flex-1 flex flex-col items-center justify-center px-4 py-8 w-full">
           <div className="w-full max-w-md mx-auto">
-            <h1 className="text-2xl font-bold text-center mb-3">Create an account</h1>
-            <p className="text-center text-muted-foreground mb-8" style={{ color: 'rgba(255, 255, 255, 0.50)', fontFamily: 'Geist', fontSize: '14px', fontStyle: 'normal', fontWeight: '400', lineHeight: '130%', letterSpacing: '-0.28px' }}>
+            <PageTitle>Create an account</PageTitle>
+            <PageSubtitle>
               Already have an account?{' '}
               <Link
                 to="/login"
@@ -112,7 +114,7 @@ export function Register() {
               >
                 Sign in
               </Link>
-            </p>
+            </PageSubtitle>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
                 <div>

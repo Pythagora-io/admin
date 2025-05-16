@@ -51,6 +51,8 @@ import { PaymentMethodForm } from "@/components/stripe/PaymentMethodForm";
 import { PlanCard } from "@/components/ui/plan-card";
 import CircleAlertIcon from "@/assets/svg/warnings/circle-alert.svg";
 import { getTeamMembers } from "@/api/team";
+import { PageTitle } from '@/components/PageTitle';
+import { PageSubtitle } from '@/components/PageSubtitle';
 
 // Stripe promise
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || "");
@@ -436,10 +438,8 @@ export function SubscriptionPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-[24px] font-medium text-[#F7F8F8] leading-[1.25] tracking-[-0.28px]">Subscription</h1>
-        <p className="mt-2 text-[14px] font-normal text-[#F7F8F8] leading-[1.3] tracking-[-0.28px] opacity-60">
-          Manage your subscription and billing details
-        </p>
+        <PageTitle>Subscription</PageTitle>
+        <PageSubtitle>Manage your subscription and top-up packages</PageSubtitle>
       </div>
 
       {isOutOfTokens && (

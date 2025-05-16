@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { createProjectDraft } from "@/api/projects";
 import { useToast } from "@/hooks/useToast";
 import { FilePlus, ArrowUp } from "lucide-react";
+import { PageTitle } from '@/components/PageTitle';
+import { PageSubtitle } from '@/components/PageSubtitle';
 
 export default function CreateProjectPage() {
   const [prompt, setPrompt] = useState("");
@@ -34,8 +36,8 @@ export default function CreateProjectPage() {
   return (
     <div className="w-full min-h-screen px-6 pt-4">
       <div className="max-w-3xl">
-        <h1 className="text-3xl font-bold text-white mb-1">New project</h1>
-        <p className="text-muted-foreground mb-8">Start by writing a prompt</p>
+        <PageTitle>New project</PageTitle>
+        <PageSubtitle>Start by writing a prompt</PageSubtitle>
       </div>
       <div className="flex w-full min-h-[70vh] items-center justify-center">
         <div className="mb-10 w-full max-w-2xl mx-auto">
