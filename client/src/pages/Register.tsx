@@ -104,17 +104,21 @@ export function Register() {
       <div className="relative z-20 w-full max-w-md flex flex-col items-center rounded-2xl bg-[rgba(24,21,35,0.80)] shadow-xl p-0 mx-auto my-auto border border-[rgba(247,248,248,0.10)]" style={{ padding: '20px 32px' }}>
         <div className="flex-1 flex flex-col items-center justify-center px-4 py-8 w-full">
           <div className="w-full max-w-md mx-auto">
-            <PageTitle>Create an account</PageTitle>
-            <PageSubtitle>
-              Already have an account?{' '}
-              <Link
-                to="/login"
-                className="text-primary underline underline-offset-2 hover:text-primary/80"
-                style={{ color: '#F7F8F8', fontFamily: 'Geist', fontSize: '14px', fontStyle: 'normal', fontWeight: '400', lineHeight: '130%', letterSpacing: '-0.28px' }}
-              >
-                Sign in
-              </Link>
-            </PageSubtitle>
+            <div className="text-center mb-3">
+              <PageTitle>Create an account</PageTitle>
+            </div>
+            <div className="text-center mb-10">
+              <PageSubtitle>
+                Already have an account?{' '}
+                <Link
+                  to="/login"
+                  className="text-primary underline underline-offset-2 hover:text-primary/80"
+                  style={{ color: '#F7F8F8', fontFamily: 'Geist', fontSize: '14px', fontStyle: 'normal', fontWeight: '400', lineHeight: '130%', letterSpacing: '-0.28px' }}
+                >
+                  Sign in
+                </Link>
+              </PageSubtitle>
+            </div>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
                 <div>
