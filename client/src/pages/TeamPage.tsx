@@ -529,8 +529,8 @@ export function TeamPage() {
         <AlertDialogContent className="bg-[#222029]">
           <AlertDialogHeader>
             <AlertDialogTitle>Remove team member</AlertDialogTitle>
-            <AlertDialogDescription>{memberToRemove &&
-              `Are you sure you want to remove ${memberToRemove.name} from the team? They will lose access to all projects.`}
+            <AlertDialogDescription>
+              Are you sure you want to remove this team member? They will no longer have access to any projects.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -542,6 +542,8 @@ export function TeamPage() {
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
+              variant="destructive"
+              className="font-geist"
               onClick={handleRemoveMember}
             >
               Remove
