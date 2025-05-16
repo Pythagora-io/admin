@@ -20,6 +20,8 @@ import {
 } from "@/api/user";
 import { Checkbox } from "@/components/ui/checkbox";
 import { X } from "lucide-react";
+import { PageTitle } from '@/components/PageTitle';
+import { PageSubtitle } from '@/components/PageSubtitle';
 
 export function AccountPage() {
   const [user, setUser] = useState<any>(null);
@@ -161,8 +163,8 @@ export function AccountPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold font-geist">Account settings</h1>
-        <p className="text-muted-foreground font-geist">Manage your connected domains</p>
+        <PageTitle>Account settings</PageTitle>
+        <PageSubtitle>Manage your connected domains</PageSubtitle>
       </div>
 
       {/* Personal Information Section */}

@@ -59,6 +59,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { PageTitle } from '@/components/PageTitle';
+import { PageSubtitle } from '@/components/PageSubtitle';
 
 export function TeamPage() {
   const [members, setMembers] = useState<any[]>([]);
@@ -297,10 +299,8 @@ export function TeamPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold mb-2">My team</h1>
-          <p className="text-muted-foreground">
-            Manage your team members and their access
-          </p>
+          <PageTitle>Team</PageTitle>
+          <PageSubtitle>Manage your team members</PageSubtitle>
         </div>
         <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
           <DialogTrigger asChild>

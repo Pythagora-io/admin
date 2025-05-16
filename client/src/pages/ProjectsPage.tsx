@@ -70,6 +70,8 @@ import DuplicateIcon from "@/assets/svg/dropdown-icons/duplicate-project.svg";
 import RenameIcon from "@/assets/svg/dropdown-icons/rename.svg";
 import ManageAccessIcon from "@/assets/svg/dropdown-icons/manage-access.svg";
 import DeleteIcon from "@/assets/svg/dropdown-icons/delete-project.svg";
+import { PageTitle } from '@/components/PageTitle';
+import { PageSubtitle } from '@/components/PageSubtitle';
 
 interface ProjectsPageProps {
   type?: "drafts" | "deployed";
@@ -437,8 +439,8 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold mb-2">{pageTitle}</h1>
-          <p className="text-muted-foreground">Manage your {type} projects</p>
+          <PageTitle>{type === "drafts" ? "Drafts" : "Deployed"}</PageTitle>
+          <PageSubtitle>Manage your projects</PageSubtitle>
         </div>
         <div className="flex gap-2">
           {isSelecting ? (

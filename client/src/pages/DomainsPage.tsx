@@ -39,6 +39,8 @@ import {
   verifyDomain,
 } from "@/api/domains";
 import EmptyStateCard from "@/components/ui/EmptyStateCard";
+import { PageTitle } from '@/components/PageTitle';
+import { PageSubtitle } from '@/components/PageSubtitle';
 
 export function DomainsPage() {
   const [domains, setDomains] = useState<any[]>([]);
@@ -175,8 +177,8 @@ export function DomainsPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-[#F7F8F8] font-geist text-[24px] font-normal font-[500] leading-[125%] tracking-[-0.48px] mb-2">Domains</h1>
-          <p className="text-[#F7F8F8] font-geist text-[14px] font-normal font-[400] leading-[130%] tracking-[-0.28px] opacity-60">Manage your connected domains</p>
+          <PageTitle>Domains</PageTitle>
+          <PageSubtitle>Manage your connected domains</PageSubtitle>
         </div>
         <Dialog open={addDomainOpen} onOpenChange={setAddDomainOpen}>
           <DialogTrigger asChild>

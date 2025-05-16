@@ -8,6 +8,8 @@ import {
   getSettingDescriptions,
 } from "@/api/settings";
 import { Checkbox } from "@/components/ui/checkbox";
+import { PageTitle } from '@/components/PageTitle';
+import { PageSubtitle } from '@/components/PageSubtitle';
 
 export function SettingsPage() {
   const [settings, setSettings] = useState<{ [key: string]: boolean }>({});
@@ -99,10 +101,8 @@ export function SettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Settings</h1>
-        <p className="text-muted-foreground">
-          Customize your account preferences
-        </p>
+        <PageTitle>Settings</PageTitle>
+        <PageSubtitle>Customize your account preferences</PageSubtitle>
       </div>
 
       <div className="bg-transparent divide-y divide-border rounded-2xl overflow-hidden">
@@ -114,11 +114,11 @@ export function SettingsPage() {
             <div className="flex-1 space-y-1">
               <Label
                 htmlFor={key}
-                className="text-base font-medium cursor-pointer"
+                className="text-[14px] font-medium leading-normal tracking-[-0.28px] text-[#F7F8F8] cursor-pointer"
               >
                 {descriptions[key]?.title}
               </Label>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-[14px] font-normal leading-[130%] tracking-[-0.28px] text-[#F7F8F8] opacity-60">
                 {descriptions[key]?.description}
               </p>
             </div>
