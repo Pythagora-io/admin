@@ -174,12 +174,12 @@ export function DomainsPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Domains</h1>
-          <p className="text-muted-foreground">Manage your connected domains</p>
+          <h1 className="text-[#F7F8F8] font-geist text-[24px] font-normal font-[500] leading-[125%] tracking-[-0.48px] mb-2">Domains</h1>
+          <p className="text-[#F7F8F8] font-geist text-[14px] font-normal font-[400] leading-[130%] tracking-[-0.28px] opacity-60">Manage your connected domains</p>
         </div>
         <Dialog open={addDomainOpen} onOpenChange={setAddDomainOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="font-geist">
               <span className="mr-2 flex items-center">
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path fillRule="evenodd" clipRule="evenodd" d="M3.33203 9.99935C3.33203 9.53911 3.70513 9.16602 4.16536 9.16602H15.832C16.2923 9.16602 16.6654 9.53911 16.6654 9.99935C16.6654 10.4596 16.2923 10.8327 15.832 10.8327H4.16536C3.70513 10.8327 3.33203 10.4596 3.33203 9.99935Z" fill="#F7F8F8"/>
@@ -191,15 +191,15 @@ export function DomainsPage() {
           </DialogTrigger>
           <DialogContent className="sm:max-w-md bg-[#222029]">
             <DialogHeader>
-              <DialogTitle>Add a Domain</DialogTitle>
-              <DialogDescription>
+              <DialogTitle className="font-geist">Add a Domain</DialogTitle>
+              <DialogDescription className="font-geist">
                 Enter the domain you want to connect to your account.
               </DialogDescription>
             </DialogHeader>
             <div className="py-4">
               <div className="flex items-end gap-2">
                 <div className="grid flex-1 gap-2">
-                  <Label htmlFor="domain">Domain Name</Label>
+                  <Label htmlFor="domain" className="font-geist">Domain Name</Label>
                   <Input
                     id="domain"
                     value={newDomain}
@@ -214,10 +214,11 @@ export function DomainsPage() {
               <Button 
                 variant="cancel"
                 onClick={() => setAddDomainOpen(false)}
+                className="font-geist"
               >
                 Cancel
               </Button>
-              <Button onClick={handleAddDomain}>
+              <Button onClick={handleAddDomain} className="font-geist">
                 Add domain
               </Button>
             </DialogFooter>
@@ -239,13 +240,13 @@ export function DomainsPage() {
         <div className="grid gap-4">
           <div className="grid grid-cols-12 items-center px-6 py-4 border-b border-border">
             <div className="col-span-5">
-              <span style={{ color: '#F7F8F8', fontFamily: 'Geist, sans-serif', fontSize: '14px', fontWeight: 500, lineHeight: 'normal', letterSpacing: '-0.28px' }}>Domain name</span>
+              <span className="text-[#F7F8F8] font-geist text-[14px] font-normal font-[500] leading-normal tracking-[-0.28px] opacity-60">Domain name</span>
             </div>
             <div className="col-span-3">
-              <span style={{ color: '#F7F8F8', fontFamily: 'Geist, sans-serif', fontSize: '14px', fontWeight: 500, lineHeight: 'normal', letterSpacing: '-0.28px' }}>Date</span>
+              <span className="text-[#F7F8F8] font-geist text-[14px] font-normal font-[500] leading-normal tracking-[-0.28px] opacity-60">Date</span>
             </div>
             <div className="col-span-2">
-              <span style={{ color: '#F7F8F8', fontFamily: 'Geist, sans-serif', fontSize: '14px', fontWeight: 500, lineHeight: 'normal', letterSpacing: '-0.28px' }}>Status</span>
+              <span className="text-[#F7F8F8] font-geist text-[14px] font-normal font-[500] leading-normal tracking-[-0.28px] opacity-60">Status</span>
             </div>
             <div className="col-span-2"></div>
           </div>
@@ -256,20 +257,21 @@ export function DomainsPage() {
             >
               <div className="col-span-5 flex items-center gap-3">
                 <Globe className="h-5 w-5" style={{ color: '#F7F8F8' }} />
-                <span style={{ color: '#F7F8F8', fontFamily: 'Geist, sans-serif', fontSize: '14px', fontWeight: 500, lineHeight: 'normal', letterSpacing: '-0.28px' }}>{domain.domain}</span>
+                <span className="text-[#F7F8F8] font-geist text-[14px] font-normal font-[500] leading-normal tracking-[-0.28px]">{domain.domain}</span>
               </div>
-              <div className="col-span-3" style={{ color: '#F7F8F8', fontFamily: 'Geist, sans-serif', fontSize: '14px', fontWeight: 500, lineHeight: 'normal', letterSpacing: '-0.28px' }}>
-                {formatDate(domain.createdAt)}
+              <div className="col-span-3">
+                <span className="text-[#F7F8F8] font-geist text-[14px] font-normal font-[500] leading-normal tracking-[-0.28px]">
+                  {formatDate(domain.createdAt)}
+                </span>
               </div>
               <div className="col-span-2">
                 {domain.verified ? (
                   <span
-                    className="inline-block px-3 py-1 rounded-lg"
+                    className="inline-block px-3 py-1 rounded-lg font-geist"
                     style={{
                       background: '#07998A',
                       color: '#060218',
                       borderRadius: 8,
-                      fontFamily: 'Geist, sans-serif',
                       fontSize: 12,
                       fontWeight: 500,
                       fontStyle: 'normal',
@@ -280,12 +282,11 @@ export function DomainsPage() {
                   </span>
                 ) : domain.pendingVerification ? (
                   <span
-                    className="inline-block px-3 py-1 rounded-lg"
+                    className="inline-block px-3 py-1 rounded-lg font-geist"
                     style={{
                       background: '#FFD11A',
                       color: '#060218',
                       borderRadius: 8,
-                      fontFamily: 'Geist, sans-serif',
                       fontSize: 12,
                       fontWeight: 500,
                       fontStyle: 'normal',
@@ -296,7 +297,7 @@ export function DomainsPage() {
                   </span>
                 ) : (
                   <Button
-                    className="bg-primary hover:bg-primary/90 text-white"
+                    className="bg-primary hover:bg-primary/90 text-white font-geist"
                     onClick={() => handleVerifyDomain(domain._id)}
                     disabled={verifyingDomain === domain._id}
                   >
@@ -341,18 +342,18 @@ export function DomainsPage() {
       >
         <AlertDialogContent className="bg-[#222029]">
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Domain</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="font-geist">Delete Domain</AlertDialogTitle>
+            <AlertDialogDescription className="font-geist">
               Are you sure you want to delete this domain? This action cannot be
               undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setDeleteDomainDialogOpen(false)}>
+            <AlertDialogCancel onClick={() => setDeleteDomainDialogOpen(false)} className="font-geist">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
-              className="bg-red-500 hover:bg-red-600 text-white"
+              className="bg-red-500 hover:bg-red-600 text-white font-geist"
               onClick={handleDeleteDomain}
             >
               Delete
