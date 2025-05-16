@@ -52,18 +52,18 @@ export const EmptyStateCard: React.FC<EmptyStateCardProps> = ({
           {title.charAt(0).toUpperCase() + title.slice(1).toLowerCase()}
         </h3>
         {showDescription && (
-          <p className="text-muted-foreground text-center mt-2 mb-4">
-            {description}
-          </p>
+        <p className="text-muted-foreground text-center mt-2 mb-4">
+          {description}
+        </p>
         )}
         {showButton && (
           <Button 
             onClick={onButtonClick}
             className="flex justify-center items-center"
           >
-            {ButtonIconComponent}
+          {ButtonIconComponent}
             {buttonText.charAt(0).toUpperCase() + buttonText.slice(1).toLowerCase()}
-          </Button>
+        </Button>
         )}
       </CardContent>
     </Card>

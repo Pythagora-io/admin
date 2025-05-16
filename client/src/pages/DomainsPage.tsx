@@ -262,7 +262,7 @@ export function DomainsPage() {
               </div>
               <div className="col-span-3">
                 <span className="text-[#F7F8F8] font-geist text-[14px] font-normal font-[500] leading-normal tracking-[-0.28px]">
-                  {formatDate(domain.createdAt)}
+                {formatDate(domain.createdAt)}
                 </span>
               </div>
               <div className="col-span-2">

@@ -753,10 +753,10 @@ export function SubscriptionPage() {
               <X className="h-6 w-6" />
             </button>
           </div>
-          <DialogDescription>
-            Your subscription will remain active until the end of the current
-            billing period.
-          </DialogDescription>
+            <DialogDescription>
+              Your subscription will remain active until the end of the current
+              billing period.
+            </DialogDescription>
           <div className="py-4 space-y-4">
             <div className="space-y-2">
               <Label htmlFor="cancelReason">Reason for cancellation</Label>

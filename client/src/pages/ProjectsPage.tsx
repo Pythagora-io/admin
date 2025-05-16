@@ -663,9 +663,9 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
               <X className="h-6 w-6" />
             </button>
           </div>
-          <DialogDescription>
-            Enter a new name for your project.
-          </DialogDescription>
+            <DialogDescription>
+              Enter a new name for your project.
+            </DialogDescription>
           <div className="py-4">
             <div className="grid gap-2">
               <Label htmlFor="project-name">Project name</Label>
@@ -707,10 +707,10 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
               <X className="h-6 w-6" />
             </button>
           </div>
-          <AlertDialogDescription>
-            Are you sure you want to deploy this project? The project will be
-            accessible to others based on your visibility settings.
-          </AlertDialogDescription>
+            <AlertDialogDescription>
+              Are you sure you want to deploy this project? The project will be
+              accessible to others based on your visibility settings.
+            </AlertDialogDescription>
           <AlertDialogFooter>
             <AlertDialogCancel 
               className="border-none bg-transparent shadow-none hover:bg-transparent focus:bg-transparent"
@@ -741,9 +741,9 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
               <X className="h-6 w-6" />
             </button>
           </div>
-          <DialogDescription>
-            Configure who can access this project and their permission level.
-          </DialogDescription>
+            <DialogDescription>
+              Configure who can access this project and their permission level.
+            </DialogDescription>
           <div className="py-4 space-y-4">
             <div className="relative">
               <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />

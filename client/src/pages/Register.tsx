@@ -137,10 +137,10 @@ export function Register() {
                     type="email"
                     autoComplete="email"
                     placeholder="Enter your email..."
-                    className="w-full rounded-lg bg-[#23222A] border border-[#23222A] text-white placeholder:text-[#7D7A8C] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary"
+                          className="w-full rounded-lg bg-[#23222A] border border-[#23222A] text-white placeholder:text-[#7D7A8C] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary"
                     {...form.register("email", { required: true })}
                     disabled={isLoading}
-                  />
+                        />
                   {form.formState.errors.email && <span className="text-xs text-red-500">Email is required</span>}
                 </div>
                 <div>
@@ -179,7 +179,7 @@ export function Register() {
                       className="w-full rounded-lg bg-[#23222A] border border-[#23222A] text-white placeholder:text-[#7D7A8C] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary pr-12"
                       {...form.register("confirmPassword", { required: true })}
                       disabled={isLoading}
-                    />
+                        />
                     <button
                       type="button"
                       tabIndex={-1}

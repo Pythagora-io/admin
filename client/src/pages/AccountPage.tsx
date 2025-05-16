@@ -196,9 +196,9 @@ export function AccountPage() {
                   <X className="h-6 w-6" />
                 </button>
               </div>
-              <DialogDescription className="font-geist">
-                Enter your new email address. A confirmation email will be sent to your current email address.
-              </DialogDescription>
+                <DialogDescription className="font-geist">
+                  Enter your new email address. A confirmation email will be sent to your current email address.
+                </DialogDescription>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
                   <Label htmlFor="new-email" className="font-geist">New Email</Label>
@@ -240,9 +240,9 @@ export function AccountPage() {
                   <X className="h-6 w-6" />
                 </button>
               </div>
-              <DialogDescription className="font-geist">
-                Enter your current password and a new password.
-              </DialogDescription>
+                <DialogDescription className="font-geist">
+                  Enter your current password and a new password.
+                </DialogDescription>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
                   <Label htmlFor="current-password" className="font-geist">Current Password</Label>

@@ -449,9 +449,9 @@ export function TeamPage() {
               <X className="h-6 w-6" />
             </button>
           </div>
-          <DialogDescription>
-            {selectedMember && `Configure access for ${selectedMember.name}`}
-          </DialogDescription>
+            <DialogDescription>
+              {selectedMember && `Configure access for ${selectedMember.name}`}
+            </DialogDescription>
           <div className="py-4 space-y-4">
             <div className="relative">
               <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
