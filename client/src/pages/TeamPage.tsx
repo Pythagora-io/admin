@@ -161,28 +161,14 @@ export function TeamPage() {
     }
   };
 
-  const handleRoleChange = async (
-    memberId: string,
-    role: "admin" | "developer" | "viewer",
-  ) => {
+  const handleRoleChange = async (memberId: string, role: 'admin' | 'developer' | 'viewer') => {
     setUpdatingRole(memberId);
     try {
       await updateTeamMemberRole(memberId, { role });
-      setMembers(
-        members.map((member) =>
-          member._id === memberId ? { ...member, role } : member,
-        ),
-      );
-      toast({
-        title: "Success",
-        description: `Role updated to ${role}`,
-      });
+      setMembers((prev) => prev.map((m) => m._id === memberId ? { ...m, role } : m));
+      toast({ title: "Role updated", description: `Role changed to ${role}` });
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error instanceof Error ? error.message : String(error) || "Failed to update role",
-      });
+      toast({ variant: "destructive", title: "Error", description: error instanceof Error ? error.message : String(error) });
     } finally {
       setUpdatingRole(null);
     }
@@ -308,46 +294,61 @@ export function TeamPage() {
               Invite member
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-md bg-[#222029]">
-            <DialogHeader>
-              <DialogTitle>Invite team member</DialogTitle>
-              <DialogDescription>Send an invitation to join your team.</DialogDescription>
-            </DialogHeader>
-            <div className="py-4">
-              <div className="flex items-end gap-2">
-                <div className="grid flex-1 gap-2">
-                  <Label htmlFor="email">Email Address</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={inviteEmail}
-                    onChange={(e) => setInviteEmail(e.target.value)}
-                    placeholder="colleague@example.com"
-                  />
-                </div>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button 
-                variant="cancel"
+          <DialogContent className="sm:max-w-md bg-[#222029] rounded-2xl p-6">
+            <div className="flex items-center justify-between mb-6">
+              <DialogTitle className="text-white font-geist text-[18px] font-medium leading-normal">Invite a team member</DialogTitle>
+              <button
+                className="p-2 text-muted-foreground hover:text-foreground flex items-center"
                 onClick={() => setInviteOpen(false)}
+                aria-label="Close"
               >
-                Cancel
-              </Button>
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            <div className="flex gap-2 mb-6">
+              <Input
+                id="invite-email"
+                type="email"
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+                placeholder="Invite others by email"
+                className="flex-1 bg-[#18171B] border-none text-white font-geist text-[14px] font-normal placeholder:text-[#A1A1AA]"
+              />
               <Button
                 onClick={handleInviteMember}
                 disabled={sendingInvite || !inviteEmail.trim()}
+                className="bg-primary text-white font-geist text-[14px] font-medium px-6"
               >
-                {sendingInvite ? "Sending..." : "Invite"}
+                {sendingInvite ? "Inviting..." : "Invite"}
               </Button>
-            </DialogFooter>
+            </div>
+            <div className="divide-y divide-[#35343A]">
+              {members.map((member) => (
+                <div key={member._id} className="flex items-center justify-between py-3">
+                  <span className="text-white font-geist text-[16px] font-normal">{member.email}</span>
+                  <Select
+                    value={member.role}
+                    onValueChange={(role) => handleRoleChange(member._id, role as 'admin' | 'developer' | 'viewer')}
+                  >
+                    <SelectTrigger className="w-32 bg-transparent border-none text-[#A1A1AA] font-geist text-[14px] font-normal">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#222029]">
+                      <SelectItem value="viewer">Viewer</SelectItem>
+                      <SelectItem value="developer">Developer</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              ))}
+            </div>
           </DialogContent>
         </Dialog>
       </div>
 
       {/* Team Members Section */}
       <div className="pt-8 pb-0 border-b border-[rgba(247,248,248,0.10)]">
-        <h2 className="text-2xl font-bold mb-2">Team members</h2>
+        <h2 className="text-[24px] font-medium leading-[1.25] tracking-[-0.48px] text-[#F7F8F8] font-geist mb-2">Team members</h2>
         {/* Table header */}
         <div className="mb-5"></div>
         <div className="flex w-full border-b border-[rgba(247,248,248,0.10)] pb-2"

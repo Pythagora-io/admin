@@ -440,7 +440,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       <div className="flex justify-between items-center">
         <div>
           <PageTitle>{type === "drafts" ? "Drafts" : "Deployed"}</PageTitle>
-          <PageSubtitle>Manage your projects</PageSubtitle>
+          <PageSubtitle>{type === "drafts" ? "Manage your drafts projects" : "Manage your deployed projects"}</PageSubtitle>
         </div>
         <div className="flex gap-2">
           {isSelecting ? (
