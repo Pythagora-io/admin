@@ -595,7 +595,7 @@ export function SubscriptionPage() {
       >
         <AlertDialogContent className="bg-[#222029]">
           <AlertDialogHeader>
-            <AlertDialogTitle>
+            <AlertDialogTitle className="mb-2">
               {planToChange?.price === 0 && subscription?.amount > 0
                 ? "Downgrade to Free Plan"
                 : `Upgrade to ${planToChange?.name} Plan`}
@@ -645,10 +645,8 @@ export function SubscriptionPage() {
       <Dialog open={topUpOpen} onOpenChange={setTopUpOpen}>
         <DialogContent className="sm:max-w-md bg-[#222029]">
           <DialogHeader>
-            <DialogTitle>Top up Pythagora</DialogTitle>
-            <DialogDescription>
-            Choose a one-time token top up or upgrade your plan.
-            </DialogDescription>
+            <DialogTitle className="mb-2">Top up Pythagora</DialogTitle>
+            <DialogDescription>Choose a one-time token top up or upgrade your plan.</DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -698,7 +696,7 @@ export function SubscriptionPage() {
               </AlertDialogTrigger>
               <AlertDialogContent className="bg-[#222029]">
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Confirm Token Purchase</AlertDialogTitle>
+                  <AlertDialogTitle className="mb-2">Confirm Token Purchase</AlertDialogTitle>
                   <AlertDialogDescription>
                     Are you sure you want to purchase this token package? Your
                     payment method on file will be charged immediately.

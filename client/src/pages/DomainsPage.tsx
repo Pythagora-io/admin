@@ -191,19 +191,10 @@ export function DomainsPage() {
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-md bg-[#222029]">
-            <div className="flex items-center justify-between mb-8 w-full">
+            <DialogHeader>
               <DialogTitle className="font-geist flex items-center">Add a Domain</DialogTitle>
-              <button
-                className="p-2 text-muted-foreground hover:text-foreground flex items-center"
-                onClick={() => setAddDomainOpen(false)}
-                aria-label="Close"
-              >
-                <X className="h-6 w-6" />
-              </button>
-            </div>
-            <DialogDescription className="font-geist">
-              Enter the domain you want to connect to your account.
-            </DialogDescription>
+              <DialogDescription className="font-geist">Enter the domain you want to connect to your account.</DialogDescription>
+            </DialogHeader>
             <div className="py-4">
               <div className="flex items-end gap-2">
                 <div className="grid flex-1 gap-2">
@@ -349,20 +340,10 @@ export function DomainsPage() {
         onOpenChange={setDeleteDomainDialogOpen}
       >
         <AlertDialogContent className="bg-[#222029]">
-          <div className="flex items-center justify-between mb-8 w-full">
+          <AlertDialogHeader>
             <AlertDialogTitle className="font-geist">Delete Domain</AlertDialogTitle>
-            <button
-              className="p-2 text-muted-foreground hover:text-foreground"
-              onClick={() => setDeleteDomainDialogOpen(false)}
-              aria-label="Close"
-            >
-              <X className="h-6 w-6" />
-            </button>
-          </div>
-          <AlertDialogDescription className="font-geist">
-            Are you sure you want to delete this domain? This action cannot be
-            undone.
-          </AlertDialogDescription>
+            <AlertDialogDescription className="font-geist">Are you sure you want to delete this domain? This action cannot be undone.</AlertDialogDescription>
+          </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel 
               variant="deleteCancel"

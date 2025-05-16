@@ -265,8 +265,8 @@ export function PaymentsPage() {
       {/* Edit Billing Dialog */}
       <Dialog open={editBillingOpen} onOpenChange={setEditBillingOpen}>
         <DialogContent className="sm:max-w-md bg-[#222029]">
-          <div className="flex items-center justify-between mb-8 w-full">
-            <DialogTitle className="flex items-center">Edit Billing Information</DialogTitle>
+          <div className="flex items-center justify-between mb-2 w-full">
+            <DialogTitle className="mb-2 flex items-center">Edit Billing Information</DialogTitle>
             <button
               className="p-2 text-muted-foreground hover:text-foreground flex items-center"
               onClick={() => setEditBillingOpen(false)}
@@ -275,9 +275,7 @@ export function PaymentsPage() {
               <X className="h-6 w-6" />
             </button>
           </div>
-          <DialogDescription className="text-[#F7F8F8] font-geist text-[14px] font-normal leading-[1.4] opacity-60">
-            Update your billing details for receipts and invoices.
-          </DialogDescription>
+          <DialogDescription className="text-[#F7F8F8] font-geist text-[14px] font-normal leading-[1.4] opacity-60">Update your billing details for receipts and invoices.</DialogDescription>
           <div className="py-4 grid gap-4">
             <div className="grid gap-2">
               <Label htmlFor="name">Full Name or Business Name</Label>
