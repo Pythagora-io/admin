@@ -625,18 +625,19 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
         <AlertDialogContent className="bg-[#222029]">
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              Delete Project{selectedProjects.length > 1 ? "s" : ""}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete{" "}
-              {selectedProjects.length === 1
-                ? "this project"
-                : `these ${selectedProjects.length} projects`}
-              ? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
+          <div className="flex items-center justify-between mb-2 w-full">
+            <AlertDialogTitle>Delete project</AlertDialogTitle>
+            <button
+              className="p-2 text-muted-foreground hover:text-foreground flex items-center"
+              onClick={() => setDeleteConfirmOpen(false)}
+              aria-label="Close"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          </div>
+          <AlertDialogDescription className="mt-0">
+            This will permanently delete your project. Including any deployments made with Pythagora and all generated code. This action cannot be undone.
+          </AlertDialogDescription>
           <AlertDialogFooter>
             <AlertDialogCancel 
               variant="deleteCancel"

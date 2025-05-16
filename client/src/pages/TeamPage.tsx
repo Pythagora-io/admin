@@ -309,12 +309,19 @@ export function TeamPage() {
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-md bg-[#222029]">
-            <DialogHeader>
+            <div className="flex items-center justify-between mb-8 w-full">
               <DialogTitle>Invite team member</DialogTitle>
-              <DialogDescription>
-                Send an invitation to join your team.
-              </DialogDescription>
-            </DialogHeader>
+              <button
+                className="p-2 text-muted-foreground hover:text-foreground flex items-center"
+                onClick={() => setInviteOpen(false)}
+                aria-label="Close"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            <DialogDescription>
+              Send an invitation to join your team.
+            </DialogDescription>
             <div className="py-4">
               <div className="flex items-end gap-2">
                 <div className="grid flex-1 gap-2">
@@ -528,13 +535,20 @@ export function TeamPage() {
       {/* Remove Member Confirmation Dialog */}
       <AlertDialog open={removeConfirmOpen} onOpenChange={setRemoveConfirmOpen}>
         <AlertDialogContent className="bg-[#222029]">
-          <AlertDialogHeader>
+          <div className="flex items-center justify-between mb-8 w-full">
             <AlertDialogTitle>Remove team member</AlertDialogTitle>
-            <AlertDialogDescription>
-              {memberToRemove &&
-                `Are you sure you want to remove ${memberToRemove.name} from the team? They will lose access to all projects.`}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
+            <button
+              className="p-2 text-muted-foreground hover:text-foreground"
+              onClick={() => setRemoveConfirmOpen(false)}
+              aria-label="Close"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          </div>
+          <AlertDialogDescription>
+            {memberToRemove &&
+              `Are you sure you want to remove ${memberToRemove.name} from the team? They will lose access to all projects.`}
+          </AlertDialogDescription>
           <AlertDialogFooter>
             <AlertDialogCancel 
               variant="deleteCancel"
