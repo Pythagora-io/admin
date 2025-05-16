@@ -745,13 +745,20 @@ export function SubscriptionPage() {
       {/* Cancel Subscription Dialog */}
       <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
         <DialogContent className="sm:max-w-md bg-[#222029]">
-          <DialogHeader>
+          <div className="flex items-center justify-between mb-8 w-full">
             <DialogTitle>Cancel subscription</DialogTitle>
-            <DialogDescription>
-              Your subscription will remain active until the end of the current
-              billing period.
-            </DialogDescription>
-          </DialogHeader>
+            <button
+              className="p-2 text-muted-foreground hover:text-foreground flex items-center"
+              onClick={() => setCancelDialogOpen(false)}
+              aria-label="Close"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          </div>
+          <DialogDescription>
+            Your subscription will remain active until the end of the current
+            billing period.
+          </DialogDescription>
           <div className="py-4 space-y-4">
             <div className="space-y-2">
               <Label htmlFor="cancelReason">Reason for cancellation</Label>

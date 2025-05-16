@@ -38,6 +38,7 @@ import {
   Settings,
   UserMinus,
   Search,
+  X,
 } from "lucide-react";
 import {
   getTeamMembers,
@@ -439,12 +440,19 @@ export function TeamPage() {
         onOpenChange={setAccessManagementOpen}
       >
         <DialogContent className="sm:max-w-md bg-[#222029]">
-          <DialogHeader>
-            <DialogTitle>Manage project access</DialogTitle>
-            <DialogDescription>
-              {selectedMember && `Configure access for ${selectedMember.name}`}
-            </DialogDescription>
-          </DialogHeader>
+          <div className="flex items-center justify-between mb-8 w-full">
+            <DialogTitle className="flex items-center">Manage project access</DialogTitle>
+            <button
+              className="p-2 text-muted-foreground hover:text-foreground flex items-center"
+              onClick={() => setAccessManagementOpen(false)}
+              aria-label="Close"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          </div>
+          <DialogDescription>
+            {selectedMember && `Configure access for ${selectedMember.name}`}
+          </DialogDescription>
           <div className="py-4 space-y-4">
             <div className="relative">
               <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -529,13 +537,13 @@ export function TeamPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel 
-              className="border-none bg-transparent shadow-none hover:bg-transparent focus:bg-transparent"
+              variant="deleteCancel"
+              className="font-geist"
               onClick={() => setRemoveConfirmOpen(false)}
             >
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
-              className="bg-red-500 hover:bg-red-600 text-white"
               onClick={handleRemoveMember}
             >
               Remove

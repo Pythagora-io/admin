@@ -30,6 +30,7 @@ import {
   ExternalLink,
   PlusCircle,
   Globe,
+  X,
 } from "lucide-react";
 import {
   getUserDomains,
@@ -190,12 +191,19 @@ export function DomainsPage() {
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-md bg-[#222029]">
-            <DialogHeader>
-              <DialogTitle className="font-geist">Add a Domain</DialogTitle>
-              <DialogDescription className="font-geist">
-                Enter the domain you want to connect to your account.
-              </DialogDescription>
-            </DialogHeader>
+            <div className="flex items-center justify-between mb-8 w-full">
+              <DialogTitle className="font-geist flex items-center">Add a Domain</DialogTitle>
+              <button
+                className="p-2 text-muted-foreground hover:text-foreground flex items-center"
+                onClick={() => setAddDomainOpen(false)}
+                aria-label="Close"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            <DialogDescription className="font-geist">
+              Enter the domain you want to connect to your account.
+            </DialogDescription>
             <div className="py-4">
               <div className="flex items-end gap-2">
                 <div className="grid flex-1 gap-2">
@@ -341,15 +349,26 @@ export function DomainsPage() {
         onOpenChange={setDeleteDomainDialogOpen}
       >
         <AlertDialogContent className="bg-[#222029]">
-          <AlertDialogHeader>
+          <div className="flex items-center justify-between mb-8 w-full">
             <AlertDialogTitle className="font-geist">Delete Domain</AlertDialogTitle>
-            <AlertDialogDescription className="font-geist">
-              Are you sure you want to delete this domain? This action cannot be
-              undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
+            <button
+              className="p-2 text-muted-foreground hover:text-foreground"
+              onClick={() => setDeleteDomainDialogOpen(false)}
+              aria-label="Close"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          </div>
+          <AlertDialogDescription className="font-geist">
+            Are you sure you want to delete this domain? This action cannot be
+            undone.
+          </AlertDialogDescription>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setDeleteDomainDialogOpen(false)} className="font-geist">
+            <AlertDialogCancel 
+              variant="deleteCancel"
+              className="font-geist"
+              onClick={() => setDeleteDomainDialogOpen(false)}
+            >
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction

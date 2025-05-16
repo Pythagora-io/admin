@@ -20,7 +20,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/useToast";
-import { Download } from "lucide-react";
+import { Download, X } from "lucide-react";
 import {
   getPaymentHistory,
   getBillingInfo,
@@ -262,15 +262,22 @@ export function PaymentsPage() {
         )}
       </div>
 
-      {/* Edit Billing Dialog (unchanged) */}
+      {/* Edit Billing Dialog */}
       <Dialog open={editBillingOpen} onOpenChange={setEditBillingOpen}>
         <DialogContent className="sm:max-w-md bg-[#222029]">
-          <DialogHeader>
-            <DialogTitle>Edit Billing Information</DialogTitle>
-            <DialogDescription className="text-[#F7F8F8] font-geist text-[14px] font-normal leading-[1.4] opacity-60">
-              Update your billing details for receipts and invoices.
-            </DialogDescription>
-          </DialogHeader>
+          <div className="flex items-center justify-between mb-8 w-full">
+            <DialogTitle className="flex items-center">Edit Billing Information</DialogTitle>
+            <button
+              className="p-2 text-muted-foreground hover:text-foreground flex items-center"
+              onClick={() => setEditBillingOpen(false)}
+              aria-label="Close"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          </div>
+          <DialogDescription className="text-[#F7F8F8] font-geist text-[14px] font-normal leading-[1.4] opacity-60">
+            Update your billing details for receipts and invoices.
+          </DialogDescription>
           <div className="py-4 grid gap-4">
             <div className="grid gap-2">
               <Label htmlFor="name">Full Name or Business Name</Label>

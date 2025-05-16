@@ -35,6 +35,7 @@ import {
   Users,
   Search,
   Upload,
+  X,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -638,14 +639,16 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel 
-              className="border-none bg-transparent shadow-none hover:bg-transparent focus:bg-transparent"
+              variant="deleteCancel"
+              className="font-geist"
               onClick={() => setDeleteConfirmOpen(false)}
             >
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
-              className="bg-red-500 hover:bg-red-600 text-white"
+              variant="destructive"
               onClick={handleDeleteSelected}
+              disabled={isDeploying}
             >
               Delete
             </AlertDialogAction>
@@ -656,12 +659,19 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       {/* Rename Dialog */}
       <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
         <DialogContent className="sm:max-w-md bg-[#222029]">
-          <DialogHeader>
-            <DialogTitle>Rename project</DialogTitle>
-            <DialogDescription>
-              Enter a new name for your project.
-            </DialogDescription>
-          </DialogHeader>
+          <div className="flex items-center justify-between mb-8 w-full">
+            <DialogTitle className="flex items-center">Rename project</DialogTitle>
+            <button
+              className="p-2 text-muted-foreground hover:text-foreground flex items-center"
+              onClick={() => setRenameDialogOpen(false)}
+              aria-label="Close"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          </div>
+          <DialogDescription>
+            Enter a new name for your project.
+          </DialogDescription>
           <div className="py-4">
             <div className="grid gap-2">
               <Label htmlFor="project-name">Project name</Label>
@@ -693,13 +703,20 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       {/* Deploy Confirmation Dialog */}
       <AlertDialog open={deployConfirmOpen} onOpenChange={setDeployConfirmOpen}>
         <AlertDialogContent className="bg-[#222029]">
-          <AlertDialogHeader>
+          <div className="flex items-center justify-between mb-8 w-full">
             <AlertDialogTitle>Deploy project</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to deploy this project? The project will be
-              accessible to others based on your visibility settings.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
+            <button
+              className="p-2 text-muted-foreground hover:text-foreground"
+              onClick={() => setDeployConfirmOpen(false)}
+              aria-label="Close"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          </div>
+          <AlertDialogDescription>
+            Are you sure you want to deploy this project? The project will be
+            accessible to others based on your visibility settings.
+          </AlertDialogDescription>
           <AlertDialogFooter>
             <AlertDialogCancel 
               className="border-none bg-transparent shadow-none hover:bg-transparent focus:bg-transparent"
@@ -720,12 +737,19 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
         onOpenChange={setAccessManagementOpen}
       >
         <DialogContent className="sm:max-w-md bg-[#222029]">
-          <DialogHeader>
-            <DialogTitle>Manage project access</DialogTitle>
-            <DialogDescription>
-              Configure who can access this project and their permission level.
-            </DialogDescription>
-          </DialogHeader>
+          <div className="flex items-center justify-between mb-8 w-full">
+            <DialogTitle className="flex items-center">Manage project access</DialogTitle>
+            <button
+              className="p-2 text-muted-foreground hover:text-foreground flex items-center"
+              onClick={() => setAccessManagementOpen(false)}
+              aria-label="Close"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          </div>
+          <DialogDescription>
+            Configure who can access this project and their permission level.
+          </DialogDescription>
           <div className="py-4 space-y-4">
             <div className="relative">
               <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />

@@ -19,6 +19,7 @@ import {
   updateEmailPreferences,
 } from "@/api/user";
 import { Checkbox } from "@/components/ui/checkbox";
+import { X } from "lucide-react";
 
 export function AccountPage() {
   const [user, setUser] = useState<any>(null);
@@ -183,12 +184,19 @@ export function AccountPage() {
               <Button variant="outline">Change email</Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md bg-[#222029]">
-              <DialogHeader>
+              <div className="flex items-center justify-between mb-8 w-full">
                 <DialogTitle className="font-geist">Change Email Address</DialogTitle>
-                <DialogDescription className="font-geist">
-                  Enter your new email address. A confirmation email will be sent to your current email address.
-                </DialogDescription>
-              </DialogHeader>
+                <button
+                  className="p-2 text-muted-foreground hover:text-foreground flex items-center"
+                  onClick={() => setEmailChangeOpen(false)}
+                  aria-label="Close"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+              <DialogDescription className="font-geist">
+                Enter your new email address. A confirmation email will be sent to your current email address.
+              </DialogDescription>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
                   <Label htmlFor="new-email" className="font-geist">New Email</Label>
@@ -220,12 +228,19 @@ export function AccountPage() {
               <Button variant="outline">Change password</Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md bg-[#222029]">
-              <DialogHeader>
+              <div className="flex items-center justify-between mb-8 w-full">
                 <DialogTitle className="font-geist">Change Password</DialogTitle>
-                <DialogDescription className="font-geist">
-                  Enter your current password and a new password.
-                </DialogDescription>
-              </DialogHeader>
+                <button
+                  className="p-2 text-muted-foreground hover:text-foreground flex items-center"
+                  onClick={() => setPasswordChangeOpen(false)}
+                  aria-label="Close"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+              <DialogDescription className="font-geist">
+                Enter your current password and a new password.
+              </DialogDescription>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
                   <Label htmlFor="current-password" className="font-geist">Current Password</Label>
