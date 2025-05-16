@@ -169,15 +169,49 @@ export function AccountPage() {
 
       {/* Personal Information Section */}
       <div className="border-b border-border pb-8 mb-4">
-        <h2 className="text-lg font-semibold mb-4 font-geist">Personal information</h2>
-        <div className="flex flex-col gap-2">
+        <h2 className="text-lg font-semibold mb-10 font-geist">Personal information</h2>
+        <div className="flex flex-col gap-10">
           <div>
-            <span className="block text-sm text-muted-foreground font-geist">Full name</span>
-            <span className="block text-base font-geist">{user?.name || "-"}</span>
+            <span className="block text-sm text-muted-foreground font-geist mb-3" style={{ 
+              color: '#F7F8F8',
+              fontFamily: 'Geist',
+              fontSize: '14px',
+              fontStyle: 'normal',
+              fontWeight: '500',
+              lineHeight: 'normal',
+              letterSpacing: '-0.28px',
+              opacity: 0.6
+            }}>Full name</span>
+            <span className="block text-base font-geist" style={{
+              color: '#F7F8F8',
+              fontFamily: 'Geist',
+              fontSize: '14px',
+              fontStyle: 'normal',
+              fontWeight: '400',
+              lineHeight: '120%',
+              letterSpacing: '-0.14px'
+            }}>{user?.name || "-"}</span>
           </div>
           <div>
-            <span className="block text-sm text-muted-foreground font-geist">Email</span>
-            <span className="block text-base font-geist">{user?.email || "-"}</span>
+            <span className="block text-sm text-muted-foreground font-geist mb-3" style={{ 
+              color: '#F7F8F8',
+              fontFamily: 'Geist',
+              fontSize: '14px',
+              fontStyle: 'normal',
+              fontWeight: '500',
+              lineHeight: 'normal',
+              letterSpacing: '-0.28px',
+              opacity: 0.6
+            }}>Email</span>
+            <span className="block text-base font-geist" style={{
+              color: '#F7F8F8',
+              fontFamily: 'Geist',
+              fontSize: '14px',
+              fontStyle: 'normal',
+              fontWeight: '400',
+              lineHeight: '120%',
+              letterSpacing: '-0.14px'
+            }}>{user?.email || "-"}</span>
           </div>
         </div>
         <div className="flex justify-end mt-4">
@@ -224,7 +258,14 @@ export function AccountPage() {
       {/* Password Section */}
       <div className="border-b border-border pb-8 mb-4">
         <div className="flex items-center justify-between">
-          <span className="text-base font-geist">Password</span>
+          <span className="text-base font-geist" style={{
+            color: '#F7F8F8',
+            fontFamily: 'Geist',
+            fontSize: '16px',
+            fontStyle: 'normal',
+            fontWeight: '500',
+            lineHeight: '140%'
+          }}>Password</span>
           <Dialog open={passwordChangeOpen} onOpenChange={setPasswordChangeOpen}>
             <DialogTrigger asChild>
               <Button variant="outline">Change password</Button>
@@ -288,7 +329,14 @@ export function AccountPage() {
 
       {/* Email Updates Section */}
       <div className="border-b border-border pb-8 mb-4 flex items-center justify-between">
-        <span className="text-base font-geist">Receive updates via email</span>
+        <span className="text-base font-geist" style={{
+          color: '#F7F8F8',
+          fontFamily: 'Geist',
+          fontSize: '16px',
+          fontStyle: 'normal',
+          fontWeight: '500',
+          lineHeight: '140%'
+        }}>Receive updates via email</span>
         <Checkbox
           id="receive-updates"
           checked={receiveUpdates}
