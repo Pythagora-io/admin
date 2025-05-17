@@ -33,11 +33,12 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/useToast";
 import {
-  MoreHorizontal,
+  MoreVertical,
   UserPlus,
   Settings,
   UserMinus,
   Search,
+  X,
 } from "lucide-react";
 import {
   getTeamMembers,
@@ -58,6 +59,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { PageTitle } from '@/components/PageTitle';
+import { PageSubtitle } from '@/components/PageSubtitle';
 
 export function TeamPage() {
   const [members, setMembers] = useState<any[]>([]);
@@ -89,7 +92,7 @@ export function TeamPage() {
         toast({
           variant: "destructive",
           title: "Error",
-          description: error.message || "Failed to fetch team members",
+          description: error instanceof Error ? error.message : String(error) || "Failed to fetch team members",
         });
       } finally {
         setLoading(false);
@@ -129,7 +132,7 @@ export function TeamPage() {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to send invitation",
+        description: error instanceof Error ? error.message : String(error) || "Failed to send invitation",
       });
     } finally {
       setSendingInvite(false);
@@ -150,7 +153,7 @@ export function TeamPage() {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to remove team member",
+        description: error instanceof Error ? error.message : String(error) || "Failed to remove team member",
       });
     } finally {
       setRemoveConfirmOpen(false);
@@ -158,28 +161,14 @@ export function TeamPage() {
     }
   };
 
-  const handleRoleChange = async (
-    memberId: string,
-    role: "admin" | "developer" | "viewer",
-  ) => {
+  const handleRoleChange = async (memberId: string, role: 'admin' | 'developer' | 'viewer') => {
     setUpdatingRole(memberId);
     try {
       await updateTeamMemberRole(memberId, { role });
-      setMembers(
-        members.map((member) =>
-          member._id === memberId ? { ...member, role } : member,
-        ),
-      );
-      toast({
-        title: "Success",
-        description: `Role updated to ${role}`,
-      });
+      setMembers((prev) => prev.map((m) => m._id === memberId ? { ...m, role } : m));
+      toast({ title: "Role updated", description: `Role changed to ${role}` });
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message || "Failed to update role",
-      });
+      toast({ variant: "destructive", title: "Error", description: error instanceof Error ? error.message : String(error) });
     } finally {
       setUpdatingRole(null);
     }
@@ -196,7 +185,7 @@ export function TeamPage() {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to fetch member access",
+        description: error instanceof Error ? error.message : String(error) || "Failed to fetch member access",
       });
     }
   };
@@ -212,15 +201,15 @@ export function TeamPage() {
     try {
       const response = await searchProjects(query);
       // Filter out projects that are already in memberProjects
-      const existingProjectIds = memberProjects.map((p) => p._id);
+      const existingProjectIds = memberProjects.map((p: any) => p._id);
       setProjectSearchResults(
-        response.projects.filter((p) => !existingProjectIds.includes(p._id)),
+        response.projects.filter((p: any) => !existingProjectIds.includes(p._id)),
       );
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to search projects",
+        description: error instanceof Error ? error.message : String(error) || "Failed to search projects",
       });
     }
   };
@@ -264,7 +253,7 @@ export function TeamPage() {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to update project access",
+        description: error instanceof Error ? error.message : String(error) || "Failed to update project access",
       });
     } finally {
       setSavingAccess(false);
@@ -274,13 +263,13 @@ export function TeamPage() {
   const getRoleColor = (role: string) => {
     switch (role) {
       case "admin":
-        return "bg-red-100 text-red-800 dark:bg-red-700/20 dark:text-red-400 border-red-200";
+        return "bg-[#07998A]";
       case "developer":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-700/20 dark:text-blue-400 border-blue-200";
+        return "bg-[#FC8DDD]";
       case "viewer":
-        return "bg-green-100 text-green-800 dark:bg-green-700/20 dark:text-green-400 border-green-200";
+        return "bg-[#FFD11A]";
       default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-700/20 dark:text-gray-400 border-gray-200";
+        return "bg-gray-200";
     }
   };
 
@@ -296,157 +285,173 @@ export function TeamPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Team Management</h1>
-          <p className="text-muted-foreground">
-            Manage your team members and their access
-          </p>
+          <PageTitle>Team</PageTitle>
+          <PageSubtitle>Manage your team members</PageSubtitle>
         </div>
         <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
           <DialogTrigger asChild>
             <Button>
-              <UserPlus className="mr-2 h-4 w-4" />
-              Invite Member
+              Invite member
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Invite Team Member</DialogTitle>
-              <DialogDescription>
-                Send an invitation to join your team.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="py-4">
-              <div className="flex items-end gap-2">
-                <div className="grid flex-1 gap-2">
-                  <Label htmlFor="email">Email Address</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={inviteEmail}
-                    onChange={(e) => setInviteEmail(e.target.value)}
-                    placeholder="colleague@example.com"
-                  />
-                </div>
-              </div>
+          <DialogContent className="sm:max-w-md bg-[#222029] rounded-2xl p-6">
+            <div className="flex items-center justify-between mb-6">
+              <DialogTitle className="text-white font-geist text-[18px] font-medium leading-normal">Invite a team member</DialogTitle>
+              <button
+                className="p-2 text-muted-foreground hover:text-foreground flex items-center"
+                onClick={() => setInviteOpen(false)}
+                aria-label="Close"
+              >
+                <X className="h-6 w-6" />
+              </button>
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setInviteOpen(false)}>
-                Cancel
-              </Button>
+            <div className="flex gap-2 mb-6">
+              <Input
+                id="invite-email"
+                type="email"
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+                placeholder="Invite others by email"
+                className="flex-1 bg-[#18171B] border-none text-white font-geist text-[14px] font-normal placeholder:text-[#A1A1AA]"
+              />
               <Button
                 onClick={handleInviteMember}
                 disabled={sendingInvite || !inviteEmail.trim()}
+                className="bg-primary text-white font-geist text-[14px] font-medium px-6"
               >
-                {sendingInvite ? "Sending..." : "Invite"}
+                {sendingInvite ? "Inviting..." : "Invite"}
               </Button>
-            </DialogFooter>
+            </div>
+            <div className="divide-y divide-[#35343A]">
+              {members.map((member) => (
+                <div key={member._id} className="flex items-center justify-between py-3">
+                  <span className="text-white font-geist text-[16px] font-normal">{member.email}</span>
+                  <Select
+                    value={member.role}
+                    onValueChange={(role) => handleRoleChange(member._id, role as 'admin' | 'developer' | 'viewer')}
+                  >
+                    <SelectTrigger className="w-32 bg-transparent border-none text-[#A1A1AA] font-geist text-[14px] font-normal">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#222029]">
+                      <SelectItem value="viewer">Viewer</SelectItem>
+                      <SelectItem value="developer">Developer</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              ))}
+            </div>
           </DialogContent>
         </Dialog>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Team Members</CardTitle>
-          <CardDescription>View and manage your team members</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {members.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-10">
-              <UserPlus className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium">No team members yet</h3>
-              <p className="text-muted-foreground text-center mt-2 mb-4">
-                Invite colleagues to collaborate on your projects.
-              </p>
-              <Button onClick={() => setInviteOpen(true)}>
-                <UserPlus className="mr-2 h-4 w-4" />
-                Invite Your First Team Member
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {members.map((member) => (
-                <div
-                  key={member._id}
-                  className="flex items-center justify-between p-4 rounded-lg border"
+      {/* Team Members Section */}
+      <div className="pt-8 pb-0 border-b border-[rgba(247,248,248,0.10)]">
+        <h2 className="text-[24px] font-medium leading-[1.25] tracking-[-0.48px] text-[#F7F8F8] font-geist mb-2">Team members</h2>
+        {/* Table header */}
+        <div className="mb-5"></div>
+        <div className="flex w-full border-b border-[rgba(247,248,248,0.10)] pb-2"
+          style={{ color: '#F7F8F8', fontFamily: 'Geist, sans-serif', fontSize: 14, fontWeight: 500, fontStyle: 'normal', lineHeight: 'normal', letterSpacing: '-0.28px' }}>
+          <div className="flex-1">Email</div>
+          <div className="w-48">Role</div>
+          <div className="w-32">Access</div>
+          <div className="w-8"></div>
+        </div>
+        {/* Table rows */}
+        {members.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-10">
+            <h3 className="text-lg font-medium">Invite member</h3>
+            <p className="text-muted-foreground text-center mt-2 mb-4">
+              Invite colleagues to collaborate on your projects.
+            </p>
+            <Button onClick={() => setInviteOpen(true)}>
+              Invite member
+            </Button>
+          </div>
+        ) : (
+          <div className="divide-y divide-[rgba(247,248,248,0.10)]">
+            {members.map((member) => (
+              <div
+                key={member._id}
+                className="flex items-center py-2.5"
+              >
+                <div className="flex-1 text-base"
+                  style={{ color: 'rgba(242,242,242,0.80)', fontFamily: 'Geist, sans-serif', fontSize: 12, fontWeight: 500, fontStyle: 'normal', lineHeight: 'normal' }}
+                >{member.email}</div>
+                <div className="w-48"
+                  style={{ color: 'rgba(242,242,242,0.80)', fontFamily: 'Geist, sans-serif', fontSize: 12, fontWeight: 500, fontStyle: 'normal', lineHeight: 'normal' }}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">
-                      {member.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <h3 className="font-medium">{member.name}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {member.email}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <Select
-                      value={member.role}
-                      onValueChange={(value) =>
-                        handleRoleChange(
-                          member._id,
-                          value as "admin" | "developer" | "viewer",
-                        )
-                      }
-                      disabled={updatingRole === member._id}
-                    >
-                      <SelectTrigger
-                        className={`w-32 ${getRoleColor(member.role)} border`}
-                      >
-                        <SelectValue placeholder="Select role" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="admin">Admin</SelectItem>
-                        <SelectItem value="developer">Developer</SelectItem>
-                        <SelectItem value="viewer">Viewer</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => openAccessManagement(member)}
-                        >
-                          <Settings className="mr-2 h-4 w-4" />
-                          Manage Access
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-red-500 focus:text-red-500"
-                          onClick={() => {
-                            setMemberToRemove(member);
-                            setRemoveConfirmOpen(true);
-                          }}
-                        >
-                          <UserMinus className="mr-2 h-4 w-4" />
-                          Remove Member
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
+                  {member.role.split(' ').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ')}
                 </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                <div className="w-32">
+                  {/* Access badge or button here */}
+                  <span
+                    className={`inline-block px-3 py-1 rounded-lg ${getRoleColor(member.role)}`}
+                    style={{
+                      color: '#060218',
+                      borderRadius: 8,
+                      fontFamily: 'Geist, sans-serif',
+                      fontSize: 12,
+                      fontWeight: 500,
+                      fontStyle: 'normal',
+                      lineHeight: 'normal',
+                    }}
+                  >
+                    {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
+                  </span>
+                </div>
+                <div className="w-8 text-right">
+                  {/* Actions menu here */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <MoreVertical className="h-5 w-5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="bg-[#222029] rounded-[16px] p-4">
+                      <DropdownMenuItem
+                        onClick={() => { setRemoveConfirmOpen(true); setMemberToRemove(member); }}
+                        style={{ color: '#F7F8F8', fontFamily: 'Geist, sans-serif', fontSize: 14, fontWeight: 500, lineHeight: 'normal' }}
+                        className="flex items-center gap-3"
+                      >
+                        Remove member
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => openAccessManagement(member)}
+                        style={{ color: '#F7F8F8', fontFamily: 'Geist, sans-serif', fontSize: 14, fontWeight: 500, lineHeight: 'normal' }}
+                        className="flex items-center gap-3"
+                      >
+                        Manage access
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Access Management Dialog */}
       <Dialog
         open={accessManagementOpen}
         onOpenChange={setAccessManagementOpen}
       >
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Manage Project Access</DialogTitle>
+        <DialogContent className="sm:max-w-md bg-[#222029]">
+          <div className="flex items-center justify-between mb-8 w-full">
+            <DialogTitle className="flex items-center">Manage project access</DialogTitle>
+            <button
+              className="p-2 text-muted-foreground hover:text-foreground flex items-center"
+              onClick={() => setAccessManagementOpen(false)}
+              aria-label="Close"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          </div>
             <DialogDescription>
               {selectedMember && `Configure access for ${selectedMember.name}`}
             </DialogDescription>
-          </DialogHeader>
           <div className="py-4 space-y-4">
             <div className="relative">
               <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -513,7 +518,7 @@ export function TeamPage() {
               Cancel
             </Button>
             <Button onClick={saveAccessChanges} disabled={savingAccess}>
-              {savingAccess ? "Saving..." : "Save Changes"}
+              {savingAccess ? "Saving..." : "Save changes"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -521,20 +526,24 @@ export function TeamPage() {
 
       {/* Remove Member Confirmation Dialog */}
       <AlertDialog open={removeConfirmOpen} onOpenChange={setRemoveConfirmOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-[#222029]">
           <AlertDialogHeader>
-            <AlertDialogTitle>Remove Team Member</AlertDialogTitle>
+            <AlertDialogTitle>Remove team member</AlertDialogTitle>
             <AlertDialogDescription>
-              {memberToRemove &&
-                `Are you sure you want to remove ${memberToRemove.name} from the team? They will lose access to all projects.`}
+              Are you sure you want to remove this team member? They will no longer have access to any projects.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setRemoveConfirmOpen(false)}>
+            <AlertDialogCancel 
+              variant="deleteCancel"
+              className="font-geist"
+              onClick={() => setRemoveConfirmOpen(false)}
+            >
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
-              className="bg-red-500 hover:bg-red-600 text-white"
+              variant="destructive"
+              className="font-geist"
               onClick={handleRemoveMember}
             >
               Remove

@@ -1,12 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/useToast";
 import {
@@ -16,7 +9,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -30,18 +22,12 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
-  Check,
-  CreditCard,
-  ExternalLink,
   Zap,
   X,
   AlertTriangle,
 } from "lucide-react";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
   getUserSubscription,
@@ -62,6 +48,11 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Elements, PaymentElement } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import { PaymentMethodForm } from "@/components/stripe/PaymentMethodForm";
+import { PlanCard } from "@/components/ui/plan-card";
+import CircleAlertIcon from "@/assets/svg/warnings/circle-alert.svg";
+import { getTeamMembers } from "@/api/team";
+import { PageTitle } from '@/components/PageTitle';
+import { PageSubtitle } from '@/components/PageSubtitle';
 
 // Stripe promise
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || "");
@@ -92,6 +83,9 @@ export function SubscriptionPage() {
   const [confirmPlanChangeOpen, setConfirmPlanChangeOpen] = useState(false);
   const [planToChange, setPlanToChange] = useState<any>(null);
 
+  const [teamMembers, setTeamMembers] = useState<any[]>([]);
+  const seatLimit = 15;
+
   const { toast } = useToast();
 
   // Load Stripe configuration
@@ -120,12 +114,13 @@ export function SubscriptionPage() {
         setLoading(true);
 
         console.log("Fetching subscription data...");
-        const [subscriptionData, plansData, packagesData, paymentMethodsData] =
+        const [subscriptionData, plansData, packagesData, paymentMethodsData, teamMembersData] =
           await Promise.all([
             getUserSubscription(),
             getSubscriptionPlans(),
             getTopUpPackages(),
             getPaymentMethods(),
+            getTeamMembers(),
           ]);
         console.log("Subscription data received:", subscriptionData);
         console.log("Plans data received:", plansData);
@@ -135,11 +130,12 @@ export function SubscriptionPage() {
         setTopUpPackages(packagesData.packages);
         setPaymentMethods(paymentMethodsData.paymentMethods || []);
         setHasPaymentMethod(paymentMethodsData.paymentMethods?.length > 0);
+        setTeamMembers(teamMembersData.members || []);
 
         // Set the current plan as selected by default
         if (subscriptionData.subscription?.plan) {
           const currentPlanId = plansData.plans.find(
-            (p) =>
+            (p: any) =>
               p.name.toLowerCase() ===
               subscriptionData.subscription.plan.toLowerCase(),
           )?.id;
@@ -163,7 +159,7 @@ export function SubscriptionPage() {
     fetchData();
   }, [toast]);
 
-  const handleInitiatePlanChange = async (plan) => {
+  const handleInitiatePlanChange = async (plan: any) => {
     setPlanToChange(plan);
 
     // If the plan is free, we don't need payment processing
@@ -205,11 +201,11 @@ export function SubscriptionPage() {
         });
         setConfirmPlanChangeOpen(false);
         setChangePlanOpen(false);
-      } catch (error) {
+      } catch (error: unknown) {
         toast({
           variant: "destructive",
           title: "Error",
-          description: error.message || "Failed to update subscription",
+          description: error instanceof Error ? error.message : "Failed to update subscription",
         });
       } finally {
         setProcessingPayment(false);
@@ -248,18 +244,18 @@ export function SubscriptionPage() {
 
       setConfirmPlanChangeOpen(false);
       setChangePlanOpen(false);
-    } catch (error) {
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to update subscription",
+        description: error instanceof Error ? error.message : "Failed to update subscription",
       });
     } finally {
       setProcessingPayment(false);
     }
   };
 
-  const handlePaymentMethodSuccess = async (paymentMethod) => {
+  const handlePaymentMethodSuccess = async (paymentMethod: any) => {
     setHasPaymentMethod(true);
     setShowPaymentForm(false);
 
@@ -277,7 +273,7 @@ export function SubscriptionPage() {
     }
   };
 
-  const handleInitiateTopUp = (packageId) => {
+  const handleInitiateTopUp = (packageId: any) => {
     setSelectedTopUp(packageId);
 
     // Check if user has a payment method
@@ -333,11 +329,11 @@ export function SubscriptionPage() {
 
       setConfirmTopUpOpen(false);
       setTopUpOpen(false);
-    } catch (error) {
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to purchase token top-up",
+        description: error instanceof Error ? error.message : "Failed to purchase token top-up",
       });
     } finally {
       setProcessingPayment(false);
@@ -360,11 +356,11 @@ export function SubscriptionPage() {
       });
 
       setCancelDialogOpen(false);
-    } catch (error) {
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to cancel subscription",
+        description: error instanceof Error ? error.message : "Failed to cancel subscription",
       });
     } finally {
       setIsCancelling(false);
@@ -388,6 +384,8 @@ export function SubscriptionPage() {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: currency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     }).format(amount);
   };
 
@@ -407,207 +405,185 @@ export function SubscriptionPage() {
     subscription?.amount > 0 && subscription?.status === "active";
   const isSubscriptionCanceled = subscription?.status === "canceled";
 
+  // Calculate token usage percentage and determine progress bar color
+  let tokenPercent = 0;
+  let tokenBarColor = '';
+  let tokenBgColor = '';
+  let totalTokens = 0;
+  if (subscription && plans.length > 0) {
+    const plan = plans.find(
+      (p: any) => p.name.toLowerCase() === subscription.plan?.toLowerCase()
+    );
+    totalTokens = plan?.tokens || 0;
+    tokenPercent = totalTokens > 0 ? (subscription.tokens / totalTokens) * 100 : 0;
+    if (subscription.tokens === 0 || tokenPercent < 10) {
+      tokenBarColor = 'bg-[rgba(243,66,34,1)]';
+      tokenBgColor = 'bg-[rgba(243,66,34,0.2)]';
+    } else if (tokenPercent < 50) {
+      tokenBarColor = 'bg-[rgba(48,87,225,1)]';
+      tokenBgColor = 'bg-[rgba(48,87,225,0.2)]';
+    } else {
+      tokenBarColor = 'bg-[rgba(7,153,138,1)]';
+      tokenBgColor = 'bg-[rgba(7,153,138,0.2)]';
+    }
+    // Debug logs
+    console.log('DEBUG token usage:', {
+      subscriptionTokens: subscription.tokens,
+      totalTokens,
+      tokenPercent,
+      plan,
+    });
+  }
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Subscription</h1>
-        <p className="text-muted-foreground">
-          Manage your subscription and token usage
-        </p>
+        <PageTitle>Subscription</PageTitle>
+        <PageSubtitle>Manage your subscription and top-up packages</PageSubtitle>
       </div>
 
       {isOutOfTokens && (
-        <Alert
-          variant="destructive"
-          className="bg-red-50 dark:bg-red-950/30 border-red-300 dark:border-red-800 text-red-800 dark:text-red-300"
-        >
-          <AlertTriangle className="h-5 w-5" />
-          <AlertTitle className="font-semibold">
-            You've run out of tokens!
-          </AlertTitle>
-          <AlertDescription>
-            To continue building your apps, please top up your tokens or upgrade
-            your plan.
-          </AlertDescription>
-        </Alert>
+        <div className="flex items-center gap-3" style={{ background: 'rgba(243, 66, 34, 0.1)', borderRadius: 8, padding: '12px 16px' }}>
+          <img src={CircleAlertIcon} alt="Warning" className="w-6 h-6" style={{ color: '#F34222' }} />
+          <span className="font-medium text-sm" style={{ color: '#F34222' }}>
+            You've run out of tokens! To continue building your apps, please top up your tokens or upgrade your plan.
+          </span>
+        </div>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            Current Plan{" "}
-            <Badge className="ml-2 bg-yellow-500 hover:bg-yellow-600">
-              {subscription?.plan || "Free"} Plan
-            </Badge>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h3 className="text-xl font-semibold">Price</h3>
-              <p className="text-muted-foreground">
-                {subscription?.amount > 0
-                  ? `${formatCurrency(subscription.amount, subscription.currency)} / month`
-                  : "Free"}
+      {/* Plan Summary Section */}
+      <div className="border-b border-[rgba(247,248,248,0.10)] mb-10 pb-10">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h3 className="text-[16px] font-normal text-[#F7F8F8] leading-[1.4]">Plan summary <Badge className="ml-2 bg-yellow-500 hover:bg-yellow-600 text-xs font-medium text-[#060218]">{subscription?.plan || "Free"} plan</Badge></h3>
+            <div className="flex flex-row gap-x-5 mt-5 flex-nowrap min-w-0">
+              <div className="flex flex-col items-start gap-y-2">
+                <div className="text-[14px] font-medium text-[#F7F8F8] tracking-[-0.28px] opacity-60">Price/month</div>
+                <div className="text-[14px] font-medium text-[#F7F8F8] tracking-[-0.28px]">
+                  {subscription?.amount > 0
+                    ? `${formatCurrency(subscription.amount, subscription.currency)} / month`
+                    : "Free"}
+                </div>
+              </div>
+              <div className="flex flex-col items-start gap-y-2">
+                <div className="text-[14px] font-medium text-[#F7F8F8] tracking-[-0.28px] opacity-60">Start date</div>
+                <div className="text-[14px] font-medium text-[#F7F8F8] tracking-[-0.28px]">
+                  {subscription?.startDate ? new Date(subscription.startDate).toLocaleDateString() : "-"}
+                </div>
+              </div>
+              <div className="flex flex-col items-start gap-y-2">
+                <div className="text-[14px] font-medium text-[#F7F8F8] tracking-[-0.28px] opacity-60">Next Billing date</div>
+                <div className="text-[14px] font-medium text-[#F7F8F8] tracking-[-0.28px] whitespace-nowrap">
+                  {subscription?.nextBillingDate ? new Date(subscription.nextBillingDate).toLocaleDateString() : "-"}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            {isSubscriptionCanceled && (
+              <Badge variant="outline" className="py-1 px-2">
+                Cancels on {new Date(subscription.nextBillingDate).toLocaleDateString()}
+              </Badge>
+            )}
+            <Button onClick={() => setChangePlanOpen(true)}>
+              Change Plan
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Token Usage Section */}
+      <div className="border-b border-[rgba(247,248,248,0.10)] mb-10">
+        <div className="flex justify-between items-center">
+          <div className="flex-1 space-y-5 pb-10">
+            <h4 className="font-medium">Token usage</h4>
+            <div className="space-y-2">
+              <p className="text-[14px] font-medium text-[#F7F8F8] tracking-[-0.28px] opacity-60">
+                Available tokens
+              </p>
+              <p className="text-[14px] font-medium text-[#F7F8F8] tracking-[-0.28px]">
+                {formatTokens(subscription?.tokens || 0)} / {formatTokens(totalTokens)}
               </p>
             </div>
-            <div className="flex gap-2">
-              {hasPaidSubscription && !isSubscriptionCanceled && (
-                <Button
-                  variant="outline"
-                  onClick={() => setCancelDialogOpen(true)}
-                >
-                  Cancel Subscription
-                </Button>
-              )}
-              {isSubscriptionCanceled && (
-                <Badge variant="outline" className="py-1 px-2">
-                  Cancels on{" "}
-                  {new Date(subscription.nextBillingDate).toLocaleDateString()}
-                </Badge>
-              )}
-              <Button onClick={() => setChangePlanOpen(true)}>
-                Change Plan
-              </Button>
-            </div>
+            <Progress value={tokenPercent} className={`h-2 ${tokenBgColor}`} barClassName={tokenBarColor} />
           </div>
+          <Button variant="outline" onClick={() => setTopUpOpen(true)}>
+            <Zap className="mr-2 h-4 w-4" />
+            Top Up
+          </Button>
+        </div>
+      </div>
 
-          <Separator />
-
-          <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <div className="space-y-1">
-                <h4 className="font-medium">Token Usage</h4>
-                <p className="text-sm text-muted-foreground">
-                  {formatTokens(subscription?.tokens || 0)} tokens available
+      {/* Team Members Section (commented out real backend, using hardcoded data for styling) */}
+      {/**
+      {teamMembers.length > 0 && (
+        <div className="py-6 border-b border-[rgba(247,248,248,0.10)]">
+          <div className="flex justify-between items-center mb-2">
+            <div className="space-y-5">
+              <h4 className="font-medium">Team Members</h4>
+              <div className="space-y-2">
+                <p className="text-[14px] font-medium text-[#F7F8F8] tracking-[-0.28px]">
+                  {teamMembers.length} / {seatLimit} seats available
                 </p>
               </div>
-              <Button variant="outline" onClick={() => setTopUpOpen(true)}>
-                <Zap className="mr-2 h-4 w-4" />
-                Top Up
-              </Button>
             </div>
-            <Progress
-              value={subscription?.tokens > 0 ? 50 : 0}
-              className="h-2"
-            />
-            <p className="text-xs text-muted-foreground text-right">
-              {subscription?.tokens || 0} / 600,000 tokens
-            </p>
+            <Button variant="outline">
+              Contact sales
+            </Button>
           </div>
-        </CardContent>
-      </Card>
+          <Progress value={(teamMembers.length / seatLimit) * 100} className="h-2 bg-blue-700" />
+        </div>
+      )}
+      */}
+      <div className="border-b border-[rgba(247,248,248,0.10)] mb-10">
+        <div className="flex justify-between items-center">
+          <div className="flex-1 space-y-5 pb-10">
+            <h4 className="font-medium">Team members</h4>
+            <div className="space-y-2">
+              <p className="text-[14px] font-medium text-[#F7F8F8] tracking-[-0.28px] opacity-60">
+                Available seats
+              </p>
+              <p className="text-[14px] font-medium text-[#F7F8F8] tracking-[-0.28px]">
+                7 / 15
+              </p>
+            </div>
+            <Progress value={47} className="h-2 bg-blue-700" />
+          </div>
+          <Button variant="outline">
+            Contact sales
+          </Button>
+        </div>
+      </div>
 
       {/* Change Plan Dialog */}
       <Dialog open={changePlanOpen} onOpenChange={setChangePlanOpen}>
-        <DialogContent className="sm:max-w-3xl">
-          <DialogHeader className="relative">
-            <DialogTitle>Change Subscription Plan</DialogTitle>
-            <DialogDescription>
-              Select a new plan. Your billing cycle will update immediately.
-            </DialogDescription>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-0 top-0"
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto px-8 py-8 bg-[#222029]">
+          <div className="flex items-center justify-between mb-8 w-full">
+            <h2 className="text-2xl font-bold text-left">Change plan</h2>
+            <button
+              className="p-2 text-muted-foreground hover:text-foreground"
               onClick={() => setChangePlanOpen(false)}
+              aria-label="Close"
             >
-              <X className="h-4 w-4" />
-            </Button>
-          </DialogHeader>
-          <div className="py-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {plans.map((plan) => {
-                const isCurrentPlan =
-                  plan.name.toLowerCase() === subscription?.plan?.toLowerCase();
-                const isEnterprisePlan = plan.isEnterprise;
-                const isFreePlan = plan.price === 0;
-                const buttonLabel = isCurrentPlan
-                  ? "Current Plan"
-                  : isFreePlan && subscription?.amount > 0
-                    ? "Downgrade to Free"
-                    : `Upgrade to ${plan.name}`;
-
-                return (
-                  <div
-                    key={plan.id}
-                    className={`rounded-lg border p-4 flex flex-col h-full ${
-                      selectedPlan === plan.id
-                        ? "border-primary bg-primary/5"
-                        : "border-border"
-                    } ${isEnterprisePlan ? "border-dashed" : ""}`}
-                    onClick={() =>
-                      !isEnterprisePlan && setSelectedPlan(plan.id)
-                    }
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-lg font-semibold">{plan.name}</span>
-                      <span className="font-bold">
-                        {plan.price === 0 ? (
-                          "Free"
-                        ) : plan.price === null ? (
-                          "Custom"
-                        ) : (
-                          <>
-                            {formatCurrency(plan.price, plan.currency)}
-                            <span className="text-sm font-normal text-muted-foreground">
-                              /month
-                            </span>
-                          </>
-                        )}
-                      </span>
-                    </div>
-
-                    {plan.tokens !== null && (
-                      <div className="text-sm text-muted-foreground mb-4">
-                        {plan.tokens === 0
-                          ? "No tokens included"
-                          : `${formatTokens(plan.tokens)} tokens included`}
-                      </div>
-                    )}
-
-                    <div className="flex-grow space-y-2 mb-6">
-                      {plan.features.map((feature, index) => (
-                        <div key={index} className="flex items-start gap-2">
-                          <Check className="h-4 w-4 text-primary flex-shrink-0 mt-1" />
-                          <span className="text-sm">{feature}</span>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="mt-auto">
-                      {isEnterprisePlan ? (
-                        <Button
-                          className="w-full"
-                          variant="outline"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleContactForEnterprise();
-                          }}
-                        >
-                          <ExternalLink className="h-4 w-4 mr-2" />
-                          Get in Touch
-                        </Button>
-                      ) : isCurrentPlan ? (
-                        <Button className="w-full" variant="secondary" disabled>
-                          Current Plan
-                        </Button>
-                      ) : (
-                        <Button
-                          className="w-full"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleInitiatePlanChange(plan);
-                          }}
-                        >
-                          {buttonLabel}
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+              <X className="h-6 w-6" />
+            </button>
+          </div>
+          <div className="flex flex-row flex-wrap gap-6 w-full justify-between">
+            {plans.map((plan) => {
+              const isCurrentPlan =
+                plan.name.toLowerCase() === subscription?.plan?.toLowerCase();
+              return (
+                <PlanCard
+                  key={plan.id}
+                  plan={plan}
+                  isCurrent={isCurrentPlan}
+                  isSelected={selectedPlan === plan.id}
+                  onCardClick={(p) => !p.isEnterprise && setSelectedPlan(p.id)}
+                  onActionClick={(p) => handleInitiatePlanChange(p)}
+                  onContactForEnterprise={handleContactForEnterprise}
+                />
+              );
+            })}
           </div>
         </DialogContent>
       </Dialog>
@@ -617,9 +593,9 @@ export function SubscriptionPage() {
         open={confirmPlanChangeOpen}
         onOpenChange={setConfirmPlanChangeOpen}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-[#222029]">
           <AlertDialogHeader>
-            <AlertDialogTitle>
+            <AlertDialogTitle className="mb-2">
               {planToChange?.price === 0 && subscription?.amount > 0
                 ? "Downgrade to Free Plan"
                 : `Upgrade to ${planToChange?.name} Plan`}
@@ -667,23 +643,22 @@ export function SubscriptionPage() {
 
       {/* Top Up Dialog */}
       <Dialog open={topUpOpen} onOpenChange={setTopUpOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md bg-[#222029]">
           <DialogHeader>
-            <DialogTitle>Top Up Tokens</DialogTitle>
-            <DialogDescription>
-              Select a token package to add to your account.
-            </DialogDescription>
+            <DialogTitle className="mb-2">Top up Pythagora</DialogTitle>
+            <DialogDescription>Choose a one-time token top up or upgrade your plan.</DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {topUpPackages.map((pkg) => (
                 <div
                   key={pkg.id}
-                  className={`rounded-lg border p-4 cursor-pointer transition-colors hover:border-primary ${
-                    selectedTopUp === pkg.id
-                      ? "border-primary bg-primary/5"
-                      : "border-border"
-                  }`}
+                  className={`rounded-lg p-4 cursor-pointer transition-colors 
+                    ${selectedTopUp === pkg.id
+                      ? ""
+                      : "border bg-transparent border-border"}
+                  `}
+                  style={selectedTopUp === pkg.id ? { backgroundColor: '#393744', border: 'none' } : {}}
                   onClick={() => setSelectedTopUp(pkg.id)}
                 >
                   <div className="text-center">
@@ -699,7 +674,10 @@ export function SubscriptionPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setTopUpOpen(false)}>
+            <Button 
+              className="border-none bg-transparent shadow-none hover:bg-transparent focus:bg-transparent"
+              onClick={() => setTopUpOpen(false)}
+            >
               Cancel
             </Button>
             <AlertDialog
@@ -716,9 +694,9 @@ export function SubscriptionPage() {
                   Continue
                 </Button>
               </AlertDialogTrigger>
-              <AlertDialogContent>
+              <AlertDialogContent className="bg-[#222029]">
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Confirm Token Purchase</AlertDialogTitle>
+                  <AlertDialogTitle className="mb-2">Confirm Token Purchase</AlertDialogTitle>
                   <AlertDialogDescription>
                     Are you sure you want to purchase this token package? Your
                     payment method on file will be charged immediately.
@@ -764,19 +742,24 @@ export function SubscriptionPage() {
 
       {/* Cancel Subscription Dialog */}
       <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Cancel Subscription</DialogTitle>
+        <DialogContent className="sm:max-w-md bg-[#222029]">
+          <div className="flex items-center justify-between mb-8 w-full">
+            <DialogTitle>Cancel subscription</DialogTitle>
+            <button
+              className="p-2 text-muted-foreground hover:text-foreground flex items-center"
+              onClick={() => setCancelDialogOpen(false)}
+              aria-label="Close"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          </div>
             <DialogDescription>
               Your subscription will remain active until the end of the current
               billing period.
             </DialogDescription>
-          </DialogHeader>
           <div className="py-4 space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="cancelReason">
-                Reason for cancellation (optional)
-              </Label>
+              <Label htmlFor="cancelReason">Reason for cancellation</Label>
               <Textarea
                 id="cancelReason"
                 placeholder="Please let us know why you're canceling..."

@@ -1,27 +1,8 @@
 import { useState, useEffect } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/useToast";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import {
   Dialog,
   DialogContent,
@@ -38,6 +19,9 @@ import {
   updateEmailPreferences,
 } from "@/api/user";
 import { Checkbox } from "@/components/ui/checkbox";
+import { X } from "lucide-react";
+import { PageTitle } from '@/components/PageTitle';
+import { PageSubtitle } from '@/components/PageSubtitle';
 
 export function AccountPage() {
   const [user, setUser] = useState<any>(null);
@@ -179,98 +163,130 @@ export function AccountPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Account</h1>
-        <p className="text-muted-foreground">
-          Manage your account details and password
-        </p>
+        <PageTitle>Account settings</PageTitle>
+        <PageSubtitle>Manage your connected domains</PageSubtitle>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Personal Information</CardTitle>
-          <CardDescription>Update your personal details</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <div className="flex items-center gap-2">
-              <Input
-                id="email"
-                value={user?.email || "Loading..."}
-                readOnly
-                className="flex-1 bg-muted"
-              />
-              <Dialog open={emailChangeOpen} onOpenChange={setEmailChangeOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline">Change Email</Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Change Email Address</DialogTitle>
-                    <DialogDescription>
-                      Enter your new email address. A confirmation email will be
-                      sent to your current email address.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="new-email">New Email</Label>
-                      <Input
-                        id="new-email"
-                        placeholder="Enter new email"
-                        value={newEmail}
-                        onChange={(e) => setNewEmail(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <Button
-                      variant="outline"
-                      onClick={() => setEmailChangeOpen(false)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button onClick={handleEmailUpdate}>Request Change</Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            </div>
+      {/* Personal Information Section */}
+      <div className="border-b border-border pb-8 mb-4">
+        <h2 className="text-lg font-semibold mb-10 font-geist">Personal information</h2>
+        <div className="flex flex-col gap-10">
+          <div>
+            <span className="block text-sm text-muted-foreground font-geist mb-3" style={{ 
+              color: '#F7F8F8',
+              fontFamily: 'Geist',
+              fontSize: '14px',
+              fontStyle: 'normal',
+              fontWeight: '500',
+              lineHeight: 'normal',
+              letterSpacing: '-0.28px',
+              opacity: 0.6
+            }}>Full name</span>
+            <span className="block text-base font-geist" style={{
+              color: '#F7F8F8',
+              fontFamily: 'Geist',
+              fontSize: '14px',
+              fontStyle: 'normal',
+              fontWeight: '400',
+              lineHeight: '120%',
+              letterSpacing: '-0.14px'
+            }}>{user?.name || "-"}</span>
           </div>
-
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="receive-updates"
-              checked={receiveUpdates}
-              onCheckedChange={handleReceiveUpdatesChange}
-            />
-            <Label htmlFor="receive-updates">Receive updates via email</Label>
+          <div>
+            <span className="block text-sm text-muted-foreground font-geist mb-3" style={{ 
+              color: '#F7F8F8',
+              fontFamily: 'Geist',
+              fontSize: '14px',
+              fontStyle: 'normal',
+              fontWeight: '500',
+              lineHeight: 'normal',
+              letterSpacing: '-0.28px',
+              opacity: 0.6
+            }}>Email</span>
+            <span className="block text-base font-geist" style={{
+              color: '#F7F8F8',
+              fontFamily: 'Geist',
+              fontSize: '14px',
+              fontStyle: 'normal',
+              fontWeight: '400',
+              lineHeight: '120%',
+              letterSpacing: '-0.14px'
+            }}>{user?.email || "-"}</span>
           </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Security</CardTitle>
-          <CardDescription>Update your password</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Dialog
-            open={passwordChangeOpen}
-            onOpenChange={setPasswordChangeOpen}
-          >
+        </div>
+        <div className="flex justify-end mt-4">
+          <Dialog open={emailChangeOpen} onOpenChange={setEmailChangeOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline">Change Password</Button>
+              <Button variant="outline">Change email</Button>
             </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Change Password</DialogTitle>
-                <DialogDescription>
-                  Enter your current password and a new password.
+            <DialogContent className="sm:max-w-md bg-[#222029]">
+              <div className="flex items-center justify-between mb-8 w-full">
+                <DialogTitle className="font-geist">Change Email Address</DialogTitle>
+                <button
+                  className="p-2 text-muted-foreground hover:text-foreground flex items-center"
+                  onClick={() => setEmailChangeOpen(false)}
+                  aria-label="Close"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+                <DialogDescription className="font-geist">
+                  Enter your new email address. A confirmation email will be sent to your current email address.
                 </DialogDescription>
-              </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="current-password">Current Password</Label>
+                  <Label htmlFor="new-email" className="font-geist">New Email</Label>
+                  <Input
+                    id="new-email"
+                    placeholder="Enter new email"
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="cancel" onClick={() => setEmailChangeOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleEmailUpdate}>Request Change</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
+
+      {/* Password Section */}
+      <div className="border-b border-border pb-8 mb-4">
+        <div className="flex items-center justify-between">
+          <span className="text-base font-geist" style={{
+            color: '#F7F8F8',
+            fontFamily: 'Geist',
+            fontSize: '16px',
+            fontStyle: 'normal',
+            fontWeight: '500',
+            lineHeight: '140%'
+          }}>Password</span>
+          <Dialog open={passwordChangeOpen} onOpenChange={setPasswordChangeOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">Change password</Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md bg-[#222029]">
+              <div className="flex items-center justify-between mb-8 w-full">
+                <DialogTitle className="font-geist">Change Password</DialogTitle>
+                <button
+                  className="p-2 text-muted-foreground hover:text-foreground flex items-center"
+                  onClick={() => setPasswordChangeOpen(false)}
+                  aria-label="Close"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+                <DialogDescription className="font-geist">
+                  Enter your current password and a new password.
+                </DialogDescription>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="current-password" className="font-geist">Current Password</Label>
                   <Input
                     id="current-password"
                     type="password"
@@ -280,7 +296,7 @@ export function AccountPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="new-password">New Password</Label>
+                  <Label htmlFor="new-password" className="font-geist">New Password</Label>
                   <Input
                     id="new-password"
                     type="password"
@@ -290,7 +306,7 @@ export function AccountPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="confirm-password">Confirm New Password</Label>
+                  <Label htmlFor="confirm-password" className="font-geist">Confirm New Password</Label>
                   <Input
                     id="confirm-password"
                     type="password"
@@ -301,18 +317,37 @@ export function AccountPage() {
                 </div>
               </div>
               <DialogFooter>
-                <Button
-                  variant="outline"
-                  onClick={() => setPasswordChangeOpen(false)}
-                >
+                <Button variant="cancel" onClick={() => setPasswordChangeOpen(false)}>
                   Cancel
                 </Button>
-                <Button onClick={handlePasswordUpdate}>Update Password</Button>
+                <Button onClick={handlePasswordUpdate}>Change Password</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+
+      {/* Email Updates Section */}
+      <div className="border-b border-border pb-8 mb-4 flex items-center justify-between">
+        <span className="text-base font-geist" style={{
+          color: '#F7F8F8',
+          fontFamily: 'Geist',
+          fontSize: '16px',
+          fontStyle: 'normal',
+          fontWeight: '500',
+          lineHeight: '140%'
+        }}>Receive updates via email</span>
+        <Checkbox
+          id="receive-updates"
+          checked={receiveUpdates}
+          onCheckedChange={handleReceiveUpdatesChange}
+        />
+      </div>
+
+      {/* Change Plan Button (if needed) */}
+      <div className="flex justify-end pt-4">
+        <Button variant="default">Change plan</Button>
+      </div>
     </div>
   );
 }

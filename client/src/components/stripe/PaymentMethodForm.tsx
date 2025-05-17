@@ -86,8 +86,8 @@ export function PaymentMethodForm({
                 base: {
                   fontSize: "16px",
                   color: "#424770",
-                  "::placeholder": {
-                    color: "#aab7c4",
+                  '::placeholder': {
+                    color: "#F7F8F8",
                   },
                 },
                 invalid: {

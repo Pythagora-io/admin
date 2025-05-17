@@ -7,13 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -26,13 +20,15 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/useToast";
-import { Download, Receipt, FileText } from "lucide-react";
+import { Download, X } from "lucide-react";
 import {
   getPaymentHistory,
   getBillingInfo,
   getCompanyBillingInfo,
 } from "@/api/payments";
 import { updateBillingInfo } from "@/api/user";
+import { PageTitle } from '@/components/PageTitle';
+import { PageSubtitle } from '@/components/PageSubtitle';
 
 export function PaymentsPage() {
   const [payments, setPayments] = useState<any[]>([]);
@@ -90,12 +86,12 @@ export function PaymentsPage() {
         if (companyData && companyData.companyInfo) {
           setCompanyInfo(companyData.companyInfo);
         }
-      } catch (error) {
+      } catch (error: unknown) {
         console.error("Error fetching data:", error);
         toast({
           variant: "destructive",
           title: "Error",
-          description: error.message || "Failed to fetch payment data",
+          description: error instanceof Error ? error.message : String(error),
         });
       } finally {
         setLoading(false);
@@ -147,18 +143,18 @@ export function PaymentsPage() {
           response.message || "Billing information updated successfully",
       });
       setEditBillingOpen(false);
-    } catch (error) {
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to update billing information",
+        description: error instanceof Error ? error.message : String(error),
       });
     }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormBillingInfo((prev) => ({
+    setFormBillingInfo((prev: any) => ({
       ...prev,
       [name]: value,
     }));
@@ -190,123 +186,96 @@ export function PaymentsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Payments & Billing</h1>
-        <p className="text-muted-foreground">
-          Manage your billing information and view payment history
-        </p>
+        <PageTitle>Payments & Billing</PageTitle>
+        <PageSubtitle>Manage your billing information and view payment history</PageSubtitle>
       </div>
 
-      <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex justify-between items-center">
-              <span>Your Billing Information</span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setEditBillingOpen(true)}
-              >
-                Edit
-              </Button>
-            </CardTitle>
-            <CardDescription>
-              Used for all receipts and invoices
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-1">
-              <p className="font-medium">{billingInfo.name}</p>
-              <p>{billingInfo.address}</p>
-              <p>
-                {billingInfo.city}, {billingInfo.state} {billingInfo.zip}
-              </p>
-              <p>{billingInfo.country}</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Pythagora Billing Information</CardTitle>
-            <CardDescription>For your records</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-1">
-              <p className="font-medium">{companyInfo.name}</p>
-              <p>{companyInfo.address}</p>
-              <p>
-                {companyInfo.city}, {companyInfo.state} {companyInfo.zip}
-              </p>
-              <p>{companyInfo.country}</p>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Billing Information Section */}
+      <div className="border-b border-border pb-8 mb-4 grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div>
+          <h2 className="text-[16px] font-normal leading-[1.4] text-[#F7F8F8] font-geist mb-2">Your Billing Information</h2>
+          <p className="text-[14px] font-normal leading-[1.3] tracking-[-0.28px] text-[#F7F8F8] font-geist opacity-60 mb-4">User for all receipts and invoices</p>
+          <div className="space-y-2 mb-4">
+            <p className="text-[14px] font-medium text-[#F7F8F8] font-geist tracking-[-0.28px]">{billingInfo.name}</p>
+            <p className="text-[14px] font-medium text-[#F7F8F8] font-geist tracking-[-0.28px]">{billingInfo.address}</p>
+            <p className="text-[14px] font-medium text-[#F7F8F8] font-geist tracking-[-0.28px]">
+              {billingInfo.city}, {billingInfo.state} {billingInfo.zip}
+            </p>
+            <p className="text-[14px] font-medium text-[#F7F8F8] font-geist tracking-[-0.28px]">{billingInfo.country}</p>
+          </div>
+          <Button variant="default" onClick={() => setEditBillingOpen(true)}>
+            Edit
+          </Button>
+        </div>
+        <div>
+          <h2 className="text-[16px] font-normal leading-[1.4] text-[#F7F8F8] font-geist mb-2">Pythagora Billing Information</h2>
+          <p className="text-[14px] font-normal leading-[1.3] tracking-[-0.28px] text-[#F7F8F8] font-geist opacity-60 mb-4">For your records</p>
+          <div className="space-y-2">
+            <p className="text-[14px] font-medium text-[#F7F8F8] font-geist tracking-[-0.28px]">{companyInfo.name}</p>
+            <p className="text-[14px] font-medium text-[#F7F8F8] font-geist tracking-[-0.28px]">{companyInfo.address}</p>
+            <p className="text-[14px] font-medium text-[#F7F8F8] font-geist tracking-[-0.28px]">
+              {companyInfo.city}, {companyInfo.state} {companyInfo.zip}
+            </p>
+            <p className="text-[14px] font-medium text-[#F7F8F8] font-geist tracking-[-0.28px]">{companyInfo.country}</p>
+          </div>
+        </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Payment History</CardTitle>
-          <CardDescription>
-            View and download receipts for your payments
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {payments.length === 0 ? (
-            <div className="text-center py-8">
-              <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium">No payment history yet</h3>
-              <p className="text-muted-foreground">
-                Your payment history will appear here once you make your first
-                payment.
-              </p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead className="text-right">Receipt</TableHead>
+      {/* Payment History Section */}
+      <div className="border-b border-border pb-8 mb-4">
+        <h2 className="text-[16px] font-normal leading-[1.4] text-[#F7F8F8] font-geist mb-2">Payment History</h2>
+        <p className="text-[14px] font-normal leading-[1.3] tracking-[-0.28px] text-[#F7F8F8] font-geist opacity-60 mb-8">View and download receipts for your payments</p>
+        {payments.length === 0 ? (
+          <p className="text-muted-foreground">No invoices available.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-[14px] font-medium text-[#F7F8F8] font-geist tracking-[-0.28px] opacity-60">Date</TableHead>
+                  <TableHead className="text-[14px] font-medium text-[#F7F8F8] font-geist tracking-[-0.28px] opacity-60">Description</TableHead>
+                  <TableHead className="text-[14px] font-medium text-[#F7F8F8] font-geist tracking-[-0.28px] opacity-60">Amount</TableHead>
+                  <TableHead className="text-right text-[14px] font-medium text-[#F7F8F8] font-geist tracking-[-0.28px] opacity-60"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {payments.map((payment) => (
+                  <TableRow key={payment.id}>
+                    <TableCell className="text-[14px] font-medium text-[#F7F8F8] font-geist tracking-[-0.28px]">{formatDate(payment.date)}</TableCell>
+                    <TableCell className="text-[14px] font-medium text-[#F7F8F8] font-geist tracking-[-0.28px]">{payment.description}</TableCell>
+                    <TableCell className="text-[14px] font-medium text-[#F7F8F8] font-geist tracking-[-0.28px]">{formatCurrency(payment.amount, payment.currency)}</TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDownloadReceipt(payment.id)}
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        <span className="text-[14px] font-medium text-[#F7F8F8] font-geist tracking-[-0.28px]">Download PDF</span>
+                      </Button>
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {payments.map((payment) => (
-                    <TableRow key={payment.id}>
-                      <TableCell>{formatDate(payment.date)}</TableCell>
-                      <TableCell>{payment.description}</TableCell>
-                      <TableCell>
-                        {formatCurrency(payment.amount, payment.currency)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDownloadReceipt(payment.id)}
-                        >
-                          <Download className="h-4 w-4 mr-2" />
-                          Download
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </div>
 
-      {/* Edit Billing Information Dialog */}
+      {/* Edit Billing Dialog */}
       <Dialog open={editBillingOpen} onOpenChange={setEditBillingOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Edit Billing Information</DialogTitle>
-            <DialogDescription>
-              Update your billing details for receipts and invoices.
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="sm:max-w-md bg-[#222029]">
+          <div className="flex items-center justify-between mb-2 w-full">
+            <DialogTitle className="mb-2 flex items-center">Edit Billing Information</DialogTitle>
+            <button
+              className="p-2 text-muted-foreground hover:text-foreground flex items-center"
+              onClick={() => setEditBillingOpen(false)}
+              aria-label="Close"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          </div>
+          <DialogDescription className="text-[#F7F8F8] font-geist text-[14px] font-normal leading-[1.4] opacity-60">Update your billing details for receipts and invoices.</DialogDescription>
           <div className="py-4 grid gap-4">
             <div className="grid gap-2">
               <Label htmlFor="name">Full Name or Business Name</Label>
@@ -368,10 +337,13 @@ export function PaymentsPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditBillingOpen(false)}>
+            <Button 
+              variant="cancel"
+              onClick={() => setEditBillingOpen(false)}
+            >
               Cancel
             </Button>
-            <Button onClick={handleUpdateBillingInfo}>Save Changes</Button>
+            <Button onClick={handleUpdateBillingInfo}>Save</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

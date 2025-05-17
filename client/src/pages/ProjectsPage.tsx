@@ -24,7 +24,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  MoreHorizontal,
+  MoreVertical,
   Edit,
   Link2,
   Copy,
@@ -35,6 +35,7 @@ import {
   Users,
   Search,
   Upload,
+  X,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -61,6 +62,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
+import EmptyStateCard from "@/components/ui/EmptyStateCard";
+// Import SVG icons
+import OpenIcon from "@/assets/svg/dropdown-icons/open.svg";
+import CopyLinkIcon from "@/assets/svg/dropdown-icons/copy-link.svg";
+import DuplicateIcon from "@/assets/svg/dropdown-icons/duplicate-project.svg";
+import RenameIcon from "@/assets/svg/dropdown-icons/rename.svg";
+import ManageAccessIcon from "@/assets/svg/dropdown-icons/manage-access.svg";
+import DeleteIcon from "@/assets/svg/dropdown-icons/delete-project.svg";
+import { PageTitle } from '@/components/PageTitle';
+import { PageSubtitle } from '@/components/PageSubtitle';
 
 interface ProjectsPageProps {
   type?: "drafts" | "deployed";
@@ -95,18 +106,18 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
   const navigate = useNavigate();
 
   // Set page title based on type
-  const pageTitle = type === "drafts" ? "Draft Projects" : "Deployed Projects";
+  const pageTitle = type === "drafts" ? "Drafts" : "Deployed";
 
   useEffect(() => {
     const fetchProjects = async () => {
       try {
         const response = await getUserProjects(type);
         setProjects(response.projects);
-      } catch (error) {
+      } catch (error: unknown) {
         toast({
           variant: "destructive",
           title: "Error",
-          description: error.message || "Failed to fetch projects",
+          description: error instanceof Error ? error.message : "Failed to fetch projects",
         });
       } finally {
         setLoading(false);
@@ -148,41 +159,17 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       setSelectedProjects([]);
       setIsSelecting(false);
       setDeleteConfirmOpen(false);
-    } catch (error) {
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to delete projects",
+        description: error instanceof Error ? error.message : "Failed to delete projects",
       });
     }
   };
 
-  const handleNewProject = async () => {
-    try {
-      const response = await createProjectDraft({
-        title: "New Project",
-        description: "Enter project description here",
-        visibility: "private",
-      });
-
-      // Refresh the projects list
-      const updatedResponse = await getUserProjects(type);
-      setProjects(updatedResponse.projects);
-
-      toast({
-        title: "Success",
-        description: "New project created successfully",
-      });
-
-      // You could also navigate to an editor with the new project ID
-      // navigate(`/editor/${response.project._id}`);
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message || "Failed to create new project",
-      });
-    }
+  const handleNewProject = () => {
+    navigate("/projects/create");
   };
 
   const handleRename = async () => {
@@ -211,11 +198,11 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       setRenameDialogOpen(false);
       setProjectToRename(null);
       setNewProjectTitle("");
-    } catch (error) {
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to rename project",
+        description: error instanceof Error ? error.message : "Failed to rename project",
       });
     } finally {
       setIsRenaming(false);
@@ -243,11 +230,11 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
 
       setDeployConfirmOpen(false);
       setProjectToDeploy(null);
-    } catch (error) {
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to deploy project",
+        description: error instanceof Error ? error.message : "Failed to deploy project",
       });
     } finally {
       setIsDeploying(false);
@@ -263,11 +250,11 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
     try {
       const response = await getProjectAccess(project._id);
       setProjectUsers(response.users);
-    } catch (error) {
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to fetch project access",
+        description: error instanceof Error ? error.message : "Failed to fetch project access",
       });
     }
   };
@@ -285,13 +272,13 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       // Filter out users that are already in projectUsers
       const existingUserIds = projectUsers.map((p) => p._id);
       setUserSearchResults(
-        response.users.filter((user) => !existingUserIds.includes(user._id)),
+        (response as { users: any[] }).users.filter((user) => !existingUserIds.includes(user._id)),
       );
-    } catch (error) {
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to search users",
+        description: error instanceof Error ? error.message : "Failed to search users",
       });
     }
   };
@@ -329,11 +316,11 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
         description: "Project access updated successfully",
       });
       setAccessManagementOpen(false);
-    } catch (error) {
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to update project access",
+        description: error instanceof Error ? error.message : "Failed to update project access",
       });
     } finally {
       setSavingAccess(false);
@@ -383,7 +370,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
             toast({
               variant: "destructive",
               title: "Error",
-              description: error.message || "Failed to duplicate project",
+              description: error instanceof Error ? error.message : "Failed to duplicate project",
             });
           });
         break;
@@ -452,8 +439,8 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">{pageTitle}</h1>
-          <p className="text-muted-foreground">Manage your {type} projects</p>
+          <PageTitle>{type === "drafts" ? "Drafts" : "Deployed"}</PageTitle>
+          <PageSubtitle>{type === "drafts" ? "Manage your drafts projects" : "Manage your deployed projects"}</PageSubtitle>
         </div>
         <div className="flex gap-2">
           {isSelecting ? (
@@ -471,12 +458,13 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
             </>
           ) : (
             <>
-              <Button variant="outline" onClick={handleSelectMode}>
-                Select
-              </Button>
+              {projects.length > 0 && (
+                <Button variant="outline" onClick={handleSelectMode}>
+                  Select
+                </Button>
+              )}
               <Button onClick={handleNewProject}>
-                <FilePlus className="mr-2 h-4 w-4" />
-                New Project
+                New project
               </Button>
             </>
           )}
@@ -485,25 +473,35 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {projects.length === 0 ? (
-          <Card className="col-span-full">
-            <CardContent className="flex flex-col items-center justify-center py-10">
-              <FilePlus className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium">No projects yet</h3>
-              <p className="text-muted-foreground text-center mt-2 mb-4">
-                Create your first project to get started.
-              </p>
-              <Button onClick={handleNewProject}>
-                <FilePlus className="mr-2 h-4 w-4" />
-                Create Project
-              </Button>
-            </CardContent>
-          </Card>
+          <div className="flex flex-col items-start mt-8">
+            {type === "drafts" ? (
+              <EmptyStateCard
+                title=""
+                description="No projects yet. Start your first project to get going."
+                buttonText="New project"
+                onButtonClick={handleNewProject}
+                icon={
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M10 2.50019H4.16667C3.72464 2.50019 3.30072 2.67578 2.98816 2.98834C2.67559 3.3009 2.5 3.72483 2.5 4.16686V15.8335C2.5 16.2755 2.67559 16.6995 2.98816 17.012C3.30072 17.3246 3.72464 17.5002 4.16667 17.5002H15.8333C16.2754 17.5002 16.6993 17.3246 17.0118 17.012C17.3244 16.6995 17.5 16.2755 17.5 15.8335V10.0002M15.3125 2.18769C15.644 1.85617 16.0937 1.66992 16.5625 1.66992C17.0313 1.66992 17.481 1.85617 17.8125 2.18769C18.144 2.51921 18.3303 2.96885 18.3303 3.43769C18.3303 3.90653 18.144 4.35617 17.8125 4.68769L10.3017 12.1994C10.1038 12.3971 9.85934 12.5418 9.59083 12.6202L7.19667 13.3202C7.12496 13.3411 7.04895 13.3424 6.97659 13.3238C6.90423 13.3053 6.83819 13.2676 6.78537 13.2148C6.73255 13.162 6.69491 13.096 6.67637 13.0236C6.65783 12.9512 6.65909 12.8752 6.68 12.8035L7.38 10.4094C7.45877 10.1411 7.60378 9.8969 7.80167 9.69936L15.3125 2.18769Z" stroke="#F2F2F2" stroke-opacity="0.8" stroke-width="1.66667" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                }
+              />
+            ) : (
+              <EmptyStateCard
+                title=""
+                description="Your deployed apps will appear here"
+                buttonText=""
+                onButtonClick={() => {}}
+                className="items-center justify-center"
+              />
+            )}
+          </div>
         ) : (
           <>
             {projects.map((project) => (
               <Card
                 key={project._id}
-                className={`overflow-hidden transition-all ${
+                className={`overflow-hidden transition-all bg-transparent border-0 ${
                   isSelecting
                     ? "ring-2 ring-offset-2 " +
                       (selectedProjects.includes(project._id)
@@ -523,19 +521,19 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="rounded-full bg-background/80 backdrop-blur-sm"
+                            className="w-6 h-6 rounded-[6px]" style={{ background: '#0B091299' }}
                             onClick={(e) => e.stopPropagation()}
                           >
-                            <MoreHorizontal className="h-4 w-4" />
+                            <MoreVertical className="h-6 w-6" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-[180px]">
+                        <DropdownMenuContent align="end" className="bg-[#222029] rounded-[16px] p-4">
                           <DropdownMenuItem
                             onClick={() =>
                               handleProjectAction("open", project._id)
                             }
                           >
-                            <ExternalLink className="mr-2 h-4 w-4" />
+                            <img src={OpenIcon} className="mr-2 h-4 w-4" style={{ color: '#7D8294' }} />
                             Open
                           </DropdownMenuItem>
                           <DropdownMenuItem
@@ -543,7 +541,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
                               handleProjectAction("copy-link", project._id)
                             }
                           >
-                            <Link2 className="mr-2 h-4 w-4" />
+                            <img src={CopyLinkIcon} className="mr-2 h-4 w-4" style={{ color: '#7D8294' }} />
                             Copy Link
                           </DropdownMenuItem>
                           <DropdownMenuItem
@@ -551,15 +549,15 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
                               handleProjectAction("duplicate", project._id)
                             }
                           >
-                            <Copy className="mr-2 h-4 w-4" />
-                            Duplicate
+                            <img src={DuplicateIcon} className="mr-2 h-4 w-4" style={{ color: '#7D8294' }} />
+                            Duplicate project
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() =>
                               handleProjectAction("rename", project._id)
                             }
                           >
-                            <Edit className="mr-2 h-4 w-4" />
+                            <img src={RenameIcon} className="mr-2 h-4 w-4" style={{ color: '#7D8294' }} />
                             Rename
                           </DropdownMenuItem>
                           {type === "drafts" && (
@@ -568,7 +566,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
                                 handleProjectAction("deploy", project._id)
                               }
                             >
-                              <Upload className="mr-2 h-4 w-4" />
+                              <Upload className="mr-2 h-4 w-4" style={{ color: '#7D8294' }} />
                               Deploy
                             </DropdownMenuItem>
                           )}
@@ -578,7 +576,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
                                 handleProjectAction("unpublish", project._id)
                               }
                             >
-                              <ExternalLink className="mr-2 h-4 w-4" />
+                              <ExternalLink className="mr-2 h-4 w-4" style={{ color: '#7D8294' }} />
                               Unpublish
                             </DropdownMenuItem>
                           )}
@@ -587,24 +585,26 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
                               handleProjectAction("manage-access", project._id)
                             }
                           >
-                            <Users className="mr-2 h-4 w-4" />
+                            <img src={ManageAccessIcon} className="mr-2 h-4 w-4" style={{ color: '#7D8294' }} />
                             Manage Access
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            className="text-red-500 focus:text-red-500 focus:bg-red-50 dark:focus:bg-red-950/50"
-                            onClick={() =>
-                              handleProjectAction("delete", project._id)
-                            }
+                            onClick={() => handleProjectAction("delete", project._id)}
                           >
-                            <Trash className="mr-2 h-4 w-4" />
-                            Delete
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-2 h-4 w-4">
+                              <path d="M2 4H3.33333H14" stroke="#7D8294" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round"/>
+                              <path d="M12.6667 4V13.3333C12.6667 13.687 12.5262 14.0261 12.2761 14.2761C12.0261 14.5262 11.687 14.6667 11.3333 14.6667H4.66667C4.31304 14.6667 3.97391 14.5262 3.72386 14.2761C3.47381 14.0261 3.33334 13.687 3.33334 13.3333V4M5.33334 4V2.66667C5.33334 2.31304 5.47381 1.97391 5.72386 1.72386C5.97391 1.47381 6.31304 1.33334 6.66667 1.33334H9.33334C9.68697 1.33334 10.0261 1.47381 10.2761 1.72386C10.5262 1.97391 10.6667 2.31304 10.6667 2.66667V4" stroke="#7D8294" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round"/>
+                              <path d="M6.66666 7.33334V11.3333" stroke="#7D8294" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round"/>
+                              <path d="M9.33334 7.33334V11.3333" stroke="#7D8294" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                            Delete project
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     )}
                   </div>
                   <div
-                    className="h-36 bg-cover bg-center bg-gray-100 dark:bg-gray-800"
+                    className="h-[220px] bg-cover bg-center border border-[#222029] rounded-[16px]"
                     style={{ backgroundImage: `url(${project.thumbnail})` }}
                   />
                 </div>
@@ -616,13 +616,6 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
                         Edited {formatTimeAgo(project.lastEdited)}
                       </p>
                     </div>
-                    <Badge
-                      variant={
-                        project.visibility === "private" ? "outline" : "default"
-                      }
-                    >
-                      {project.visibility === "private" ? "Private" : "Public"}
-                    </Badge>
                   </div>
                 </CardContent>
               </Card>
@@ -633,26 +626,23 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-[#222029]">
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              Delete Project{selectedProjects.length > 1 ? "s" : ""}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete{" "}
-              {selectedProjects.length === 1
-                ? "this project"
-                : `these ${selectedProjects.length} projects`}
-              ? This action cannot be undone.
-            </AlertDialogDescription>
+            <AlertDialogTitle>Delete project</AlertDialogTitle>
+            <AlertDialogDescription>This will permanently delete your project. Including any deployments made with Pythagora and all generated code. This action cannot be undone.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setDeleteConfirmOpen(false)}>
+            <AlertDialogCancel 
+              variant="deleteCancel"
+              className="font-geist"
+              onClick={() => setDeleteConfirmOpen(false)}
+            >
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
-              className="bg-red-500 hover:bg-red-600 text-white"
+              variant="destructive"
               onClick={handleDeleteSelected}
+              disabled={isDeploying}
             >
               Delete
             </AlertDialogAction>
@@ -662,16 +652,23 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
 
       {/* Rename Dialog */}
       <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Rename Project</DialogTitle>
+        <DialogContent className="sm:max-w-md bg-[#222029]">
+          <div className="flex items-center justify-between mb-8 w-full">
+            <DialogTitle className="flex items-center">Rename project</DialogTitle>
+            <button
+              className="p-2 text-muted-foreground hover:text-foreground flex items-center"
+              onClick={() => setRenameDialogOpen(false)}
+              aria-label="Close"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          </div>
             <DialogDescription>
               Enter a new name for your project.
             </DialogDescription>
-          </DialogHeader>
           <div className="py-4">
             <div className="grid gap-2">
-              <Label htmlFor="project-name">Project Name</Label>
+              <Label htmlFor="project-name">Project name</Label>
               <Input
                 id="project-name"
                 value={newProjectTitle}
@@ -682,7 +679,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
           </div>
           <DialogFooter>
             <Button
-              variant="outline"
+              variant="cancel"
               onClick={() => setRenameDialogOpen(false)}
             >
               Cancel
@@ -699,16 +696,26 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
 
       {/* Deploy Confirmation Dialog */}
       <AlertDialog open={deployConfirmOpen} onOpenChange={setDeployConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Deploy Project</AlertDialogTitle>
+        <AlertDialogContent className="bg-[#222029]">
+          <div className="flex items-center justify-between mb-8 w-full">
+            <AlertDialogTitle>Deploy project</AlertDialogTitle>
+            <button
+              className="p-2 text-muted-foreground hover:text-foreground"
+              onClick={() => setDeployConfirmOpen(false)}
+              aria-label="Close"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          </div>
             <AlertDialogDescription>
               Are you sure you want to deploy this project? The project will be
               accessible to others based on your visibility settings.
             </AlertDialogDescription>
-          </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setDeployConfirmOpen(false)}>
+            <AlertDialogCancel 
+              className="border-none bg-transparent shadow-none hover:bg-transparent focus:bg-transparent"
+              onClick={() => setDeployConfirmOpen(false)}
+            >
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction onClick={handleDeploy} disabled={isDeploying}>
@@ -723,13 +730,20 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
         open={accessManagementOpen}
         onOpenChange={setAccessManagementOpen}
       >
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Manage Project Access</DialogTitle>
+        <DialogContent className="sm:max-w-md bg-[#222029]">
+          <div className="flex items-center justify-between mb-8 w-full">
+            <DialogTitle className="flex items-center">Manage project access</DialogTitle>
+            <button
+              className="p-2 text-muted-foreground hover:text-foreground flex items-center"
+              onClick={() => setAccessManagementOpen(false)}
+              aria-label="Close"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          </div>
             <DialogDescription>
               Configure who can access this project and their permission level.
             </DialogDescription>
-          </DialogHeader>
           <div className="py-4 space-y-4">
             <div className="relative">
               <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -793,13 +807,13 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
           </div>
           <DialogFooter>
             <Button
-              variant="outline"
+              variant="cancel"
               onClick={() => setAccessManagementOpen(false)}
             >
               Cancel
             </Button>
             <Button onClick={saveAccessChanges} disabled={savingAccess}>
-              {savingAccess ? "Saving..." : "Save Changes"}
+              {savingAccess ? "Saving..." : "Save changes"}
             </Button>
           </DialogFooter>
         </DialogContent>

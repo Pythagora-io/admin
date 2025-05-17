@@ -18,11 +18,12 @@ import { DomainsPage } from "./pages/DomainsPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { ProjectsPage } from "./pages/ProjectsPage";
 import { TeamPage } from "./pages/TeamPage";
+import CreateProjectPage from "./pages/CreateProjectPage";
 
 function App() {
   return (
     <AuthProvider>
-      <ThemeProvider defaultTheme="light" storageKey="ui-theme">
+      <ThemeProvider defaultTheme="dark" storageKey="ui-theme">
         <Router>
           <Routes>
             <Route path="/login" element={<Login />} />
@@ -50,6 +51,7 @@ function App() {
                   path="deployed"
                   element={<ProjectsPage type="deployed" />}
                 />
+                <Route path="create" element={<CreateProjectPage />} />
               </Route>
               <Route path="team" element={<TeamPage />} />
             </Route>

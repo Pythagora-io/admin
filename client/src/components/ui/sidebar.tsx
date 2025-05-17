@@ -98,10 +98,10 @@ export function Sidebar({
       className={cn(
         "h-screen flex-shrink-0 flex flex-col overflow-hidden z-20 bg-background transition-all duration-300 ease-in-out",
         isOpen
-          ? "w-80 translate-x-0"
+          ? "w-64 translate-x-0"
           : isMobile
-            ? "-translate-x-full w-80"
-            : "w-20 translate-x-0",
+            ? "-translate-x-full w-64"
+            : "w-16 translate-x-0",
         className,
       )}
       {...props}
@@ -214,8 +214,10 @@ export function SidebarMenuButton({
         isActive
           ? "bg-accent text-accent-foreground font-medium"
           : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground",
-        className,
+        "text-[#F7F8F8] font-geist text-[14px] font-medium",
+        className
       )}
+      style={{ letterSpacing: '-0.28px', fontFamily: 'Geist, sans-serif', ...(props.style || {}) }}
       {...props}
     />
   );
@@ -297,8 +299,10 @@ export function SidebarMenuSubButton({
         isActive
           ? "bg-accent text-accent-foreground font-medium"
           : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground",
-        className,
+        "text-[#F7F8F8] font-geist text-[14px] font-medium",
+        className
       )}
+      style={{ letterSpacing: '-0.28px', fontFamily: 'Geist, sans-serif', ...(props.style || {}) }}
       {...props}
     />
   );
