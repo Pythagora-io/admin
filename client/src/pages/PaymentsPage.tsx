@@ -314,7 +314,7 @@ export function PaymentsPage() {
                     <div className="min-w-[130px] w-[15%] text-right flex justify-end">
                       <Button
                         variant="ghost"
-                        className="rounded-lg h-9 px-3 text-xs font-medium flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        className="rounded-lg h-9 px-3 text-xs font-medium flex items-center gap-1 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         aria-label="Download PDF receipt"
                         tabIndex={0}
                         onClick={() => handleDownloadReceipt(payment.id)}

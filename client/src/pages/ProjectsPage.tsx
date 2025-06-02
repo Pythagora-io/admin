@@ -121,6 +121,8 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
 
   useEffect(() => {
     const fetchProjects = async () => {
+      setLoading(true); // Reset loading state when type changes
+      setProjects([]); // Clear projects immediately to prevent flash
       try {
         const response = await getUserProjects(type);
         setProjects(response.projects);
@@ -492,14 +494,6 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
     return `${diffInMonths} month${diffInMonths > 1 ? "s" : ""} ago`;
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-[calc(100vh-4rem)]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-start">
@@ -528,7 +522,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
             </>
           ) : (
             <>
-              {projects.length > 0 && (
+              {!loading && projects.length > 0 && (
                 <Button variant="ghost" onClick={handleSelectMode}>
                   Select
                 </Button>
@@ -540,7 +534,11 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {projects.length === 0 ? (
+        {loading ? (
+          <div className="flex justify-center items-center h-60">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          </div>
+        ) : projects.length === 0 ? (
           type === "drafts" ? (
             <div className="relative overflow-hidden transition-all h-60 w-[356px]">
               <div
@@ -550,9 +548,9 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
                     "url(\"data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='16' ry='16' stroke='rgba(247,248,252,0.15)' stroke-width='1' stroke-dasharray='11,11'/%3e%3c/svg%3e\")",
                 }}
               >
-                <div className="h-60 w-full bg-cover flex flex-col gap-4 items-center justify-center bg-muted/10 rounded-2xl">
+                <div className="h-60 w-full flex flex-col gap-4 items-center justify-center rounded-2xl">
                   <SquarePen className="h-5 w-5 text-foreground" />
-                  <p className="text-body-sm font-medium text-foreground/80 text-center max-w-xs px-4">
+                  <p className="text-body-sm font-medium text-foreground/80 text-center max-w-[176px]">
                     No projects yet. Start your first project to get going.
                   </p>
                   <Button
@@ -573,7 +571,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
                     "url(\"data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='16' ry='16' stroke='rgba(247,248,252,0.15)' stroke-width='1' stroke-dasharray='11,11'/%3e%3c/svg%3e\")",
                 }}
               >
-                <p className="text-body-md text-foreground/80 text-center">
+                <p className="text-body-md text-foreground/80 text-center max-w-[176px]">
                   Your deployed apps will appear here.
                 </p>
               </div>
@@ -623,7 +621,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
                         onCheckedChange={() =>
                           toggleProjectSelection(project._id)
                         }
-                        className="border border-2 border-checkbox-check bg-white data-[state=checked]:text-checkbox-check data-[state=checked]:bg-white size-5"
+                        className="border-2 border-checkbox-check bg-white data-[state=checked]:text-checkbox-check data-[state=checked]:bg-white size-5"
                       />
                     </div>
                   )}
@@ -636,13 +634,16 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-7 w-7 rounded-md bg-background/60 hover:bg-background/80 backdrop-blur-sm data-[state=open]:bg-background/90"
+                            className="h-7 w-7 rounded-md bg-background/80 hover:bg-background/80 backdrop-blur-sm data-[state=open]:bg-background/90"
                             onClick={(e) => e.stopPropagation()} // Prevent card click
                           >
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-[180px]">
+                        <DropdownMenuContent
+                          align="end"
+                          className="w-[180px] px-2 py-2.5 rounded-2xl"
+                        >
                           <DropdownMenuItem
                             className="group"
                             onClick={(e) => {
@@ -725,7 +726,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
                             }}
                           >
                             <Trash2 className="h-4 w-4 text-muted-foreground group-hover:text-accent-foreground group-focus:text-accent-foreground" />
-                            Delete
+                            Delete Project
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>

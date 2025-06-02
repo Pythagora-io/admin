@@ -267,7 +267,7 @@ export function DomainsPage() {
                 </div>
                 <div className="min-w-[100px] w-[20%]">
                   {domain.verified ? (
-                    <div className="inline-flex items-center justify-center px-2 py-1 rounded-lg bg-success text-success-foreground text-xs font-medium tracking-wide">
+                    <div className="inline-flex items-center justify-center px-2 py-1 rounded-lg bg-success text-warning-foreground text-xs font-medium tracking-wide">
                       Verified
                     </div>
                   ) : (

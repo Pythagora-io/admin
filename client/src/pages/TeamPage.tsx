@@ -399,9 +399,7 @@ export function TeamPage() {
       <div className="flex flex-col gap-5">
         <div className="flex justify-between items-center">
           <div className="space-y-1.5">
-            <h2 className="text-heading-3 font-normal text-foreground">
-              Team Members
-            </h2>
+            <h2 className="text-heading-3 text-foreground">Team Members</h2>
           </div>
         </div>
 
@@ -427,7 +425,7 @@ export function TeamPage() {
           ) : (
             <div>
               {/* Header Row */}
-              <div className="flex items-center py-3 border-border text-body-sm font-medium text-foreground/60">
+              <div className="flex items-center py-3 border-border text-body-sm font-medium text-foreground">
                 <div className="w-[45%]">Email</div>
                 <div className="w-[25%]">Role</div>
                 <div className="w-[25%]">Access</div>
@@ -438,31 +436,27 @@ export function TeamPage() {
                 {members.map((member) => (
                   <div
                     key={member._id}
-                    className="flex items-center py-3 border-t border-border text-caption-strong text-foreground"
+                    className="flex items-center py-3 border-t border-border text-caption-strong text-foreground/80"
                     tabIndex={0}
                   >
                     <div className="w-[45%]">{member.email}</div>
-                    <div className="w-[25%]">{member.role}</div>
+                    <div className="w-[25%] capitalize">{member.role}</div>
                     <div className="w-[25%]">
-                      <div className="flex items-center gap-2">
-                        <div
-                          className={`px-2 py-1 rounded text-caption-strong ${getRoleColor(member.role)}`}
-                        >
-                          {getRoleText(member.role)}
-                        </div>
+                      <div className="flex items-center">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6 p-0"
-                            >
-                              <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                            </Button>
+                            <div className="flex items-center cursor-pointer">
+                              <div
+                                className={`px-2 py-1 rounded-lg text-caption-strong flex items-center gap-1 ${getRoleColor(member.role)}`}
+                              >
+                                {getRoleText(member.role)}
+                                <ChevronDown className="h-4 w-4" />
+                              </div>
+                            </div>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent
                             align="end"
-                            className="min-w-[120px] p-1 space-y-0.5"
+                            className="min-w-[120px] p-2 rounded-lg space-y-1"
                           >
                             <DropdownMenuItem
                               className="bg-success text-warning-foreground focus:bg-success/90 focus:text-warning-foreground text-xs py-1 px-2 h-6"

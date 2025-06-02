@@ -93,7 +93,7 @@ interface PaymentMethod {
   };
 }
 
-const DISPLAY_TOTAL_TOKENS = 60000000;
+const DISPLAY_TOTAL_TOKENS = 600000;
 
 export function SubscriptionPage() {
   const [subscription, setSubscription] = useState<UserSubscription | null>(
@@ -539,11 +539,11 @@ export function SubscriptionPage() {
       )}
 
       <div className="flex flex-col gap-10">
-        <div className="flex flex-col space-y-3">
+        <div className="flex flex-col gap-5">
           <div className="flex items-center space-x-2">
             <h2 className="text-body-lg font-medium">Plan Summary</h2>
             <Badge
-              className={`${getPlanBadgeClass(subscription?.plan)} hover:opacity-90`}
+              className={`${getPlanBadgeClass(subscription?.plan)} hover:${getPlanBadgeClass(subscription?.plan)} font-medium rounded-lg`}
             >
               {subscription?.plan
                 ? `${subscription.plan} plan`
@@ -620,7 +620,7 @@ export function SubscriptionPage() {
             <Button
               variant="outline"
               onClick={() => setTopUpOpen(true)}
-              className="h-9 px-3 border border-foreground rounded-lg text-body-md text-foreground hover:bg-accent hover:text-accent-foreground items-center"
+              className="h-9 px-3 border border-foreground rounded-lg text-body-md text-foreground hover:text-accent-foreground items-center"
             >
               <Zap className="h-4 w-4 mr-2" />
               Top Up
@@ -636,8 +636,23 @@ export function SubscriptionPage() {
             </p>
           </div>
           <Progress
-            value={subscription && subscription.tokens > 0 ? 50 : 0}
-            className="h-2 bg-success/20 [&>div]:bg-success"
+            value={
+              subscription && subscription.tokens > 0
+                ? (subscription.tokens /
+                    Math.max(subscription.tokens, DISPLAY_TOTAL_TOKENS)) *
+                  100
+                : 0
+            }
+            className={`h-2 ${
+              subscription && subscription.tokens > 0
+                ? (subscription.tokens /
+                    Math.max(subscription.tokens, DISPLAY_TOTAL_TOKENS)) *
+                    100 >=
+                  50
+                  ? "bg-success/20 [&>div]:bg-success"
+                  : "bg-destructive/20 [&>div]:bg-destructive"
+                : "bg-destructive/20 [&>div]:bg-destructive"
+            }`}
           />
         </div>
       </div>
@@ -811,13 +826,13 @@ export function SubscriptionPage() {
             <AlertDialogTitle>
               {planToChange?.price === 0 &&
               (subscription ? subscription.amount > 0 : false)
-                ? "Downgrade to Free Plan"
+                ? "Switch to Free Plan?"
                 : `Upgrade to ${planToChange?.name} Plan`}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {planToChange?.price === 0 &&
               (subscription ? subscription.amount > 0 : false)
-                ? "Are you sure you want to downgrade to the Free plan? You'll lose access to premium features and your current token allocation."
+                ? `You will be switched to our Free plan on ${formatDate(subscription?.nextBillingDate)}. You’ll still be able to access your projects after that. If you change your mind, you can always renew your subscription.`
                 : `Are you sure you want to upgrade to the ${planToChange?.name} plan? Your billing cycle will update immediately.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -848,6 +863,12 @@ export function SubscriptionPage() {
               <AlertDialogAction
                 onClick={handlePlanChange}
                 disabled={processingPayment}
+                className={
+                  planToChange?.price === 0 &&
+                  (subscription ? subscription.amount > 0 : false)
+                    ? "bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    : ""
+                }
               >
                 {processingPayment ? "Processing..." : "Confirm"}
               </AlertDialogAction>
@@ -972,6 +993,7 @@ export function SubscriptionPage() {
                 placeholder="Please let us know why you're canceling..."
                 value={cancelReason}
                 onChange={(e) => setCancelReason(e.target.value)}
+                className="resize-none bg-card focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-border focus:outline-none"
               />
             </div>
           </div>
