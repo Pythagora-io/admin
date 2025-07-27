@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/useToast";
 import {
@@ -12,7 +11,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -23,18 +21,20 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
-  MoreHorizontal,
-  Edit,
-  Link2,
-  Copy,
-  FilePlus,
-  Trash,
-  ExternalLink,
-  Check,
+  MoreVertical,
   Users,
   Search,
   Upload,
+  SquarePen,
+  Settings2,
+  ArrowUpRightSquare,
+  Trash2,
+  Link,
+  Copy,
+  FileEdit,
+  CloudOff,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -60,14 +60,35 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useNavigate } from "react-router-dom";
 
 interface ProjectsPageProps {
   type?: "drafts" | "deployed";
 }
 
+interface Project {
+  _id: string;
+  title: string;
+  lastEdited: string;
+  visibility: "public" | "private";
+  thumbnail?: string;
+  // Add other relevant project fields here
+}
+
+interface UserAccessInfo {
+  _id: string;
+  name: string;
+  email: string;
+  access: "view" | "edit";
+}
+
+interface SearchedUser {
+  _id: string;
+  name: string;
+  email: string;
+}
+
 export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
-  const [projects, setProjects] = useState<any[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
   const [isSelecting, setIsSelecting] = useState(false);
@@ -85,28 +106,32 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
 
   // Manage access state
   const [accessManagementOpen, setAccessManagementOpen] = useState(false);
-  const [selectedProject, setSelectedProject] = useState<any>(null);
-  const [projectUsers, setProjectUsers] = useState<any[]>([]);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [projectUsers, setProjectUsers] = useState<UserAccessInfo[]>([]);
   const [userSearchQuery, setUserSearchQuery] = useState("");
-  const [userSearchResults, setUserSearchResults] = useState<any[]>([]);
+  const [userSearchResults, setUserSearchResults] = useState<SearchedUser[]>(
+    [],
+  );
   const [savingAccess, setSavingAccess] = useState(false);
 
   const { toast } = useToast();
-  const navigate = useNavigate();
 
   // Set page title based on type
-  const pageTitle = type === "drafts" ? "Draft Projects" : "Deployed Projects";
+  const pageTitle = type === "drafts" ? "Drafts" : "Deployed Projects";
 
   useEffect(() => {
     const fetchProjects = async () => {
+      setLoading(true); // Reset loading state when type changes
+      setProjects([]); // Clear projects immediately to prevent flash
       try {
         const response = await getUserProjects(type);
         setProjects(response.projects);
       } catch (error) {
         toast({
-          variant: "destructive",
+          variant: "error",
           title: "Error",
-          description: error.message || "Failed to fetch projects",
+          description:
+            error instanceof Error ? error.message : "Failed to fetch projects",
         });
       } finally {
         setLoading(false);
@@ -141,6 +166,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       );
 
       toast({
+        variant: "success",
         title: "Success",
         description: `Successfully deleted ${selectedProjects.length} project(s)`,
       });
@@ -150,9 +176,10 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       setDeleteConfirmOpen(false);
     } catch (error) {
       toast({
-        variant: "destructive",
+        variant: "error",
         title: "Error",
-        description: error.message || "Failed to delete projects",
+        description:
+          error instanceof Error ? error.message : "Failed to delete projects",
       });
     }
   };
@@ -165,11 +192,15 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
         visibility: "private",
       });
 
+      // Ensure response is used or handled if needed, e.g., for navigation or specific feedback
+      console.log("New project created:", response.project._id);
+
       // Refresh the projects list
       const updatedResponse = await getUserProjects(type);
       setProjects(updatedResponse.projects);
 
       toast({
+        variant: "success",
         title: "Success",
         description: "New project created successfully",
       });
@@ -178,9 +209,12 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       // navigate(`/editor/${response.project._id}`);
     } catch (error) {
       toast({
-        variant: "destructive",
+        variant: "error",
         title: "Error",
-        description: error.message || "Failed to create new project",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to create new project",
       });
     }
   };
@@ -204,6 +238,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       );
 
       toast({
+        variant: "success",
         title: "Success",
         description: response.message || "Project renamed successfully",
       });
@@ -213,9 +248,10 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       setNewProjectTitle("");
     } catch (error) {
       toast({
-        variant: "destructive",
+        variant: "error",
         title: "Error",
-        description: error.message || "Failed to rename project",
+        description:
+          error instanceof Error ? error.message : "Failed to rename project",
       });
     } finally {
       setIsRenaming(false);
@@ -230,6 +266,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       const response = await deployProject(projectToDeploy);
 
       toast({
+        variant: "success",
         title: "Success",
         description: response.message || "Project deployed successfully",
       });
@@ -245,16 +282,17 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       setProjectToDeploy(null);
     } catch (error) {
       toast({
-        variant: "destructive",
+        variant: "error",
         title: "Error",
-        description: error.message || "Failed to deploy project",
+        description:
+          error instanceof Error ? error.message : "Failed to deploy project",
       });
     } finally {
       setIsDeploying(false);
     }
   };
 
-  const openAccessManagement = async (project: any) => {
+  const openAccessManagement = async (project: Project) => {
     setSelectedProject(project);
     setAccessManagementOpen(true);
     setUserSearchQuery("");
@@ -265,9 +303,12 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       setProjectUsers(response.users);
     } catch (error) {
       toast({
-        variant: "destructive",
+        variant: "error",
         title: "Error",
-        description: error.message || "Failed to fetch project access",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch project access",
       });
     }
   };
@@ -285,18 +326,21 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       // Filter out users that are already in projectUsers
       const existingUserIds = projectUsers.map((p) => p._id);
       setUserSearchResults(
-        response.users.filter((user) => !existingUserIds.includes(user._id)),
+        (response as { users: SearchedUser[] }).users.filter(
+          (user) => !existingUserIds.includes(user._id),
+        ),
       );
     } catch (error) {
       toast({
-        variant: "destructive",
+        variant: "error",
         title: "Error",
-        description: error.message || "Failed to search users",
+        description:
+          error instanceof Error ? error.message : "Failed to search users",
       });
     }
   };
 
-  const addUserToProject = (user: any) => {
+  const addUserToProject = (user: SearchedUser) => {
     // Add user to projectUsers with 'view' access as default
     setProjectUsers([...projectUsers, { ...user, access: "view" }]);
     // Clear search results
@@ -325,15 +369,19 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
       await updateProjectAccess(selectedProject._id, { users: usersToUpdate });
 
       toast({
+        variant: "success",
         title: "Success",
         description: "Project access updated successfully",
       });
       setAccessManagementOpen(false);
     } catch (error) {
       toast({
-        variant: "destructive",
+        variant: "error",
         title: "Error",
-        description: error.message || "Failed to update project access",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to update project access",
       });
     } finally {
       setSavingAccess(false);
@@ -354,6 +402,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
           `${window.location.origin}/p/${projectId}`,
         );
         toast({
+          variant: "success",
           title: "Link Copied",
           description: "Project link copied to clipboard",
         });
@@ -373,6 +422,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
               setProjects(updatedResponse.projects);
 
               toast({
+                variant: "success",
                 title: "Success",
                 description:
                   response.message || "Project duplicated successfully",
@@ -381,9 +431,12 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
           })
           .catch((error) => {
             toast({
-              variant: "destructive",
+              variant: "error",
               title: "Error",
-              description: error.message || "Failed to duplicate project",
+              description:
+                error instanceof Error
+                  ? error.message
+                  : "Failed to duplicate project",
             });
           });
         break;
@@ -398,6 +451,7 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
         break;
       case "unpublish":
         toast({
+          variant: "success",
           title: "Feature Coming Soon",
           description: "Project unpublishing will be available shortly",
         });
@@ -440,20 +494,14 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
     return `${diffInMonths} month${diffInMonths > 1 ? "s" : ""} ago`;
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-[calc(100vh-4rem)]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold">{pageTitle}</h1>
-          <p className="text-muted-foreground">Manage your {type} projects</p>
+          <h1 className="text-2xl font-medium">{pageTitle}</h1>
+          <p className="text-body-sm text-muted-foreground">
+            Manage your {type} projects
+          </p>
         </div>
         <div className="flex gap-2">
           {isSelecting ? (
@@ -466,166 +514,236 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
                 disabled={selectedProjects.length === 0}
                 onClick={() => setDeleteConfirmOpen(true)}
               >
-                Delete ({selectedProjects.length})
+                Delete
+                {selectedProjects.length > 0
+                  ? ` (${selectedProjects.length})`
+                  : " checked"}
               </Button>
             </>
           ) : (
             <>
-              <Button variant="outline" onClick={handleSelectMode}>
-                Select
-              </Button>
-              <Button onClick={handleNewProject}>
-                <FilePlus className="mr-2 h-4 w-4" />
-                New Project
-              </Button>
+              {!loading && projects.length > 0 && (
+                <Button variant="ghost" onClick={handleSelectMode}>
+                  Select
+                </Button>
+              )}
+              <Button onClick={handleNewProject}>New Project</Button>
             </>
           )}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {projects.length === 0 ? (
-          <Card className="col-span-full">
-            <CardContent className="flex flex-col items-center justify-center py-10">
-              <FilePlus className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium">No projects yet</h3>
-              <p className="text-muted-foreground text-center mt-2 mb-4">
-                Create your first project to get started.
-              </p>
-              <Button onClick={handleNewProject}>
-                <FilePlus className="mr-2 h-4 w-4" />
-                Create Project
-              </Button>
-            </CardContent>
-          </Card>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        {loading ? (
+          <div className="flex justify-center items-center h-60">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          </div>
+        ) : projects.length === 0 ? (
+          type === "drafts" ? (
+            <div className="relative overflow-hidden transition-all h-60 w-[356px]">
+              <div
+                className="relative rounded-2xl"
+                style={{
+                  backgroundImage:
+                    "url(\"data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='16' ry='16' stroke='rgba(247,248,252,0.15)' stroke-width='1' stroke-dasharray='11,11'/%3e%3c/svg%3e\")",
+                }}
+              >
+                <div className="h-60 w-full flex flex-col gap-4 items-center justify-center rounded-2xl">
+                  <SquarePen className="h-5 w-5 text-foreground" />
+                  <p className="text-body-sm font-medium text-foreground/80 text-center max-w-[176px]">
+                    No projects yet. Start your first project to get going.
+                  </p>
+                  <Button
+                    onClick={handleNewProject}
+                    className="bg-primary text-primary-foreground text-caption-strong px-3 py-2 h-9 rounded-md"
+                  >
+                    New project
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="relative transition-all">
+              <div
+                className="relative rounded-2xl overflow-hidden h-60 w-[356px] flex flex-col items-center justify-center"
+                style={{
+                  backgroundImage:
+                    "url(\"data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='16' ry='16' stroke='rgba(247,248,252,0.15)' stroke-width='1' stroke-dasharray='11,11'/%3e%3c/svg%3e\")",
+                }}
+              >
+                <p className="text-body-md text-foreground/80 text-center max-w-[176px]">
+                  Your deployed apps will appear here.
+                </p>
+              </div>
+            </div>
+          )
         ) : (
           <>
             {projects.map((project) => (
-              <Card
+              <div
                 key={project._id}
-                className={`overflow-hidden transition-all ${
-                  isSelecting
-                    ? "ring-2 ring-offset-2 " +
-                      (selectedProjects.includes(project._id)
-                        ? "ring-primary"
-                        : "ring-transparent")
-                    : ""
+                className={`relative overflow-hidden transition-all ${
+                  isSelecting ? "cursor-pointer" : "cursor-pointer"
                 }`}
-                onClick={() =>
-                  isSelecting && toggleProjectSelection(project._id)
-                }
+                onClick={() => {
+                  if (isSelecting) {
+                    toggleProjectSelection(project._id);
+                  } else {
+                    // Default action for non-select mode, e.g., open project
+                    // window.open(`/editor/${project._id}`, "_blank");
+                  }
+                }}
               >
-                <div className="relative">
-                  <div className="absolute top-2 right-2 z-10">
-                    {!isSelecting && (
+                {/* Image Container */}
+                <div className="relative rounded-2xl overflow-hidden border border-border">
+                  {/* Thumbnail Image */}
+                  <div
+                    className="h-60 w-full bg-cover bg-center flex items-center justify-center"
+                    style={{
+                      backgroundImage: project.thumbnail
+                        ? `url(${project.thumbnail})`
+                        : "none",
+                    }}
+                  >
+                    {!project.thumbnail && (
+                      <Settings2 className="h-16 w-16 text-muted-foreground/30" />
+                    )}
+                  </div>
+
+                  {/* Checkbox for selection (only visible when isSelecting is true) */}
+                  {isSelecting && (
+                    <div
+                      className="absolute top-3 left-3 z-10"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Checkbox
+                        checked={selectedProjects.includes(project._id)}
+                        onCheckedChange={() =>
+                          toggleProjectSelection(project._id)
+                        }
+                        className="border-2 border-checkbox-check bg-white data-[state=checked]:text-checkbox-check data-[state=checked]:bg-white size-5"
+                      />
+                    </div>
+                  )}
+
+                  {/* More Options Button (three vertical dots) */}
+                  {!isSelecting && (
+                    <div className="absolute top-3 right-3 z-10">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="rounded-full bg-background/80 backdrop-blur-sm"
-                            onClick={(e) => e.stopPropagation()}
+                            className="h-7 w-7 rounded-md bg-background/80 hover:bg-background/80 backdrop-blur-sm data-[state=open]:bg-background/90"
+                            onClick={(e) => e.stopPropagation()} // Prevent card click
                           >
-                            <MoreHorizontal className="h-4 w-4" />
+                            <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-[180px]">
+                        <DropdownMenuContent
+                          align="end"
+                          className="w-[180px] px-2 py-2.5 rounded-2xl"
+                        >
                           <DropdownMenuItem
-                            onClick={() =>
-                              handleProjectAction("open", project._id)
-                            }
+                            className="group"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleProjectAction("open", project._id);
+                            }}
                           >
-                            <ExternalLink className="mr-2 h-4 w-4" />
+                            <ArrowUpRightSquare className="h-4 w-4 text-muted-foreground group-hover:text-accent-foreground group-focus:text-accent-foreground" />
                             Open
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() =>
-                              handleProjectAction("copy-link", project._id)
-                            }
+                            className="group"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleProjectAction("copy-link", project._id);
+                            }}
                           >
-                            <Link2 className="mr-2 h-4 w-4" />
+                            <Link className="h-4 w-4 text-muted-foreground group-hover:text-accent-foreground group-focus:text-accent-foreground" />
                             Copy Link
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() =>
-                              handleProjectAction("duplicate", project._id)
-                            }
+                            className="group"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleProjectAction("duplicate", project._id);
+                            }}
                           >
-                            <Copy className="mr-2 h-4 w-4" />
-                            Duplicate
+                            <Copy className="h-4 w-4 text-muted-foreground group-hover:text-accent-foreground group-focus:text-accent-foreground" />
+                            Duplicate Project
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() =>
-                              handleProjectAction("rename", project._id)
-                            }
+                            className="group"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleProjectAction("rename", project._id);
+                            }}
                           >
-                            <Edit className="mr-2 h-4 w-4" />
+                            <FileEdit className="h-4 w-4 text-muted-foreground group-hover:text-accent-foreground group-focus:text-accent-foreground" />
                             Rename
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="group"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleProjectAction("manage-access", project._id);
+                            }}
+                          >
+                            <Users className="h-4 w-4 text-muted-foreground group-hover:text-accent-foreground group-focus:text-accent-foreground" />
+                            Manage Access
                           </DropdownMenuItem>
                           {type === "drafts" && (
                             <DropdownMenuItem
-                              onClick={() =>
-                                handleProjectAction("deploy", project._id)
-                              }
+                              className="group"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleProjectAction("deploy", project._id);
+                              }}
                             >
-                              <Upload className="mr-2 h-4 w-4" />
+                              <Upload className="h-4 w-4 text-muted-foreground group-hover:text-accent-foreground group-focus:text-accent-foreground" />
                               Deploy
                             </DropdownMenuItem>
                           )}
                           {type === "deployed" && (
                             <DropdownMenuItem
-                              onClick={() =>
-                                handleProjectAction("unpublish", project._id)
-                              }
+                              className="group"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleProjectAction("unpublish", project._id);
+                              }}
                             >
-                              <ExternalLink className="mr-2 h-4 w-4" />
+                              <CloudOff className="h-4 w-4 text-muted-foreground group-hover:text-accent-foreground group-focus:text-accent-foreground" />
                               Unpublish
                             </DropdownMenuItem>
                           )}
                           <DropdownMenuItem
-                            onClick={() =>
-                              handleProjectAction("manage-access", project._id)
-                            }
+                            className="group"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleProjectAction("delete", project._id);
+                            }}
                           >
-                            <Users className="mr-2 h-4 w-4" />
-                            Manage Access
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="text-red-500 focus:text-red-500 focus:bg-red-50 dark:focus:bg-red-950/50"
-                            onClick={() =>
-                              handleProjectAction("delete", project._id)
-                            }
-                          >
-                            <Trash className="mr-2 h-4 w-4" />
-                            Delete
+                            <Trash2 className="h-4 w-4 text-muted-foreground group-hover:text-accent-foreground group-focus:text-accent-foreground" />
+                            Delete Project
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
-                    )}
-                  </div>
-                  <div
-                    className="h-36 bg-cover bg-center bg-gray-100 dark:bg-gray-800"
-                    style={{ backgroundImage: `url(${project.thumbnail})` }}
-                  />
-                </div>
-                <CardContent className="p-4">
-                  <div className="flex justify-between items-start gap-2">
-                    <div>
-                      <h3 className="font-medium">{project.title}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Edited {formatTimeAgo(project.lastEdited)}
-                      </p>
                     </div>
-                    <Badge
-                      variant={
-                        project.visibility === "private" ? "outline" : "default"
-                      }
-                    >
-                      {project.visibility === "private" ? "Private" : "Public"}
-                    </Badge>
-                  </div>
-                </CardContent>
-              </Card>
+                  )}
+                </div>
+
+                {/* Text Content Area */}
+                <div className="flex flex-col gap-0 px-4 pt-4">
+                  <h3 className="text-body-md truncate" title={project.title}>
+                    {project.title}
+                  </h3>
+                  <p className="text-xs text-foreground/80">
+                    Edited {formatTimeAgo(project.lastEdited)}
+                  </p>
+                </div>
+              </div>
             ))}
           </>
         )}
@@ -640,9 +758,11 @@ export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
             </AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete{" "}
-              {selectedProjects.length === 1
-                ? "this project"
-                : `these ${selectedProjects.length} projects`}
+              {selectedProjects.length === 0
+                ? "the selected projects"
+                : selectedProjects.length === 1
+                  ? "this project"
+                  : `these ${selectedProjects.length} projects`}
               ? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>

@@ -52,11 +52,9 @@ router.put("/:id/role", requireUser, async (req, res) => {
     const { role } = req.body;
 
     if (!role || !["admin", "developer", "viewer"].includes(role)) {
-      return res
-        .status(400)
-        .json({
-          error: "Valid role is required (admin, developer, or viewer)",
-        });
+      return res.status(400).json({
+        error: "Valid role is required (admin, developer, or viewer)",
+      });
     }
 
     const result = await TeamService.updateTeamMemberRole(memberId, role);

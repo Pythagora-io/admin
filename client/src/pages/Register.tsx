@@ -4,18 +4,14 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { AlertCircle, Eye, EyeOff } from "lucide-react";
 import { register as registerUser } from "@/api/auth";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/useToast";
+import { AuthLayout } from "@/components/AuthLayout";
+import { cn } from "@/lib/utils";
 
 const registerSchema = z
   .object({
@@ -38,6 +34,8 @@ export function Register() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const form = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
@@ -65,140 +63,208 @@ export function Register() {
         title: "Registration successful",
         description: "Your account has been created",
       });
-    } catch (error) {
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Registration failed",
-        description: error.message || "An error occurred during registration",
+        description:
+          error instanceof Error
+            ? error.message
+            : "An error occurred during registration",
       });
     } finally {
       setIsLoading(false);
     }
   }
 
-  return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center px-4">
-      {/* Background image with blur */}
-      <div
-        className="fixed inset-0 w-[95%] h-[95%] m-auto -z-10 bg-cover bg-center rounded-xl"
-        style={{
-          backgroundImage: "url('/images/abstract-bg.jpg')",
-          filter: "blur(8px)",
-          opacity: 0.15,
-        }}
-      ></div>
+  const togglePasswordVisibility = (field: "password" | "confirmPassword") => {
+    if (field === "password") {
+      setShowPassword(!showPassword);
+    } else {
+      setShowConfirmPassword(!showConfirmPassword);
+    }
+  };
 
-      <div className="w-full max-w-md space-y-8 mx-auto">
-        <div className="flex flex-col items-center text-center space-y-2">
-          <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/10">
-            <svg
-              viewBox="0 0 24 24"
-              className="h-6 w-6 text-primary"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2.00001 17.5228 6.47716 22 12 22Z"
-                fill="currentColor"
-                fillOpacity="0.2"
-              />
-              <path
-                d="M15.5 9C15.5 11.2091 13.7091 13 11.5 13H9V9C9 6.79086 10.7909 5 13 5C15.2091 5 15.5 6.79086 15.5 9Z"
-                fill="currentColor"
-              />
-              <path
-                d="M9 13H11.5C13.7091 13 15.5 14.7909 15.5 17C15.5 19.2091 13.2091 20 11 20C8.79086 20 9 18.2091 9 16V13Z"
-                fill="currentColor"
-              />
-            </svg>
-          </div>
-          <h1 className="text-2xl font-bold">Create an Account</h1>
-          <p className="text-muted-foreground">
-            Sign up to get started with Pythagora
+  return (
+    <AuthLayout>
+      <div>
+        <div className="flex flex-col items-center gap-2">
+          <h1 className="text-heading-3 font-medium">Create an Account</h1>
+          <p className="text-body-sm text-muted-foreground">
+            Already have an account?{" "}
+            <Link to="/login" className="text-foreground hover:underline">
+              Sign in
+            </Link>
           </p>
         </div>
 
-        <div className="bg-card border rounded-xl shadow-sm p-6">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter your name" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+        <div className="pt-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {/* <div className="space-y-2">
+              <Label htmlFor="name" className="text-body-sm">Name</Label>
+              <div className="relative">
+                <Input
+                  id="name"
+                  placeholder="Enter your name"
+                  className={cn(
+                    "bg-input placeholder:text-placeholder",
+                    form.formState.errors.name ? "border-destructive" : ""
+                  )}
+                  {...form.register("name", { required: "Name is required" })}
+                />
+                {form.formState.errors.name && (
+                  <div className="flex items-center gap-2 mt-2 text-destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <span className="text-caption-strong">{form.formState.errors.name.message}</span>
+                  </div>
                 )}
-              />
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter your email" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+              </div>
+            </div> */}
+
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-body-sm">
+                Your email
+              </Label>
+              <div className="relative">
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  className={cn(
+                    "bg-input placeholder:text-placeholder",
+                    form.formState.errors.email ? "border-destructive" : "",
+                  )}
+                  {...form.register("email", {
+                    required: "Email is required",
+                    pattern: {
+                      value: /\S+@\S+\.\S+/,
+                      message: "Email is not valid. Try again.",
+                    },
+                  })}
+                />
+                {form.formState.errors.email && (
+                  <div className="flex items-center gap-2 mt-2 text-destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <span className="text-caption-strong">
+                      {form.formState.errors.email.message}
+                    </span>
+                  </div>
                 )}
-              />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="Create a password"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-body-sm">
+                Password
+              </Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Create a password"
+                  className={cn(
+                    "bg-input placeholder:text-placeholder pr-10",
+                    form.formState.errors.password ? "border-destructive" : "",
+                  )}
+                  {...form.register("password", {
+                    required: "Password is required",
+                    minLength: {
+                      value: 6,
+                      message: "Password must be at least 6 characters long",
+                    },
+                  })}
+                />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  onClick={() => togglePasswordVisibility("password")}
+                  tabIndex={-1}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5 text-muted-foreground" />
+                  ) : (
+                    <Eye className="h-5 w-5 text-muted-foreground" />
+                  )}
+                </button>
+                {form.formState.errors.password && (
+                  <div className="flex items-center gap-2 mt-2 text-destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <span className="text-caption-strong">
+                      {form.formState.errors.password.message}
+                    </span>
+                  </div>
                 )}
-              />
-              <FormField
-                control={form.control}
-                name="confirmPassword"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Confirm Password</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="Confirm your password"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword" className="text-body-sm">
+                Confirm Password
+              </Label>
+              <div className="relative">
+                <Input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="Confirm your password"
+                  className={cn(
+                    "bg-input placeholder:text-placeholder pr-10",
+                    form.formState.errors.confirmPassword
+                      ? "border-destructive"
+                      : "",
+                  )}
+                  {...form.register("confirmPassword", {
+                    required: "Please confirm your password",
+                  })}
+                />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  onClick={() => togglePasswordVisibility("confirmPassword")}
+                  tabIndex={-1}
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-5 w-5 text-muted-foreground" />
+                  ) : (
+                    <Eye className="h-5 w-5 text-muted-foreground" />
+                  )}
+                </button>
+                {form.formState.errors.confirmPassword && (
+                  <div className="flex items-center gap-2 mt-2 text-destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <span className="text-caption-strong">
+                      {form.formState.errors.confirmPassword.message}
+                    </span>
+                  </div>
                 )}
-              />
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <Button
+                type="submit"
+                className="w-full font-medium text-body-md bg-primary-foreground text-[hsl(252,82%,6%)] hover:bg-primary-foreground"
+                disabled={isLoading}
+              >
                 {isLoading ? "Creating account..." : "Create Account"}
               </Button>
-            </form>
-          </Form>
-          <div className="mt-4 text-center text-sm">
-            <p>
-              Already have an account?{" "}
-              <Link
-                to="/login"
-                className="underline underline-offset-4 hover:text-primary"
-              >
-                Sign in
-              </Link>
-            </p>
-          </div>
+            </div>
+          </form>
+        </div>
+
+        <div className="pt-6 flex justify-center">
+          <p className="text-caption-strong text-muted-foreground text-center">
+            By continuing, you agree to Pythagora's{" "}
+            <a href="#" className="hover:underline">
+              Terms & Conditions
+            </a>{" "}
+            and{" "}
+            <a href="#" className="hover:underline">
+              Privacy Policy
+            </a>
+            .
+          </p>
         </div>
       </div>
-    </div>
+    </AuthLayout>
   );
 }

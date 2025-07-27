@@ -1,15 +1,6 @@
 import { useState, useEffect } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/useToast";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -42,11 +33,12 @@ export function SettingsPage() {
         setSettings(settingsData.settings);
         setOriginalSettings(settingsData.settings);
         setDescriptions(descriptionsData.descriptions);
-      } catch (error) {
+      } catch (error: unknown) {
         toast({
           variant: "destructive",
           title: "Error",
-          description: error.message || "Failed to fetch settings",
+          description:
+            error instanceof Error ? error.message : "Failed to fetch settings",
         });
       } finally {
         setLoading(false);
@@ -77,15 +69,17 @@ export function SettingsPage() {
       const response = await updateUserSettings({ settings });
       setOriginalSettings(response.settings);
       toast({
+        variant: "success",
         title: "Success",
         description: response.message || "Settings saved successfully",
       });
       setHasChanges(false);
-    } catch (error) {
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to save settings",
+        description:
+          error instanceof Error ? error.message : "Failed to save settings",
       });
     } finally {
       setSaving(false);
@@ -106,33 +100,46 @@ export function SettingsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Advanced Settings</h1>
-        <p className="text-muted-foreground">
+    <div className="flex flex-col gap-8">
+      {/* Header */}
+      <div className="flex flex-col gap-2">
+        <h1 className="text-heading-3">Settings</h1>
+        <p className="text-body-sm text-foreground/60">
           Customize your account preferences
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Settings</CardTitle>
-          <CardDescription>Configure your advanced preferences</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {Object.keys(settings).map((key) => (
-            <div
-              key={key}
-              className="flex items-start space-x-3 justify-between"
-            >
-              <div className="flex-1 space-y-1">
-                <Label
-                  htmlFor={key}
-                  className="text-base font-medium cursor-pointer"
+      {/* Action Buttons - Moved to top */}
+      <div className="flex justify-end gap-2">
+        <Button
+          variant="outline"
+          onClick={handleResetSettings}
+          disabled={!hasChanges || saving}
+          className="text-body-md px-4"
+        >
+          Cancel
+        </Button>
+        <Button
+          onClick={handleSaveSettings}
+          disabled={!hasChanges || saving}
+          className="text-body-md px-4"
+        >
+          {saving ? "Saving..." : "Save Changes"}
+        </Button>
+      </div>
+
+      {/* Settings List */}
+      <div className="flex flex-col">
+        {Object.keys(settings).map((key, index) => (
+          <div key={key}>
+            <div className="flex items-center justify-between py-4">
+              <div className="flex-1">
+                <p
+                  className={`text-body-md font-semibold  transition-all duration-300 ${settings[key] ? "text-foreground" : "text-foreground/60"}`}
                 >
                   {descriptions[key]?.title}
-                </Label>
-                <p className="text-sm text-muted-foreground">
+                </p>
+                <p className="text-body-sm text-foreground/60 mt-1">
                   {descriptions[key]?.description}
                 </p>
               </div>
@@ -140,24 +147,15 @@ export function SettingsPage() {
                 id={key}
                 checked={settings[key]}
                 onCheckedChange={() => handleToggle(key)}
+                className="data-[state=checked]:bg-success ml-4"
               />
             </div>
-          ))}
-        </CardContent>
-        <Separator />
-        <CardFooter className="p-6 justify-between">
-          <Button
-            variant="outline"
-            onClick={handleResetSettings}
-            disabled={!hasChanges || saving}
-          >
-            Reset
-          </Button>
-          <Button onClick={handleSaveSettings} disabled={!hasChanges || saving}>
-            {saving ? "Saving..." : "Save Changes"}
-          </Button>
-        </CardFooter>
-      </Card>
+            {index < Object.keys(settings).length - 1 && (
+              <Separator className="bg-foreground/10" />
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

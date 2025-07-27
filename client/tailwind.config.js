@@ -1,3 +1,5 @@
+const plugin = require("tailwindcss/plugin"); // Import plugin function
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: ["class"],
@@ -8,6 +10,7 @@ module.exports = {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        "2xl": "1rem", // Ensure 16px is available (already default for xl, adding 2xl for clarity)
       },
       colors: {
         background: "hsl(var(--background))",
@@ -40,9 +43,51 @@ module.exports = {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
         },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
+        },
+        developer: {
+          DEFAULT: "hsl(var(--developer))",
+          foreground: "hsl(var(--developer-foreground))",
+        },
+        // Plan-specific colors
+        "plan-starter": {
+          DEFAULT: "hsl(var(--plan-starter))",
+          foreground: "hsl(var(--warning-foreground))",
+        },
+        "plan-pro": {
+          DEFAULT: "hsl(var(--plan-pro))",
+          foreground: "hsl(var(--warning-foreground))",
+        },
+        "plan-premium": {
+          DEFAULT: "hsl(var(--plan-premium))",
+          foreground: "hsl(var(--warning-foreground))",
+        },
+        "plan-enterprise": {
+          DEFAULT: "hsl(var(--plan-enterprise))",
+          foreground: "hsl(var(--warning-foreground))",
+        },
+        "token-alert": {
+          DEFAULT: "hsl(var(--token-alert))",
+          background: "hsl(var(--token-alert-bg))",
+        },
+        "toast-success-text": "hsl(var(--toast-success-text))",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
+        placeholder: "hsl(var(--placeholder))", // Added placeholder color utility
+        "background-content-glassy": "hsl(var(--background-content-glassy))", // Added for main content
+        "window-blur": "var(--Window-blur, #111016CC)", // Exact background specification
+        "window-border": "#F7F8F81A", // Exact border specification
+        "frosted-black": "var(--Frosted-Black, rgba(24, 21, 35, 0.8))", // Content area background
+        "frosted-border": "rgba(247, 248, 248, 0.1)", // Content area border
+
+        // Preserving chart and sidebar from original config if they are used elsewhere
         chart: {
           1: "hsl(var(--chart-1))",
           2: "hsl(var(--chart-2))",
@@ -53,13 +98,84 @@ module.exports = {
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
-          primary: "hsl(var(--sidebar-primary))",
-          "primary-foreground": "hsl(var(--sidebar-primary-foreground))",
-          accent: "hsl(var(--sidebar-accent))",
-          "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
-          border: "hsl(var(--sidebar-border))",
-          ring: "hsl(var(--sidebar-ring))",
+          muted: {
+            DEFAULT: "hsl(var(--sidebar-muted-foreground))", // For inactive icons
+          },
+          active: {
+            DEFAULT: "hsl(var(--sidebar-active-background))",
+            foreground: "hsl(var(--sidebar-active-foreground))",
+          },
+          hover: {
+            DEFAULT: "hsl(var(--sidebar-hover-background))",
+          },
         },
+        highlight: "var(--highlight)",
+        // Checkbox color for selection
+        "checkbox-check": "hsl(var(--checkbox-check))",
+      },
+      fontFamily: {
+        geist: ['"Geist"', "sans-serif"],
+        "geist-mono": ['"Geist Mono"', "monospace"],
+        sans: ['"Geist"', "sans-serif"], // Setting Geist as default sans-serif
+      },
+      fontSize: {
+        // Figma: 76px, 500, -1% letter spacing
+        "display-1": [
+          "4.75rem",
+          { letterSpacing: "-0.01em", fontWeight: "500" },
+        ],
+        // Figma: 64px, 500, -2% letter spacing
+        "display-2": ["4rem", { letterSpacing: "-0.02em", fontWeight: "500" }],
+        // Figma: 48px, 500, -2% letter spacing
+        "heading-1": ["3rem", { letterSpacing: "-0.02em", fontWeight: "500" }],
+        // Figma: 36px, 500, -2% letter spacing
+        "heading-2": [
+          "2.25rem",
+          { letterSpacing: "-0.02em", fontWeight: "500" },
+        ],
+        // Figma: 24px, 500, -2% letter spacing
+        "heading-3": [
+          "1.5rem",
+          { letterSpacing: "-0.02em", fontWeight: "500" },
+        ],
+        // Figma: 20px, 500, -2% letter spacing
+        subheading: [
+          "1.25rem",
+          { letterSpacing: "-0.02em", fontWeight: "500" },
+        ],
+        // Figma: 16px, 400, 0% letter spacing
+        "body-lg": ["1rem", { letterSpacing: "0em", fontWeight: "400" }],
+        // Figma: 16px, 500, 0% letter spacing - NEW
+        "body-lg-medium": ["1rem", { letterSpacing: "0em", fontWeight: "500" }],
+        // Figma: 14px, 500, -2% letter spacing (Button Text)
+        "body-md": [
+          "0.875rem",
+          { letterSpacing: "-0.02em", fontWeight: "500" },
+        ],
+        // Figma: 14px, 400, -2% letter spacing (Regular Body/Small)
+        "body-sm": [
+          "0.875rem",
+          { letterSpacing: "-0.02em", fontWeight: "400" },
+        ],
+        // Figma: 14px, 400, 0% letter spacing (Mono)
+        code: [
+          "0.875rem",
+          {
+            letterSpacing: "0em",
+            fontWeight: "400",
+            fontFamily: '"Geist Mono", monospace',
+          },
+        ],
+        // Figma: 12px, 400, 0% letter spacing
+        caption: ["0.75rem", { letterSpacing: "0em", fontWeight: "400" }],
+        // Figma: 12px, 500, 0% letter spacing
+        "caption-strong": [
+          "0.75rem",
+          { letterSpacing: "0em", fontWeight: "500" },
+        ],
+      },
+      backdropBlur: {
+        lg: "32px",
       },
       keyframes: {
         "accordion-down": {

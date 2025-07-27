@@ -35,11 +35,9 @@ router.post("/", requireUser, async (req, res) => {
     // Basic domain format validation
     const domainRegex = /^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$/;
     if (!domainRegex.test(domain.toLowerCase())) {
-      return res
-        .status(400)
-        .json({
-          error: "Please enter a valid domain name (e.g., example.com)",
-        });
+      return res.status(400).json({
+        error: "Please enter a valid domain name (e.g., example.com)",
+      });
     }
 
     const newDomain = await DomainService.addDomain(req.user._id, domain);

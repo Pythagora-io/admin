@@ -96,12 +96,8 @@ export function Sidebar({
   return (
     <aside
       className={cn(
-        "h-screen flex-shrink-0 flex flex-col overflow-hidden z-20 bg-background transition-all duration-300 ease-in-out",
-        isOpen
-          ? "w-80 translate-x-0"
-          : isMobile
-            ? "-translate-x-full w-80"
-            : "w-20 translate-x-0",
+        "h-screen flex-shrink-0 flex flex-col overflow-hidden z-20 bg-sidebar text-sidebar-foreground transition-all duration-300 ease-in-out",
+        isOpen ? "md:w-48" : isMobile ? "-translate-x-full w-64" : "md:w-16",
         className,
       )}
       {...props}
@@ -187,37 +183,42 @@ interface SidebarMenuItemProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export function SidebarMenuItem({ className, ...props }: SidebarMenuItemProps) {
-  return <div className={cn("py-1", className)} {...props} />;
+  return <div className={cn("py-0", className)} {...props} />;
 }
 
 interface SidebarMenuButtonProps
-  extends React.HTMLAttributes<HTMLButtonElement> {
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   isActive?: boolean;
   tooltip?: string;
   className?: string;
+  children?: React.ReactNode;
 }
 
 export function SidebarMenuButton({
   isActive = false,
   tooltip,
   className,
+  children,
   ...props
 }: SidebarMenuButtonProps) {
   const { isOpen } = useSidebar();
 
   return (
     <button
-      data-tooltip-content={tooltip}
-      data-tooltip-id="sidebar-tooltip"
+      data-tooltip-id={tooltip && !isOpen ? "sidebar-tooltip" : undefined}
+      data-tooltip-content={tooltip && !isOpen ? tooltip : undefined}
       className={cn(
-        "relative group flex items-center rounded-md p-2 w-full transition-colors",
+        "relative group flex items-center rounded-md px-4 py-2 w-full transition-colors",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         isActive
-          ? "bg-accent text-accent-foreground font-medium"
-          : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground",
+          ? "bg-sidebar-active text-sidebar-active-foreground font-medium"
+          : "hover:bg-sidebar-hover text-sidebar-foreground",
         className,
       )}
       {...props}
-    />
+    >
+      {children}
+    </button>
   );
 }
 
@@ -252,7 +253,8 @@ export function SidebarMenuAction({
   return (
     <button
       className={cn(
-        "ml-auto rounded-lg p-1 text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+        "group flex items-center rounded-md p-2 w-full transition-colors",
+        "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
         className,
       )}
       {...props}
@@ -265,7 +267,7 @@ interface SidebarMenuSubProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export function SidebarMenuSub({ className, ...props }: SidebarMenuSubProps) {
-  return <div className={cn("pl-8 mt-2", className)} {...props} />;
+  return <div className={cn("mt-0", className)} {...props} />;
 }
 
 interface SidebarMenuSubItemProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -276,31 +278,35 @@ export function SidebarMenuSubItem({
   className,
   ...props
 }: SidebarMenuSubItemProps) {
-  return <div className={cn("py-1", className)} {...props} />;
+  return <div className={cn("py-0", className)} {...props} />;
 }
 
 interface SidebarMenuSubButtonProps
   extends React.HTMLAttributes<HTMLButtonElement> {
   isActive?: boolean;
   className?: string;
+  children?: React.ReactNode;
 }
 
 export function SidebarMenuSubButton({
   isActive = false,
   className,
+  children,
   ...props
 }: SidebarMenuSubButtonProps) {
   return (
     <button
       className={cn(
-        "relative group flex items-center rounded-md p-1.5 text-sm w-full transition-colors",
+        "group flex items-center rounded-md pl-8 pr-4 py-2 w-full transition-colors text-sm",
         isActive
-          ? "bg-accent text-accent-foreground font-medium"
-          : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground",
+          ? "text-primary font-medium"
+          : "text-muted-foreground hover:text-accent-foreground",
         className,
       )}
       {...props}
-    />
+    >
+      {children}
+    </button>
   );
 }
 
@@ -309,13 +315,12 @@ interface SidebarInsetProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export function SidebarInset({ className, ...props }: SidebarInsetProps) {
-  const { isOpen, isMobile } = useSidebar();
-
+  const { isOpen } = useSidebar();
   return (
     <div
       className={cn(
-        "flex-1 overflow-auto",
-        isOpen && isMobile ? "ml-0" : !isOpen && !isMobile ? "ml-20" : "ml-0",
+        "transition-all duration-300 ease-in-out",
+        isOpen ? "pl-8" : "pl-0 w-full flex justify-center",
         className,
       )}
       {...props}
@@ -332,7 +337,7 @@ export function SidebarInput({ className, ...props }: SidebarInputProps) {
   return (
     <input
       className={cn(
-        "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
+        "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
         className,
       )}
       {...props}
@@ -342,9 +347,13 @@ export function SidebarInput({ className, ...props }: SidebarInputProps) {
 
 export function SidebarMenuSkeleton() {
   return (
-    <div className="flex items-center space-x-2 py-1">
-      <div className="h-4 w-4 rounded-full bg-muted" />
-      <div className="h-4 w-24 rounded bg-muted" />
+    <div className="space-y-2 py-2">
+      {[...Array(3)].map((_, i) => (
+        <div
+          key={i}
+          className="h-10 w-full rounded-md bg-muted animate-pulse"
+        />
+      ))}
     </div>
   );
 }
@@ -353,10 +362,12 @@ export function SidebarGroupLabel({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
+  const { isOpen } = useSidebar();
   return (
     <div
       className={cn(
-        "px-2 pt-4 pb-1 text-xs font-medium text-muted-foreground",
+        "px-2 py-1 text-xs font-medium text-muted-foreground transition-opacity duration-300",
+        !isOpen && "opacity-0 w-0 h-0 overflow-hidden",
         className,
       )}
       {...props}
@@ -368,24 +379,26 @@ export function SidebarGroup({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("", className)} {...props} />;
+  return <div className={cn("py-2", className)} {...props} />;
 }
 
 export function SidebarGroupContent({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("", className)} {...props} />;
+  return <div className={cn("space-y-1", className)} {...props} />;
 }
 
 export function SidebarGroupAction({
   className,
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  const { isOpen } = useSidebar();
   return (
     <button
       className={cn(
-        "ml-auto rounded-lg p-1 text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+        "p-1 rounded-md text-muted-foreground hover:text-accent-foreground transition-opacity duration-300",
+        !isOpen && "opacity-0 w-0 h-0 pointer-events-none",
         className,
       )}
       {...props}
@@ -398,6 +411,6 @@ export function SidebarSeparator({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={cn("mx-3 my-2 h-px bg-border", className)} {...props} />
+    <div className={cn("-mx-2 my-2 h-px bg-border", className)} {...props} />
   );
 }
