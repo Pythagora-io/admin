@@ -13,12 +13,14 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/useToast";
 import { Download, FileText } from "lucide-react";
 import {
-  getPaymentHistory,
   getBillingInfo,
   getCompanyBillingInfo,
+  generateInvoice,
 } from "@/api/payments";
 import { updateBillingInfo } from "@/api/user";
 import { Separator } from "@/components/ui/separator";
+import { getCustomerProfile } from "@/api/subscription";
+import SpinnerShape from "@/components/SpinnerShape";
 
 // Interface Definitions
 interface Payment {
@@ -42,8 +44,49 @@ interface CompanyInfo extends BillingInfo {
   taxId?: string; // taxId is optional as per current usage
 }
 
+interface PrepaidPayment {
+  id: string;
+  customerId: string;
+  createdAt: string;
+  stripeData?: {
+    amount: number;
+    currency: string;
+    status: string;
+    created: number;
+    description?: string;
+    receipt_email?: string;
+    payment_method_types: string[];
+  };
+}
+
+interface SubscriptionHistory {
+  id: string;
+  customerId: string;
+  createdAt: string | { $date: string };
+  planType: string;
+  stripeData?: {
+    status: string;
+    current_period_start: number;
+    current_period_end: number;
+    cancel_at_period_end: boolean;
+    canceled_at?: number;
+    items: Array<{
+      price: {
+        unit_amount: number;
+        currency: string;
+        recurring: {
+          interval: string;
+          interval_count: number;
+        };
+      };
+      product: string;
+    }>;
+  };
+}
+
 export function PaymentsPage() {
   const [payments, setPayments] = useState<Payment[]>([]);
+  const [subscriptionsHistory, setSubscriptionsHistory] = useState<SubscriptionHistory[]>([]);
   const [billingInfo, setBillingInfo] = useState<BillingInfo>({
     name: "",
     address: "",
@@ -53,12 +96,12 @@ export function PaymentsPage() {
     country: "",
   });
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo>({
-    name: "",
-    address: "",
-    city: "",
-    state: "",
-    zip: "",
-    country: "",
+    name: "Pythagora AI Inc.",
+    address: "548 Market St.",
+    city: "San Francisco",
+    state: "CA",
+    zip: "94104",
+    country: "USA",
     taxId: "",
   });
   const [loading, setLoading] = useState(true);
@@ -73,37 +116,133 @@ export function PaymentsPage() {
   });
   const { toast } = useToast();
 
+  const transformPrepaidPaymentsToPayments = (prepaidPayments: PrepaidPayment[]): Payment[] => {
+    return prepaidPayments
+      .filter(payment => payment.stripeData) // Only include payments with stripe data
+      .map(payment => ({
+        id: payment.id,
+        date: payment.createdAt,
+        description: payment.stripeData?.description || `Payment via ${payment.stripeData?.payment_method_types?.[0] || 'card'}`,
+        amount: payment.stripeData?.amount || 0, // Amount is already in dollars, don't divide by 100
+        currency: (payment.stripeData?.currency || 'usd').toUpperCase(),
+      }));
+  };
+
+  // Filter unique subscriptions by ID
+  const getUniqueSubscriptions = (subscriptions?: Array<any>) => {
+    if (!subscriptions) return [];
+
+    const uniqueSubscriptions = subscriptions.filter((subscription, index, self) =>
+      index === self.findIndex(s => s.id === subscription.id)
+    );
+
+    return uniqueSubscriptions;
+  };
+
+  const formatDate = (dateInput?: string | { $date: string }) => {
+    if (!dateInput) return "-";
+    try {
+      let dateString: string;
+      if (typeof dateInput === 'object' && dateInput.$date) {
+        dateString = dateInput.$date;
+      } else if (typeof dateInput === 'string') {
+        dateString = dateInput;
+      } else {
+        return "-";
+      }
+
+      return new Date(dateString).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    } catch {
+      return "-";
+    }
+  };
+
+  const formatCurrency = (amount?: number, currency?: string) => {
+    if (typeof amount !== 'number') return "-";
+    // Convert from cents to dollars for Stripe amounts
+    const dollars = amount / 100;
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: currency?.toUpperCase() || "USD",
+    }).format(dollars);
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [paymentsData, billingData, companyData] = await Promise.all([
-          getPaymentHistory(),
-          getBillingInfo(),
-          getCompanyBillingInfo(),
-        ]);
+        console.log("PaymentsPage: Fetching customer profile data...");
 
-        console.log("Payments data:", paymentsData);
-        console.log("Billing data:", billingData);
-        console.log("Company data:", companyData);
+        // Only call getCustomerProfile - all data comes from here
+        const customerProfileData = await getCustomerProfile();
 
-        setPayments((paymentsData.payments || []) as Payment[]);
+        console.log("PaymentsPage: Customer profile data:", customerProfileData);
 
-        if (billingData && billingData.billingInfo) {
-          setBillingInfo(billingData.billingInfo as BillingInfo);
-          setFormBillingInfo(billingData.billingInfo as BillingInfo);
+        // Transform prepaid payments history to payments format
+        if (customerProfileData?.customer?.prepaidPaymentsHistory) {
+          const transformedPayments = transformPrepaidPaymentsToPayments(
+            customerProfileData.customer.prepaidPaymentsHistory
+          );
+          console.log("PaymentsPage: Transformed payments:", transformedPayments);
+          setPayments(transformedPayments);
+        } else {
+          console.log("PaymentsPage: No prepaid payments history found");
+          setPayments([]);
         }
 
-        if (companyData && companyData.companyInfo) {
-          setCompanyInfo(companyData.companyInfo as CompanyInfo);
+        // Set subscriptions history
+        if (customerProfileData?.customer?.subscriptionsHistory) {
+          const uniqueSubscriptions = getUniqueSubscriptions(customerProfileData.customer.subscriptionsHistory);
+          console.log("PaymentsPage: Unique subscriptions history:", uniqueSubscriptions);
+          setSubscriptionsHistory(uniqueSubscriptions);
+        } else {
+          console.log("PaymentsPage: No subscriptions history found");
+          setSubscriptionsHistory([]);
         }
+
+        // Handle billing info from customer profile or use empty values
+        let finalBillingInfo = {
+          name: "",
+          address: "",
+          city: "",
+          state: "",
+          zip: "",
+          country: "",
+        };
+
+        if (customerProfileData?.customer?.billingAddress) {
+          // If billing address exists in customer profile, use it
+          const billingAddress = customerProfileData.customer.billingAddress;
+          finalBillingInfo = {
+            name: billingAddress.name || "",
+            address: billingAddress.address || "",
+            city: billingAddress.city || "",
+            state: billingAddress.state || "",
+            zip: billingAddress.zip || "",
+            country: billingAddress.country || "",
+          };
+          console.log("PaymentsPage: Using billing info from customer profile");
+        } else {
+          console.log("PaymentsPage: No billing address in customer profile, using empty values");
+        }
+
+        setBillingInfo(finalBillingInfo);
+        setFormBillingInfo(finalBillingInfo);
+
+        // Company info is static/hardcoded
+        console.log("PaymentsPage: Using static company info");
+
       } catch (error: unknown) {
-        console.error("Error fetching data:", error);
+        console.error("PaymentsPage: Error fetching data:", error);
         const errorMessage =
           error instanceof Error
             ? error.message
             : "Failed to fetch payment data";
         toast({
-          variant: "error",
+          variant: "destructive",
           title: "Error",
           description: errorMessage,
         });
@@ -115,13 +254,60 @@ export function PaymentsPage() {
     fetchData();
   }, [toast]);
 
-  const handleDownloadReceipt = (paymentId: string) => {
-    console.log("Attempting to download receipt for payment ID:", paymentId);
-    toast({
-      variant: "success",
-      title: "Download Started",
-      description: "Your receipt is being generated and will download shortly.",
-    });
+  const handleDownloadReceipt = async (paymentId: string) => {
+    try {
+      console.log("PaymentsPage: Generating invoice for payment ID:", paymentId);
+
+      const response = await generateInvoice('payment', paymentId);
+
+      if (response.success && response.url) {
+        // Open the invoice URL in a new window/tab
+        window.open(response.url, '_blank');
+        toast({
+          variant: "default",
+          title: "Invoice Generated",
+          description: "Your invoice has been generated and opened in a new tab.",
+        });
+      } else {
+        throw new Error('Invalid response from server');
+      }
+    } catch (error: unknown) {
+      console.error("PaymentsPage: Error generating invoice:", error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to generate invoice";
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: errorMessage,
+      });
+    }
+  };
+
+  const handleDownloadSubscriptionInvoice = async (subscriptionId: string) => {
+    try {
+      console.log("PaymentsPage: Generating invoice for subscription ID:", subscriptionId);
+
+      const response = await generateInvoice('subscription', subscriptionId);
+
+      if (response.success && response.url) {
+        // Open the invoice URL in a new window/tab
+        window.open(response.url, '_blank');
+        toast({
+          variant: "default",
+          title: "Invoice Generated",
+          description: "Your subscription invoice has been generated and opened in a new tab.",
+        });
+      } else {
+        throw new Error('Invalid response from server');
+      }
+    } catch (error: unknown) {
+      console.error("PaymentsPage: Error generating invoice:", error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to generate invoice";
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: errorMessage,
+      });
+    }
   };
 
   const handleUpdateBillingInfo = async () => {
@@ -139,7 +325,7 @@ export function PaymentsPage() {
 
     if (missingFields.length > 0) {
       toast({
-        variant: "error",
+        variant: "destructive",
         title: "Error",
         description: `Please fill in all required fields: ${missingFields.join(", ")}`,
       });
@@ -147,24 +333,24 @@ export function PaymentsPage() {
     }
 
     try {
-      const response = await updateBillingInfo({
-        billingInfo: formBillingInfo,
-      });
-      setBillingInfo(response.billingInfo as BillingInfo);
+      console.log("PaymentsPage: Updating billing information:", formBillingInfo);
+      // Note: This would need to be implemented via Pythagora API
+      // For now, just update local state and show success
+      setBillingInfo(formBillingInfo);
       toast({
-        variant: "success",
+        variant: "default",
         title: "Success",
-        description:
-          response.message || "Billing information updated successfully",
+        description: "Billing information updated successfully",
       });
       setEditBillingOpen(false);
     } catch (error: unknown) {
+      console.error("PaymentsPage: Error updating billing info:", error);
       const errorMessage =
         error instanceof Error
           ? error.message
           : "Failed to update billing information";
       toast({
-        variant: "error",
+        variant: "destructive",
         title: "Error",
         description: errorMessage,
       });
@@ -182,25 +368,10 @@ export function PaymentsPage() {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-[calc(100vh-4rem)]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <SpinnerShape className="w-12 h-12" />
       </div>
     );
   }
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
-
-  const formatCurrency = (amount: number, currency: string = "USD") => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: currency,
-    }).format(amount);
-  };
 
   return (
     <div className="mx-auto flex flex-col gap-14 text-foreground">
@@ -212,8 +383,8 @@ export function PaymentsPage() {
       </div>
 
       <div className="flex flex-col gap-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Your Billing Information Section */}
+        {/* Your Billing Information Section */}
+        {/*<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="flex flex-col space-y-5">
             <div className="space-y-1.5">
               <h2 className="text-body-lg font-normal text-foreground">
@@ -224,13 +395,13 @@ export function PaymentsPage() {
               </p>
             </div>
             <div className="space-y-1 text-body-md text-foreground">
-              <p className="font-medium">{billingInfo.name || "N/A"}</p>
-              <p>{billingInfo.address || "-"}</p>
+              <p className="font-medium">{billingInfo.name || "Not provided"}</p>
+              <p>{billingInfo.address || "Not provided"}</p>
               <p>
-                {billingInfo.city || "-"}, {billingInfo.state || "-"}{" "}
-                {billingInfo.zip || "-"}
+                {billingInfo.city || "Not provided"}, {billingInfo.state || "Not provided"}{" "}
+                {billingInfo.zip || "Not provided"}
               </p>
-              <p>{billingInfo.country || "-"}</p>
+              <p>{billingInfo.country || "Not provided"}</p>
             </div>
             <div>
               <Button
@@ -240,9 +411,10 @@ export function PaymentsPage() {
                 Edit
               </Button>
             </div>
-          </div>
+          </div>*/}
 
           {/* Pythagora Billing Information Section */}
+          {/*
           <div className="flex flex-col space-y-5">
             <div className="space-y-1.5">
               <h2 className="text-body-lg font-normal text-foreground">
@@ -254,17 +426,17 @@ export function PaymentsPage() {
             </div>
             <div className="space-y-1 text-body-md text-foreground">
               <p className="font-medium">
-                {companyInfo.name || "Pythagora AI Inc."}
+                {companyInfo.name}
               </p>
-              <p>{companyInfo.address || "548 Market St."}</p>
+              <p>{companyInfo.address}</p>
               <p>
-                {companyInfo.city || "San Francisco"},{" "}
-                {companyInfo.state || "CA"} {companyInfo.zip || "94104"}
+                {companyInfo.city}, {companyInfo.state} {companyInfo.zip}
               </p>
-              <p>{companyInfo.country || "USA"}</p>
+              <p>{companyInfo.country}</p>
             </div>
           </div>
-        </div>
+        </div>*
+        */}
 
         <Separator className="bg-border" />
 
@@ -276,11 +448,11 @@ export function PaymentsPage() {
             </h2>
             {payments.length === 0 ? (
               <p className="text-body-sm text-foreground/60">
-                No invoices available.
+                No payment history available.
               </p>
             ) : (
               <p className="text-body-sm text-foreground/60">
-                View and download receipts for your payments
+                View and download invoices for your payments
               </p>
             )}
           </div>
@@ -314,8 +486,8 @@ export function PaymentsPage() {
                     <div className="min-w-[130px] w-[15%] text-right flex justify-end">
                       <Button
                         variant="ghost"
-                        className="rounded-lg h-9 px-3 text-xs font-medium flex items-center gap-1 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                        aria-label="Download PDF receipt"
+                        className="rounded-lg h-9 px-3 text-xs font-medium flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        aria-label="Download invoice"
                         tabIndex={0}
                         onClick={() => handleDownloadReceipt(payment.id)}
                         onKeyDown={(e) => {
@@ -323,13 +495,69 @@ export function PaymentsPage() {
                             handleDownloadReceipt(payment.id);
                         }}
                       >
-                        <Download className="h-4 w-4 mr-1" aria-hidden="true" />
-                        Download pdf
+                        <FileText className="h-4 w-4 mr-1" aria-hidden="true" />
+                        Get Invoice
                       </Button>
                     </div>
                   </div>
                 ))}
               </div>
+            )}
+          </div>
+        </div>
+
+        <Separator className="bg-border" />
+
+        {/* Subscription History Section */}
+        <div className="flex flex-col space-y-5">
+          <div className="space-y-1.5">
+            <h2 className="text-body-lg font-normal text-foreground">
+              Subscription History
+            </h2>
+            {subscriptionsHistory.length === 0 ? (
+              <p className="text-body-sm text-foreground/60">
+                No subscription history available.
+              </p>
+            ) : (
+              <p className="text-body-sm text-foreground/60">
+                View and download invoices for your subscriptions
+              </p>
+            )}
+          </div>
+          <div className="space-y-2">
+            {subscriptionsHistory.length > 0 ? (
+              subscriptionsHistory.map((sub, index) => (
+                <div key={sub.id} className="flex justify-between items-center py-2 px-3 bg-muted/30 rounded-lg">
+                  <div>
+                    <p className="text-sm font-medium">Plan: {sub.planType}</p>
+                    <p className="text-xs text-muted-foreground">Subscription ID: {sub.id}</p>
+                    {sub.stripeData && (
+                      <p className="text-xs text-muted-foreground">
+                        Status: {sub.stripeData.status}
+                        {sub.stripeData.items?.[0]?.price && (
+                          <span className="ml-2">
+                            • {formatCurrency(sub.stripeData.items[0].price.unit_amount, sub.stripeData.items[0].price.currency)}/{sub.stripeData.items[0].price.recurring?.interval}
+                          </span>
+                        )}
+                      </p>
+                    )}
+                  </div>
+                  <div className="text-right flex flex-col gap-2">
+                    <p className="text-sm">{formatDate(sub.createdAt)}</p>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 px-2 text-xs"
+                      onClick={() => handleDownloadSubscriptionInvoice(sub.id)}
+                    >
+                      <FileText className="h-3 w-3 mr-1" />
+                      Get Invoice
+                    </Button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-muted-foreground">No subscription history available</p>
             )}
           </div>
         </div>

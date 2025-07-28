@@ -137,3 +137,27 @@
     transition: background-color 5000s ease-in-out 0s !important;
   }
 }
+
+@layer base {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #fbbf24 #1f2937;
+  }
+
+  *::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: #1f2937;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: #fbbf24;
+    border-radius: 4px;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: #f59e0b;
+  }
+}

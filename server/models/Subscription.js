@@ -3,8 +3,7 @@ const mongoose = require("mongoose");
 const subscriptionSchema = new mongoose.Schema(
   {
     userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      type: String, // Changed from ObjectId to String since we're using Pythagora user IDs
       required: true,
       index: true,
     },

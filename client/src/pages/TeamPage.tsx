@@ -25,14 +25,18 @@ import {
   MoreVertical,
 } from "lucide-react";
 import {
-  getTeamMembers,
-  inviteTeamMember,
-  removeTeamMember,
-  updateTeamMemberRole,
-  getMemberAccess,
-  updateMemberAccess,
-  searchProjects,
-} from "@/api/team";
+  getOrganization,
+  getOrganizationMembers,
+  getOrganizationApps,
+  inviteOrganizationMember,
+  removeOrganizationMember,
+  updateOrganizationMemberRole,
+  getMemberAppAccess,
+  updateMemberAppAccess,
+  searchOrganizationApps,
+  getUserMemberships,
+} from "@/api/organizations";
+import { getCurrentUser } from "@/api/user";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,71 +47,139 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import SpinnerShape from "@/components/SpinnerShape";
 
 // Define interfaces
-interface Project {
+interface App {
   _id: string;
   name: string;
-  access: "view" | "edit";
+  permissions: string[];
 }
 
-interface TeamMember {
+interface OrganizationMember {
+  userId: string;
+  email: string;
+  fullName: string;
+  username: string;
+  role: "owner" | "admin" | "member";
+  status: string;
+  orgPermissions: {
+    canManageUsers: boolean;
+    canManageApps: boolean;
+    canViewAuditLogs: boolean;
+  };
+  appPermissions: Record<string, string[]>;
+  joinedAt: string;
+  lastActiveAt: string;
+  isOwner: boolean;
+}
+
+interface Organization {
   _id: string;
   name: string;
-  email: string;
-  role: "admin" | "developer" | "viewer";
+  slug: string;
+  ownerId: string;
 }
+
+console.log('TeamPage.tsx: Starting to import functions from organizations API');
+
+console.log('TeamPage.tsx: Successfully imported organization functions');
+
+console.log('TeamPage.tsx: Component is rendering');
 
 export function TeamPage() {
-  const [members, setMembers] = useState<TeamMember[]>([]);
+  const [organization, setOrganization] = useState<Organization | null>(null);
+  const [members, setMembers] = useState<OrganizationMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [accessManagementOpen, setAccessManagementOpen] = useState(false);
-  const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
-  const [memberProjects, setMemberProjects] = useState<Project[]>([]);
-  const [projectSearchQuery, setProjectSearchQuery] = useState("");
-  const [projectSearchResults, setProjectSearchResults] = useState<Project[]>(
-    [],
-  );
+  const [selectedMember, setSelectedMember] = useState<OrganizationMember | null>(null);
+  const [memberApps, setMemberApps] = useState<App[]>([]);
+  const [appSearchQuery, setAppSearchQuery] = useState("");
+  const [appSearchResults, setAppSearchResults] = useState<App[]>([]);
   const [sendingInvite, setSendingInvite] = useState(false);
   const [removeConfirmOpen, setRemoveConfirmOpen] = useState(false);
-  const [memberToRemove, setMemberToRemove] = useState<TeamMember | null>(null);
+  const [memberToRemove, setMemberToRemove] = useState<OrganizationMember | null>(null);
   const [savingAccess, setSavingAccess] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    const fetchMembers = async () => {
+    const fetchOrganizationData = async () => {
       try {
-        console.log("Fetching team members...");
-        const response = await getTeamMembers();
-        console.log("Team members response:", response);
-        console.log("Members array:", response.members);
-        setMembers(response.members);
+        console.log("TeamPage: Starting fetchOrganizationData...");
+
+        // Get current user synchronously from localStorage
+        const currentUserResponse = getCurrentUser();
+        const currentUser = currentUserResponse.user;
+        console.log("TeamPage: Current user data:", currentUser);
+
+        if (!currentUser) {
+          console.error("TeamPage: No current user found in localStorage");
+          throw new Error("User not authenticated. Please log in again.");
+        }
+
+        if (!currentUser.userId) {
+          console.error("TeamPage: Current user missing userId:", currentUser);
+          throw new Error("User ID not found. Please log in again.");
+        }
+
+        console.log(`TeamPage: Fetching memberships for userId: ${currentUser.userId}`);
+
+        // Get user memberships to find organization slug
+        const membershipsResponse = await getUserMemberships(currentUser.userId);
+        console.log("TeamPage: User memberships response:", membershipsResponse);
+
+        if (!membershipsResponse.memberships || membershipsResponse.memberships.length === 0) {
+          console.log("TeamPage: No organization memberships found for user");
+          setMembers([]);
+          setLoading(false);
+          return;
+        }
+
+        // Use the first organization membership
+        const firstMembership = membershipsResponse.memberships[0];
+        const orgSlug = firstMembership.organizationSlug;
+        console.log(`TeamPage: Using organization slug: ${orgSlug}`);
+
+        // Fetch organization metadata
+        const orgResponse = await getOrganization(orgSlug);
+        console.log("TeamPage: Organization metadata response:", orgResponse);
+        setOrganization(orgResponse.organization);
+
+        // Fetch organization members
+        const membersResponse = await getOrganizationMembers(orgSlug);
+        console.log("TeamPage: Organization members response:", membersResponse);
+        setMembers(membersResponse.members);
+
+        console.log("TeamPage: Successfully completed fetchOrganizationData");
+
       } catch (error: unknown) {
-        console.error("Error in fetchMembers:", error);
+        console.error("TeamPage: Error in fetchOrganizationData:", error);
         toast({
-          variant: "error",
+          variant: "destructive",
           title: "Error",
           description:
             error instanceof Error
               ? error.message
-              : "Failed to fetch team members",
+              : "Failed to fetch organization data",
         });
       } finally {
         setLoading(false);
       }
     };
 
-    fetchMembers();
+    fetchOrganizationData();
   }, [toast]);
 
   const handleInviteMember = async () => {
+    if (!organization) return;
+
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(inviteEmail)) {
       toast({
-        variant: "error",
+        variant: "destructive",
         title: "Error",
         description: "Please enter a valid email address",
       });
@@ -116,14 +188,14 @@ export function TeamPage() {
 
     setSendingInvite(true);
     try {
-      const response = await inviteTeamMember({ email: inviteEmail });
+      const response = await inviteOrganizationMember(organization.slug, { email: inviteEmail });
 
-      // Fetch the updated team members list after successful invitation
-      const updatedMembers = await getTeamMembers();
+      // Fetch the updated organization members list after successful invitation
+      const updatedMembers = await getOrganizationMembers(organization.slug);
       setMembers(updatedMembers.members);
 
       toast({
-        variant: "success",
+        variant: "default",
         title: "Success",
         description: response.message || "Invitation sent successfully",
       });
@@ -131,7 +203,7 @@ export function TeamPage() {
       setInviteOpen(false);
     } catch (error: unknown) {
       toast({
-        variant: "error",
+        variant: "destructive",
         title: "Error",
         description:
           error instanceof Error ? error.message : "Failed to send invitation",
@@ -142,24 +214,24 @@ export function TeamPage() {
   };
 
   const handleRemoveMember = async () => {
-    if (!memberToRemove) return;
+    if (!memberToRemove || !organization) return;
 
     try {
-      await removeTeamMember(memberToRemove._id);
-      setMembers(members.filter((member) => member._id !== memberToRemove._id));
+      await removeOrganizationMember(organization.slug, memberToRemove.userId);
+      setMembers(members.filter((member) => member.userId !== memberToRemove.userId));
       toast({
-        variant: "success",
+        variant: "default",
         title: "Success",
-        description: "Team member removed successfully",
+        description: "Organization member removed successfully",
       });
     } catch (error: unknown) {
       toast({
-        variant: "error",
+        variant: "destructive",
         title: "Error",
         description:
           error instanceof Error
             ? error.message
-            : "Failed to remove team member",
+            : "Failed to remove organization member",
       });
     } finally {
       setRemoveConfirmOpen(false);
@@ -168,24 +240,26 @@ export function TeamPage() {
   };
 
   const handleRoleChange = async (
-    memberId: string,
-    role: "admin" | "developer" | "viewer",
+    userId: string,
+    role: "owner" | "admin" | "member",
   ) => {
+    if (!organization) return;
+
     try {
-      await updateTeamMemberRole(memberId, { role });
+      await updateOrganizationMemberRole(organization.slug, userId, { role });
       setMembers(
         members.map((member) =>
-          member._id === memberId ? { ...member, role } : member,
+          member.userId === userId ? { ...member, role } : member,
         ),
       );
       toast({
-        variant: "success",
+        variant: "default",
         title: "Success",
         description: `Role updated to ${role}`,
       });
     } catch (error: unknown) {
       toast({
-        variant: "error",
+        variant: "destructive",
         title: "Error",
         description:
           error instanceof Error ? error.message : "Failed to update role",
@@ -193,16 +267,18 @@ export function TeamPage() {
     }
   };
 
-  const openAccessManagement = async (member: TeamMember) => {
+  const openAccessManagement = async (member: OrganizationMember) => {
+    if (!organization) return;
+
     setSelectedMember(member);
     setAccessManagementOpen(true);
 
     try {
-      const response = await getMemberAccess(member._id);
-      setMemberProjects(response.projects);
+      const response = await getMemberAppAccess(organization.slug, member.userId);
+      setMemberApps(response.apps);
     } catch (error: unknown) {
       toast({
-        variant: "error",
+        variant: "destructive",
         title: "Error",
         description:
           error instanceof Error
@@ -212,81 +288,79 @@ export function TeamPage() {
     }
   };
 
-  const handleProjectSearch = async (query: string) => {
-    setProjectSearchQuery(query);
+  const handleAppSearch = async (query: string) => {
+    if (!organization) return;
+
+    setAppSearchQuery(query);
 
     if (!query.trim()) {
-      setProjectSearchResults([]);
+      setAppSearchResults([]);
       return;
     }
 
     try {
-      const response = await searchProjects(query);
-      // Filter out projects that are already in memberProjects
-      const existingProjectIds = memberProjects.map(
-        (p: { _id: string }) => p._id,
-      );
-      setProjectSearchResults(
-        response.projects.filter(
-          (p: { _id: string }) => !existingProjectIds.includes(p._id),
+      const response = await searchOrganizationApps(organization.slug, query);
+      // Filter out apps that are already in memberApps
+      const existingAppIds = memberApps.map((app) => app._id);
+      setAppSearchResults(
+        response.apps.filter(
+          (app: App) => !existingAppIds.includes(app._id),
         ),
       );
     } catch (error: unknown) {
       toast({
-        variant: "error",
+        variant: "destructive",
         title: "Error",
         description:
-          error instanceof Error ? error.message : "Failed to search projects",
+          error instanceof Error ? error.message : "Failed to search apps",
       });
     }
   };
 
-  const addProjectToMember = (project: Project) => {
-    // Add project to memberProjects with 'view' access as default
-    setMemberProjects([...memberProjects, { ...project, access: "view" }]);
+  const addAppToMember = (app: App) => {
+    // Add app to memberApps with basic permissions as default
+    setMemberApps([...memberApps, { ...app, permissions: [] }]);
     // Clear search results
-    setProjectSearchResults([]);
-    setProjectSearchQuery("");
+    setAppSearchResults([]);
+    setAppSearchQuery("");
   };
 
-  const handleAccessChange = (projectId: string, access: "view" | "edit") => {
-    setMemberProjects(
-      memberProjects.map((project) =>
-        project._id === projectId ? { ...project, access } : project,
+  const handlePermissionChange = (appId: string, permissions: string[]) => {
+    setMemberApps(
+      memberApps.map((app) =>
+        app._id === appId ? { ...app, permissions } : app,
       ),
     );
   };
 
   const saveAccessChanges = async () => {
-    if (!selectedMember) return;
+    if (!selectedMember || !organization) return;
 
     setSavingAccess(true);
     try {
-      const projectsToUpdate = memberProjects.map(
-        (p: { _id: string; access: "view" | "edit" }) => ({
-          id: p._id,
-          access: p.access,
-        }),
-      );
+      const appsToUpdate = memberApps.map((app) => ({
+        appId: app._id,
+        permissions: app.permissions,
+      }));
 
-      await updateMemberAccess(selectedMember._id, {
-        projects: projectsToUpdate,
+      await updateMemberAppAccess(organization.slug, selectedMember.userId, {
+        apps: appsToUpdate,
       });
 
       toast({
-        variant: "success",
+        variant: "default",
         title: "Success",
-        description: "Project access updated successfully",
+        description: "App access updated successfully",
       });
       setAccessManagementOpen(false);
     } catch (error: unknown) {
       toast({
-        variant: "error",
+        variant: "destructive",
         title: "Error",
         description:
           error instanceof Error
             ? error.message
-            : "Failed to update project access",
+            : "Failed to update app access",
       });
     } finally {
       setSavingAccess(false);
@@ -295,11 +369,11 @@ export function TeamPage() {
 
   const getRoleColor = (role: string) => {
     switch (role) {
-      case "admin":
+      case "owner":
         return "bg-success text-warning-foreground";
-      case "developer":
+      case "admin":
         return "bg-developer text-warning-foreground";
-      case "viewer":
+      case "member":
         return "bg-warning text-warning-foreground";
       default:
         return "bg-gray-100 text-gray-800 dark:bg-gray-700/20 dark:text-gray-400";
@@ -308,12 +382,12 @@ export function TeamPage() {
 
   const getRoleText = (role: string) => {
     switch (role) {
+      case "owner":
+        return "Owner";
       case "admin":
         return "Admin";
-      case "developer":
-        return "Developer";
-      case "viewer":
-        return "Viewer";
+      case "member":
+        return "Member";
       default:
         return role;
     }
@@ -322,7 +396,7 @@ export function TeamPage() {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-[calc(100vh-4rem)]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <SpinnerShape className="w-12 h-12" />
       </div>
     );
   }
@@ -331,9 +405,11 @@ export function TeamPage() {
     <div className="mx-auto flex flex-col gap-14 text-foreground">
       <div className="flex justify-between items-start">
         <div className="flex flex-col gap-2">
-          <h1 className="text-heading-3 text-foreground">My Team</h1>
+          <h1 className="text-heading-3 text-foreground">
+            {organization ? organization.name : "My Organization"}
+          </h1>
           <p className="text-body-sm text-foreground/60">
-            Manage your team members and their access
+            Manage your organization members and their access
           </p>
         </div>
         <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
@@ -345,7 +421,7 @@ export function TeamPage() {
           <DialogContent className="flex flex-col gap-6 bg-card border-none rounded-2xl p-6 w-[90%] sm:max-w-lg">
             <DialogHeader className="flex flex-row justify-between items-center">
               <DialogTitle className="!text-subheading text-foreground">
-                Invite a team member
+                Invite an organization member
               </DialogTitle>
             </DialogHeader>
 
@@ -372,7 +448,7 @@ export function TeamPage() {
                 <div className="max-h-60 overflow-y-auto flex flex-col gap-1">
                   {members.map((member) => (
                     <div
-                      key={member._id}
+                      key={member.userId}
                       className="flex justify-between items-center"
                     >
                       <span className="text-foreground/80 text-body-sm">
@@ -388,7 +464,7 @@ export function TeamPage() {
                 </div>
               ) : (
                 <p className="text-body-sm text-foreground/60 text-center py-4">
-                  No other members in the team
+                  No other members in the organization
                 </p>
               )}
             </div>
@@ -399,33 +475,35 @@ export function TeamPage() {
       <div className="flex flex-col gap-5">
         <div className="flex justify-between items-center">
           <div className="space-y-1.5">
-            <h2 className="text-heading-3 text-foreground">Team Members</h2>
+            <h2 className="text-heading-3 font-normal text-foreground">
+              Organization Members
+            </h2>
           </div>
         </div>
 
-        {/* Team Members Table */}
+        {/* Organization Members Table */}
         <div className="flex flex-col space-y-5">
           {members.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 border-border rounded-lg">
               <UserPlus className="h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-body-lg-medium text-foreground">
-                No team members yet
+                No organization members yet
               </h3>
               <p className="text-body-sm text-foreground/60 mt-1 mb-4">
-                Invite colleagues to collaborate on your projects.
+                Invite colleagues to collaborate on your apps.
               </p>
               <Button
                 onClick={() => setInviteOpen(true)}
                 className="bg-primary text-primary-foreground text-body-md px-3 py-2 h-auto rounded-lg"
               >
                 <UserPlus className="mr-2 h-4 w-4" />
-                Invite Your First Team Member
+                Invite Your First Organization Member
               </Button>
             </div>
           ) : (
             <div>
               {/* Header Row */}
-              <div className="flex items-center py-3 border-border text-body-sm font-medium text-foreground">
+              <div className="flex items-center py-3 border-border text-body-sm font-medium text-foreground/60">
                 <div className="w-[45%]">Email</div>
                 <div className="w-[25%]">Role</div>
                 <div className="w-[25%]">Access</div>
@@ -435,93 +513,90 @@ export function TeamPage() {
               <div className="flex flex-col">
                 {members.map((member) => (
                   <div
-                    key={member._id}
-                    className="flex items-center py-3 border-t border-border text-caption-strong text-foreground/80"
+                    key={member.userId}
+                    className="flex items-center py-3 border-t border-border text-caption-strong text-foreground"
                     tabIndex={0}
                   >
                     <div className="w-[45%]">{member.email}</div>
-                    <div className="w-[25%] capitalize">{member.role}</div>
+                    <div className="w-[25%]">{member.fullName}</div>
                     <div className="w-[25%]">
-                      <div className="flex items-center">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <div className="flex items-center cursor-pointer">
-                              <div
-                                className={`px-2 py-1 rounded-lg text-caption-strong flex items-center gap-1 ${getRoleColor(member.role)}`}
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={`px-2 py-1 rounded text-caption-strong ${getRoleColor(member.role)}`}
+                        >
+                          {getRoleText(member.role)}
+                        </div>
+                        {!member.isOwner && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 p-0"
                               >
-                                {getRoleText(member.role)}
-                                <ChevronDown className="h-4 w-4" />
-                              </div>
-                            </div>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent
-                            align="end"
-                            className="min-w-[120px] p-2 rounded-lg space-y-1"
-                          >
-                            <DropdownMenuItem
-                              className="bg-success text-warning-foreground focus:bg-success/90 focus:text-warning-foreground text-xs py-1 px-2 h-6"
-                              onClick={() =>
-                                handleRoleChange(member._id, "admin")
-                              }
+                                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                              align="end"
+                              className="min-w-[120px] p-1 space-y-0.5"
                             >
-                              <span className="flex-1">Admin</span>
-                              {member.role === "admin" && (
-                                <Check className="h-3 w-3 ml-1" />
-                              )}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              className="bg-developer text-warning-foreground focus:bg-developer/90 focus:text-warning-foreground text-xs py-1 px-2 h-6"
-                              onClick={() =>
-                                handleRoleChange(member._id, "developer")
-                              }
-                            >
-                              <span className="flex-1">Developer</span>
-                              {member.role === "developer" && (
-                                <Check className="h-3 w-3 ml-1" />
-                              )}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              className="bg-warning text-warning-foreground focus:bg-warning/90 focus:text-warning-foreground text-xs py-1 px-2 h-6"
-                              onClick={() =>
-                                handleRoleChange(member._id, "viewer")
-                              }
-                            >
-                              <span className="flex-1">Viewer</span>
-                              {member.role === "viewer" && (
-                                <Check className="h-3 w-3 ml-1" />
-                              )}
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                              <DropdownMenuItem
+                                className="bg-developer text-warning-foreground focus:bg-developer/90 focus:text-warning-foreground text-xs py-1 px-2 h-6"
+                                onClick={() =>
+                                  handleRoleChange(member.userId, "admin")
+                                }
+                              >
+                                <span className="flex-1">Admin</span>
+                                {member.role === "admin" && (
+                                  <Check className="h-3 w-3 ml-1" />
+                                )}
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="bg-warning text-warning-foreground focus:bg-warning/90 focus:text-warning-foreground text-xs py-1 px-2 h-6"
+                                onClick={() =>
+                                  handleRoleChange(member.userId, "member")
+                                }
+                              >
+                                <span className="flex-1">Member</span>
+                                {member.role === "member" && (
+                                  <Check className="h-3 w-3 ml-1" />
+                                )}
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
                       </div>
                     </div>
                     <div className="w-[5%] text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                          >
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() => openAccessManagement(member)}
-                          >
-                            Manage access
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => {
-                              setMemberToRemove(member);
-                              setRemoveConfirmOpen(true);
-                            }}
-                          >
-                            Remove Member
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      {!member.isOwner && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                            >
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => openAccessManagement(member)}
+                            >
+                              Manage access
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setMemberToRemove(member);
+                                setRemoveConfirmOpen(true);
+                              }}
+                            >
+                              Remove Member
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -539,11 +614,11 @@ export function TeamPage() {
         <DialogContent className="bg-card border-none rounded-2xl p-8 w-[90%] sm:w-[500px]">
           <DialogHeader>
             <DialogTitle className="text-xl font-medium text-foreground">
-              Manage Project Access
+              Manage App Access
             </DialogTitle>
             <DialogDescription className="text-sm text-foreground/60 text-left pt-1">
               {selectedMember &&
-                `Configure access for ${selectedMember.name || selectedMember.email}`}
+                `Configure access for ${selectedMember.fullName || selectedMember.email}`}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4 space-y-6">
@@ -551,21 +626,21 @@ export function TeamPage() {
               <div className="flex items-center w-full bg-foreground/10 rounded-lg border border-border">
                 <Search className="h-4 w-4 ml-3 text-foreground/60 flex-shrink-0" />
                 <Input
-                  placeholder="Search for projects"
+                  placeholder="Search for apps"
                   className="border-0 bg-transparent px-2 py-3 placeholder:text-foreground/60 text-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
-                  value={projectSearchQuery}
-                  onChange={(e) => handleProjectSearch(e.target.value)}
+                  value={appSearchQuery}
+                  onChange={(e) => handleAppSearch(e.target.value)}
                 />
               </div>
-              {projectSearchResults.length > 0 && (
+              {appSearchResults.length > 0 && (
                 <div className="absolute z-10 w-full mt-1 bg-card border border-border rounded-md shadow-lg max-h-60 overflow-auto">
-                  {projectSearchResults.map((project) => (
+                  {appSearchResults.map((app) => (
                     <div
-                      key={project._id}
+                      key={app._id}
                       className="p-2 hover:bg-highlight cursor-pointer text-foreground"
-                      onClick={() => addProjectToMember(project)}
+                      onClick={() => addAppToMember(app)}
                     >
-                      {project.name}
+                      {app.name}
                     </div>
                   ))}
                 </div>
@@ -573,24 +648,26 @@ export function TeamPage() {
             </div>
 
             <div className="space-y-4 max-h-60 overflow-auto">
-              {memberProjects.length === 0 ? (
+              {memberApps.length === 0 ? (
                 <p className="text-center text-muted-foreground py-4">
-                  No projects assigned yet. Search and add projects above.
+                  No apps assigned yet. Search and add apps above.
                 </p>
               ) : (
-                memberProjects.map((project) => (
+                memberApps.map((app) => (
                   <div
-                    key={project._id}
+                    key={app._id}
                     className="flex items-center justify-between py-2 border-none border-border"
                   >
                     <span className="text-foreground text-body-lg">
-                      {project.name}
+                      {app.name}
                     </span>
                     <div className="flex items-center space-x-1 text-foreground/80">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <button className="flex items-center text-body-md opacity-70 hover:opacity-100">
-                            <span className="capitalize">{project.access}</span>
+                            <span className="capitalize">
+                              {app.permissions.length > 0 ? app.permissions.join(", ") : "No permissions"}
+                            </span>
                             <ChevronDown className="h-4 w-4 ml-1" />
                           </button>
                         </DropdownMenuTrigger>
@@ -601,22 +678,22 @@ export function TeamPage() {
                           <DropdownMenuItem
                             className="text-xs py-1 px-2 cursor-pointer flex items-center justify-between"
                             onClick={() =>
-                              handleAccessChange(project._id, "view")
+                              handlePermissionChange(app._id, ["read"])
                             }
                           >
-                            View
-                            {project.access === "view" && (
+                            Read
+                            {app.permissions.includes("read") && (
                               <Check className="h-3 w-3 ml-2" />
                             )}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             className="text-xs py-1 px-2 cursor-pointer flex items-center justify-between"
                             onClick={() =>
-                              handleAccessChange(project._id, "edit")
+                              handlePermissionChange(app._id, ["read", "write"])
                             }
                           >
-                            Edit
-                            {project.access === "edit" && (
+                            Read & Write
+                            {app.permissions.includes("write") && (
                               <Check className="h-3 w-3 ml-2" />
                             )}
                           </DropdownMenuItem>
@@ -652,11 +729,11 @@ export function TeamPage() {
         <AlertDialogContent className="bg-card border-none rounded-2xl p-8">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-xl font-medium text-foreground">
-              Remove Team Member
+              Remove Organization Member
             </AlertDialogTitle>
             <AlertDialogDescription className="text-sm text-foreground/60">
               {memberToRemove &&
-                `Are you sure you want to remove ${memberToRemove.name || memberToRemove.email} from the team? They will lose access to all projects.`}
+                `Are you sure you want to remove ${memberToRemove.fullName || memberToRemove.email} from the organization? They will lose access to all apps.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="mt-6 sm:justify-end gap-2">

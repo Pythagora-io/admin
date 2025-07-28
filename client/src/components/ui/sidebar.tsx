@@ -183,7 +183,7 @@ interface SidebarMenuItemProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export function SidebarMenuItem({ className, ...props }: SidebarMenuItemProps) {
-  return <div className={cn("py-0", className)} {...props} />;
+  return <div className={cn("py-1", className)} {...props} />;
 }
 
 interface SidebarMenuButtonProps
@@ -208,7 +208,7 @@ export function SidebarMenuButton({
       data-tooltip-id={tooltip && !isOpen ? "sidebar-tooltip" : undefined}
       data-tooltip-content={tooltip && !isOpen ? tooltip : undefined}
       className={cn(
-        "relative group flex items-center rounded-md px-4 py-2 w-full transition-colors",
+        "relative group flex items-center rounded-md p-2 w-full transition-colors",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         isActive
           ? "bg-sidebar-active text-sidebar-active-foreground font-medium"
@@ -267,7 +267,7 @@ interface SidebarMenuSubProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export function SidebarMenuSub({ className, ...props }: SidebarMenuSubProps) {
-  return <div className={cn("mt-0", className)} {...props} />;
+  return <div className={cn("mt-2", className)} {...props} />;
 }
 
 interface SidebarMenuSubItemProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -278,7 +278,7 @@ export function SidebarMenuSubItem({
   className,
   ...props
 }: SidebarMenuSubItemProps) {
-  return <div className={cn("py-0", className)} {...props} />;
+  return <div className={cn("py-1 pl-4", className)} {...props} />;
 }
 
 interface SidebarMenuSubButtonProps
@@ -297,7 +297,7 @@ export function SidebarMenuSubButton({
   return (
     <button
       className={cn(
-        "group flex items-center rounded-md pl-8 pr-4 py-2 w-full transition-colors text-sm",
+        "group flex items-center rounded-md p-2 w-full transition-colors text-sm",
         isActive
           ? "text-primary font-medium"
           : "text-muted-foreground hover:text-accent-foreground",

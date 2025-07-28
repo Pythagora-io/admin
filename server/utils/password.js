@@ -1,14 +1,16 @@
 const bcrypt = require("bcrypt");
 
+// DEPRECATED: Password handling is now managed externally by Pythagora API
+// This file is kept for backward compatibility but should not be used
+
 /**
  * Hashes the password using bcrypt algorithm
  * @param {string} password - The password to hash
  * @return {string} Password hash
  */
 const generatePasswordHash = async (password) => {
-  const salt = await bcrypt.genSalt();
-  const hash = await bcrypt.hash(password, salt);
-  return hash;
+  console.warn("DEPRECATED: generatePasswordHash should not be used. Password handling is managed by Pythagora API.");
+  return null;
 };
 
 /**
@@ -17,9 +19,9 @@ const generatePasswordHash = async (password) => {
  * @param {string} hash - Password hash to verify against
  * @return {boolean} True if the password matches the hash, false otherwise
  */
-const validatePassword = async (password, hash) => {
-  const result = await bcrypt.compare(password, hash);
-  return result;
+const validatePassword = async (password, hashedPassword) => {
+  console.warn("DEPRECATED: validatePassword should not be used. Password handling is managed by Pythagora API.");
+  return false;
 };
 
 /**

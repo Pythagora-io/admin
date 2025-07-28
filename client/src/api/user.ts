@@ -1,116 +1,99 @@
-import api from "./api";
+import api from './api';
 
-// Description: Get the current user data
-// Endpoint: GET /api/user/me
+// Helper function to safely decode Base64 URL (used in JWT)
+const safeBase64UrlDecode = (str: string): string => {
+  try {
+    // Convert Base64 URL to standard Base64
+    let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+    
+    // Add padding if needed
+    while (base64.length % 4) {
+      base64 += '=';
+    }
+    
+    // Decode using atob
+    const decoded = atob(base64);
+    
+    // Handle UTF-8 characters properly
+    return decodeURIComponent(escape(decoded));
+  } catch (error) {
+    console.error("Error in safeBase64UrlDecode:", error);
+    throw error;
+  }
+};
+
+// Description: Get current user from localStorage (decode JWT token)
+// This function decodes the JWT token stored in localStorage
+export const getCurrentUser = () => {
+  try {
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      console.log('getCurrentUser: No access token found');
+      return null;
+    }
+
+    // Decode JWT token (split by dots and decode the payload)
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      console.log('getCurrentUser: Invalid token format');
+      return null;
+    }
+
+    const payloadStr = safeBase64UrlDecode(parts[1]);
+    const payload = JSON.parse(payloadStr);
+    console.log('getCurrentUser: Decoded token payload:', payload);
+
+    return {
+      _id: payload.userId,
+      userId: payload.userId,
+      email: payload.email,
+      name: payload.fullName,
+      fullName: payload.fullName,
+      receiveUpdates: payload.receiveUpdates || true,
+      subscription: {
+        plan: payload.subscriptionPlan || 'free',
+        status: payload.subscriptionStatus || 'active',
+        tokensUsed: payload.tokensUsed || 0,
+        tokensLimit: payload.tokensLimit || 1000000
+      }
+    };
+  } catch (error) {
+    console.error('getCurrentUser: Error decoding token:', error);
+    return null;
+  }
+};
+
+// Description: Get user profile from Pythagora API
+// Endpoint: GET /profile
 // Request: {}
-// Response: { user: { _id: string, email: string, name: string, receiveUpdates: boolean } }
-export const getCurrentUser = async () => {
+// Response: { user: object, deployments: Array<object> }
+export const getUserProfile = async () => {
   try {
-    const response = await api.get("/api/user/me");
+    console.log('getUserProfile: Fetching user profile from Pythagora API');
+    const response = await api.get('/profile');
+    console.log('getUserProfile: Profile response received:', response.data);
     return response.data;
   } catch (error) {
-    throw new Error(error?.response?.data?.error || error.message);
-  }
-};
-
-// Description: Update user email
-// Endpoint: PUT /api/user/email
-// Request: { email: string }
-// Response: { success: boolean, message: string, user: { email: string } }
-export const updateUserEmail = async (data: { email: string }) => {
-  try {
-    const response = await api.put("/api/user/email", data);
-    return response.data;
-  } catch (error) {
-    throw new Error(error?.response?.data?.error || error.message);
-  }
-};
-
-// Description: Confirm email update
-// Endpoint: POST /api/user/email/confirm
-// Request: { token: string }
-// Response: { success: boolean, message: string, user: { email: string } }
-export const confirmEmailUpdate = (data: { token: string }) => {
-  // Mocking the response - This would be implemented in a future task
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        success: true,
-        message: "Email updated successfully",
-        user: { email: "newemail@example.com" },
-      });
-    }, 500);
-  });
-  // Uncomment the below lines to make an actual API call
-  // try {
-  //   return await api.post('/api/user/email/confirm', data);
-  // } catch (error) {
-  //   throw new Error(error?.response?.data?.error || error.message);
-  // }
-};
-
-// Description: Update user name
-// Endpoint: PUT /api/user/name
-// Request: { name: string }
-// Response: { success: boolean, message: string, user: { name: string } }
-export const updateUserName = async (data: { name: string }) => {
-  try {
-    const response = await api.put("/api/user/name", data);
-    return response.data;
-  } catch (error) {
-    throw new Error(error?.response?.data?.error || error.message);
-  }
-};
-
-// Description: Update user password
-// Endpoint: PUT /api/user/password
-// Request: { currentPassword: string, newPassword: string }
-// Response: { success: boolean, message: string }
-export const updateUserPassword = async (data: {
-  currentPassword: string;
-  newPassword: string;
-}) => {
-  try {
-    const response = await api.put("/api/user/password", data);
-    return response.data;
-  } catch (error) {
-    throw new Error(error?.response?.data?.error || error.message);
-  }
-};
-
-// Description: Update email preferences
-// Endpoint: PUT /api/user/preferences/email
-// Request: { receiveUpdates: boolean }
-// Response: { success: boolean, message: string }
-export const updateEmailPreferences = async (data: {
-  receiveUpdates: boolean;
-}) => {
-  try {
-    const response = await api.put("/api/user/preferences/email", data);
-    return response.data;
-  } catch (error) {
+    console.error('getUserProfile: Error fetching user profile:', error);
     throw new Error(error?.response?.data?.error || error.message);
   }
 };
 
 // Description: Update user billing information
-// Endpoint: PUT /api/billing
-// Request: { billingInfo: { name: string, address: string, city: string, state: string, zip: string, country: string } }
-// Response: { success: boolean, message: string, billingInfo: { name: string, address: string, city: string, state: string, zip: string, country: string } }
-export const updateBillingInfo = async (data: {
-  billingInfo: {
-    name: string;
-    address: string;
-    city: string;
-    state: string;
-    zip: string;
-    country: string;
-  };
-}) => {
-  try {
-    const response = await api.put("/api/billing", data);
-    return response.data;
-  } catch (error) {
-    throw new Error(error?.response?.data?.error || error.message);
-  }
+// Endpoint: PUT /api/user/billing
+// Request: { billingInfo: object }
+// Response: { success: boolean, message: string }
+export const updateBillingInfo = async (billingInfo: any) => {
+  // Mocking the response
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({ success: true, message: 'Billing information updated successfully' });
+    }, 500);
+  });
+  // Uncomment the below lines to make an actual API call
+  // try {
+  //   return await api.put('/api/user/billing', { billingInfo });
+  // } catch (error) {
+  //   throw new Error(error?.response?.data?.error || error.message);
+  // }
 };
