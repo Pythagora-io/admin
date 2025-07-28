@@ -1,21 +1,21 @@
 import React from "react";
 
-export const StarterPlanIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
-  props,
-) => (
+export const StarterPlanIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   <svg
-    width="30"
-    height="30"
-    viewBox="0 0 30 30"
+    width="20"
+    height="20"
+    viewBox="0 0 20 20"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
     {...props}
   >
+    <circle cx="10" cy="10" r="10" fill="#FFD11A" />
     <path
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="M15 30C23.2843 30 30 23.2843 30 15C30 6.71573 23.2843 0 15 0C6.71573 0 0 6.71573 0 15C0 23.2843 6.71573 30 15 30ZM15 9.64286C12.0413 9.64286 9.64286 12.0413 9.64286 15C9.64286 17.9587 12.0413 20.3571 15 20.3571C17.9587 20.3571 20.3571 17.9587 20.3571 15C20.3571 12.0413 17.9587 9.64286 15 9.64286Z"
-      fill="#FFD11A"
+      d="M6 10L9 13L14 7"
+      stroke="white"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     />
   </svg>
 );
@@ -58,20 +58,48 @@ export const PremiumPlanIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
   </svg>
 );
 
-export const EnterprisePlanIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
-  props,
-) => (
+export const EnterprisePlanIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   <svg
     width="30"
     height="30"
-    viewBox="0 0 251 250"
+    viewBox="0 0 30 30"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <rect width="30" height="30" rx="6" fill="#8B5CF6" />
+    <path
+      d="M8 12L15 8L22 12V20C22 21.1046 21.1046 22 20 22H10C8.89543 22 8 21.1046 8 20V12Z"
+      stroke="white"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M15 8V22"
+      stroke="white"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+// New yellow Pythagora icon for Projects
+export const ProjectsPythagoraIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+  <svg
+    width="20"
+    height="30"
+    viewBox="0 0 20 30"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
     {...props}
   >
     <path
-      d="M216.688 0.00390625C235.097 0.00400521 250.02 14.9276 250.021 33.3369V216.672C250.02 235.081 235.097 250.005 216.688 250.005H33.3525C14.9433 250.005 0.0196302 235.081 0.0195312 216.672V33.3369C0.0196591 14.9277 14.9433 0.00402789 33.3525 0.00390625H216.688ZM92.5322 83.3379C87.4598 83.338 83.3477 87.45 83.3477 92.5225V157.487C83.3479 162.56 87.4599 166.672 92.5322 166.672H157.497C162.569 166.672 166.681 162.56 166.682 157.487V92.5225C166.682 87.4501 162.569 83.3381 157.497 83.3379H92.5322Z"
-      fill="#3057E1"
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M3.99997 0C1.79085 0 0 1.79085 0 3.99997V26C0 28.2092 1.79085 30 3.99997 30H16C18.2092 30 20 28.2092 20 26V3.99997C20 1.79085 18.2091 0 16 0H3.99997ZM13 11C13 9.34315 11.6569 8 10 8C8.34315 8 7 9.34315 7 11L7 19C7 20.6569 8.34315 22 10 22C11.6569 22 13 20.6569 13 19L13 11Z"
+      fill="#FFD11A"
     />
   </svg>
 );

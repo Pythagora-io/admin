@@ -10,7 +10,7 @@ interface AuthLayoutProps {
 export const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden p-4">
-      <div className="flex flex-col flex-1 relative overflow-hidden w-full h-full bg-window-blur backdrop-blur-[32px] border border-window-border rounded-2xl">
+      <div className="flex flex-col flex-1 relative overflow-hidden w-full h-full bg-background-content-glassy/80 backdrop-blur-lg border border-border rounded-2xl">
         {/* Logo at top left */}
         <div className="p-8">
           <Link to="/" className="flex items-center gap-2" tabIndex={0}>
@@ -23,7 +23,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
 
         {/* Content Area */}
         <div className="flex justify-center items-center">
-          <div className="w-full max-w-lg bg-frosted-black border border-frosted-border rounded-2xl px-8 py-10">
+          <div className="w-full max-w-lg bg-checkbox-check border border-border rounded-2xl px-8 py-10">
             {children}
           </div>
         </div>

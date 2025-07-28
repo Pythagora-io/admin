@@ -1,254 +1,99 @@
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 /**
- * Initialize Stripe with the secret key
- * Note: This is a mock implementation. In production, use actual Stripe API.
- *
- * @returns {Object} Stripe configuration
+ * Mock Stripe service for development
+ * In production, this would integrate with actual Stripe API
  */
-const getStripeConfig = async () => {
-  // In a real implementation, this would verify the Stripe connection
-  // and return necessary configuration
-  return {
-    publicKey: process.env.STRIPE_PUBLIC_KEY || "pk_test_mockStripePublicKey",
-  };
-};
 
 /**
- * Create a payment intent for subscription purchase
- *
- * @param {Object} options - Options for creating payment intent
- * @param {string} options.customerId - Stripe customer ID
- * @param {number} options.amount - Amount in cents
- * @param {string} options.currency - Currency code (default: 'usd')
- * @returns {Object} Payment intent object with client secret
+ * Create or get a Stripe customer by user ID
+ * @param {string} userId - The Pythagora user ID
+ * @returns {Promise<string>} Stripe customer ID
  */
-const createPaymentIntent = async ({
-  customerId,
-  amount,
-  currency = "usd",
-}) => {
+const createOrGetCustomerByUserId = async (userId) => {
   try {
-    // Mock implementation - in production, use actual Stripe API
-    // const paymentIntent = await stripe.paymentIntents.create({
-    //   amount,
-    //   currency,
-    //   customer: customerId,
-    //   setup_future_usage: 'off_session',
-    // });
-
-    // Return mock payment intent
-    return {
-      clientSecret: `pi_mock_${Math.random().toString(36).substring(2, 15)}`,
-      id: `pi_mock_${Math.random().toString(36).substring(2, 15)}`,
-    };
+    // In a real implementation, this would:
+    // 1. Check if customer exists in Stripe with metadata.pythagoraUserId = userId
+    // 2. If not, create a new customer with the userId as metadata
+    // 3. Return the customer ID
+    
+    console.log(`Creating/getting Stripe customer for Pythagora userId: ${userId}`);
+    
+    // Mock customer ID
+    return `cus_mock_${userId}`;
   } catch (error) {
-    console.error("Error creating payment intent:", error);
-    throw new Error("Failed to create payment intent");
+    console.error('Error creating/getting Stripe customer:', error);
+    throw new Error('Failed to create or get Stripe customer');
   }
 };
 
 /**
- * Create or get a Stripe customer for a user
- *
+ * Create or get a Stripe customer (deprecated - kept for backward compatibility)
  * @param {Object} user - User object
- * @returns {string} Stripe customer ID
+ * @returns {Promise<string>} Stripe customer ID
  */
 const createOrGetCustomer = async (user) => {
-  try {
-    // Check if user already has a Stripe customer ID
-    if (user.stripeCustomerId) {
-      console.log(
-        `Using existing Stripe customer ID: ${user.stripeCustomerId}`,
-      );
-      return user.stripeCustomerId;
-    }
-
-    console.log(`Creating new Stripe customer for user: ${user._id}`);
-
-    // Create a new customer using the actual Stripe API
-    const customer = await stripe.customers.create({
-      email: user.email,
-      name: user.name,
-      metadata: {
-        userId: user._id.toString(),
-      },
-    });
-
-    console.log(`Stripe customer created with ID: ${customer.id}`);
-
-    // Update the user record with the new Stripe customer ID
-    user.stripeCustomerId = customer.id;
-    await user.save();
-
-    console.log(`Updated user record with Stripe customer ID`);
-
-    return customer.id;
-  } catch (error) {
-    console.error("Error creating/getting customer:", error);
-    throw new Error(`Failed to create or get customer: ${error.message}`);
-  }
+  console.warn('DEPRECATED: createOrGetCustomer should use createOrGetCustomerByUserId instead');
+  return createOrGetCustomerByUserId(user._id || user.userId);
 };
 
 /**
- * Create a subscription for a customer
- *
- * @param {Object} options - Subscription options
- * @param {string} options.customerId - Stripe customer ID
- * @param {string} options.priceId - Stripe price ID
- * @returns {Object} Subscription object
+ * Create a payment intent
+ * @param {Object} options - Payment intent options
+ * @returns {Promise<Object>} Payment intent
  */
-const createSubscription = async ({ customerId, priceId }) => {
+const createPaymentIntent = async ({ amount, currency = 'usd', customerId }) => {
   try {
-    // Mock implementation - in production, use actual Stripe API
-    // const subscription = await stripe.subscriptions.create({
-    //   customer: customerId,
-    //   items: [{ price: priceId }],
-    //   payment_behavior: 'default_incomplete',
-    //   expand: ['latest_invoice.payment_intent'],
-    // });
-
-    // Return mock subscription
+    // Mock payment intent
     return {
-      id: `sub_mock_${Math.random().toString(36).substring(2, 15)}`,
-      status: "active",
-      current_period_end: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60, // 30 days from now
-      items: {
-        data: [
-          {
-            id: `si_mock_${Math.random().toString(36).substring(2, 15)}`,
-            price: { id: priceId },
-          },
-        ],
-      },
+      id: `pi_mock_${Math.random().toString(36).substring(2, 15)}`,
+      client_secret: `pi_mock_${Math.random().toString(36).substring(2, 15)}_secret`,
+      amount,
+      currency,
+      customer: customerId,
+      status: 'requires_payment_method'
     };
   } catch (error) {
-    console.error("Error creating subscription:", error);
-    throw new Error("Failed to create subscription");
+    console.error('Error creating payment intent:', error);
+    throw new Error('Failed to create payment intent');
   }
 };
 
 /**
- * Get payment methods for a customer
- *
- * @param {string} customerId - Stripe customer ID
- * @returns {Array} Array of payment methods
- */
-const getPaymentMethods = async (customerId) => {
-  try {
-    // Mock implementation - in production, use actual Stripe API
-    // const paymentMethods = await stripe.paymentMethods.list({
-    //   customer: customerId,
-    //   type: 'card',
-    // });
-
-    // Return mock payment methods
-    return {
-      data: [
-        {
-          id: `pm_mock_${Math.random().toString(36).substring(2, 15)}`,
-          type: "card",
-          card: {
-            brand: "visa",
-            last4: "4242",
-            exp_month: 12,
-            exp_year: 2025,
-          },
-          billing_details: {},
-          metadata: { isDefault: true },
-        },
-      ],
-    };
-  } catch (error) {
-    console.error("Error getting payment methods:", error);
-    throw new Error("Failed to get payment methods");
-  }
-};
-
-/**
- * Set default payment method for a customer
- *
- * @param {string} customerId - Stripe customer ID
- * @param {string} paymentMethodId - Payment method ID
- * @returns {Object} Updated customer object
- */
-const setDefaultPaymentMethod = async (customerId, paymentMethodId) => {
-  try {
-    // Mock implementation - in production, use actual Stripe API
-    // const customer = await stripe.customers.update(customerId, {
-    //   invoice_settings: {
-    //     default_payment_method: paymentMethodId,
-    //   },
-    // });
-
-    // Return mock response
-    return {
-      id: customerId,
-      invoice_settings: {
-        default_payment_method: paymentMethodId,
-      },
-    };
-  } catch (error) {
-    console.error("Error setting default payment method:", error);
-    throw new Error("Failed to set default payment method");
-  }
-};
-
-/**
- * Delete a payment method
- *
- * @param {string} paymentMethodId - Payment method ID
- * @returns {Object} Deleted payment method
- */
-const deletePaymentMethod = async (paymentMethodId) => {
-  try {
-    // Mock implementation - in production, use actual Stripe API
-    // const paymentMethod = await stripe.paymentMethods.detach(paymentMethodId);
-
-    // Return mock response
-    return {
-      id: paymentMethodId,
-      deleted: true,
-    };
-  } catch (error) {
-    console.error("Error deleting payment method:", error);
-    throw new Error("Failed to delete payment method");
-  }
-};
-
-/**
- * Cancel a Stripe subscription
- *
+ * Cancel a subscription
  * @param {string} subscriptionId - Stripe subscription ID
- * @returns {Object} Canceled subscription object
+ * @returns {Promise<Object>} Cancelled subscription
  */
 const cancelSubscription = async (subscriptionId) => {
   try {
-    // Mock implementation - in production, use actual Stripe API
-    // const subscription = await stripe.subscriptions.update(subscriptionId, {
-    //   cancel_at_period_end: true,
-    // });
-
-    // Return mock response
+    console.log(`Cancelling Stripe subscription: ${subscriptionId}`);
+    
+    // Mock cancellation
     return {
       id: subscriptionId,
-      status: "canceled",
-      cancel_at_period_end: true,
-      current_period_end: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60, // 30 days from now
+      status: 'canceled',
+      canceled_at: Math.floor(Date.now() / 1000)
     };
   } catch (error) {
-    console.error("Error canceling subscription:", error);
-    throw new Error("Failed to cancel subscription");
+    console.error('Error cancelling subscription:', error);
+    throw new Error('Failed to cancel subscription');
   }
 };
 
+/**
+ * Get Stripe configuration
+ * @returns {Promise<Object>} Stripe configuration
+ */
+const getStripeConfig = async () => {
+  return {
+    publishableKey: process.env.STRIPE_PUBLISHABLE_KEY || 'pk_test_mock_key'
+  };
+};
+
 module.exports = {
-  getStripeConfig,
-  createPaymentIntent,
   createOrGetCustomer,
-  createSubscription,
-  getPaymentMethods,
-  setDefaultPaymentMethod,
-  deletePaymentMethod,
+  createOrGetCustomerByUserId,
+  createPaymentIntent,
   cancelSubscription,
+  getStripeConfig
 };

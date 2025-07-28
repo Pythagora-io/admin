@@ -1,13 +1,13 @@
 import api from "./api";
 
 // Description: Get team members
-// Endpoint: GET /api/team
+// Endpoint: GET /team
 // Request: {}
 // Response: { members: Array<{ _id: string, name: string, email: string, role: 'admin' | 'developer' | 'viewer', joinedAt: string }> }
 export const getTeamMembers = async () => {
   try {
     console.log("Making getTeamMembers API call");
-    const response = await api.get("/api/team");
+    const response = await api.get("/team");
     console.log("getTeamMembers API response:", response.data);
     return response.data;
   } catch (error) {
@@ -17,12 +17,12 @@ export const getTeamMembers = async () => {
 };
 
 // Description: Invite team member
-// Endpoint: POST /api/team/invite
+// Endpoint: POST /team/invite
 // Request: { email: string }
 // Response: { success: boolean, message: string }
 export const inviteTeamMember = async (data: { email: string }) => {
   try {
-    const response = await api.post("/api/team/invite", data);
+    const response = await api.post("/team/invite", data);
     return response.data;
   } catch (error) {
     throw new Error(error?.response?.data?.error || error.message);
@@ -30,12 +30,12 @@ export const inviteTeamMember = async (data: { email: string }) => {
 };
 
 // Description: Remove team member
-// Endpoint: DELETE /api/team/:id
+// Endpoint: DELETE /team/:id
 // Request: {}
 // Response: { success: boolean, message: string }
 export const removeTeamMember = async (memberId: string) => {
   try {
-    const response = await api.delete(`/api/team/${memberId}`);
+    const response = await api.delete(`/team/${memberId}`);
     return response.data;
   } catch (error) {
     throw new Error(error?.response?.data?.error || error.message);
@@ -43,7 +43,7 @@ export const removeTeamMember = async (memberId: string) => {
 };
 
 // Description: Update team member role
-// Endpoint: PUT /api/team/:id/role
+// Endpoint: PUT /team/:id/role
 // Request: { role: 'admin' | 'developer' | 'viewer' }
 // Response: { success: boolean, message: string }
 export const updateTeamMemberRole = async (
@@ -51,7 +51,7 @@ export const updateTeamMemberRole = async (
   data: { role: "admin" | "developer" | "viewer" },
 ) => {
   try {
-    const response = await api.put(`/api/team/${memberId}/role`, data);
+    const response = await api.put(`/team/${memberId}/role`, data);
     return response.data;
   } catch (error) {
     throw new Error(error?.response?.data?.error || error.message);
@@ -59,12 +59,12 @@ export const updateTeamMemberRole = async (
 };
 
 // Description: Get member access
-// Endpoint: GET /api/team/:id/access
+// Endpoint: GET /team/:id/access
 // Request: {}
 // Response: { projects: Array<{ _id: string, name: string, access: 'view' | 'edit' }> }
 export const getMemberAccess = async (memberId: string) => {
   try {
-    const response = await api.get(`/api/team/${memberId}/access`);
+    const response = await api.get(`/team/${memberId}/access`);
     return response.data;
   } catch (error) {
     throw new Error(error?.response?.data?.error || error.message);
@@ -72,7 +72,7 @@ export const getMemberAccess = async (memberId: string) => {
 };
 
 // Description: Update member access
-// Endpoint: PUT /api/team/:id/access
+// Endpoint: PUT /team/:id/access
 // Request: { projects: Array<{ id: string, access: 'view' | 'edit' }> }
 // Response: { success: boolean, message: string }
 export const updateMemberAccess = async (
@@ -80,7 +80,7 @@ export const updateMemberAccess = async (
   data: { projects: Array<{ id: string; access: "view" | "edit" }> },
 ) => {
   try {
-    const response = await api.put(`/api/team/${memberId}/access`, data);
+    const response = await api.put(`/team/${memberId}/access`, data);
     return response.data;
   } catch (error) {
     throw new Error(error?.response?.data?.error || error.message);
@@ -88,13 +88,13 @@ export const updateMemberAccess = async (
 };
 
 // Description: Search projects
-// Endpoint: GET /api/team/projects/search
+// Endpoint: GET /team/projects/search
 // Request: { query: string }
 // Response: { projects: Array<{ _id: string, name: string }> }
 export const searchProjects = async (query: string) => {
   try {
     const response = await api.get(
-      `/api/team/projects/search?query=${encodeURIComponent(query)}`,
+      `/team/projects/search?query=${encodeURIComponent(query)}`,
     );
     return response.data;
   } catch (error) {
@@ -103,7 +103,7 @@ export const searchProjects = async (query: string) => {
 };
 
 // Description: Search users in organization
-// Endpoint: GET /api/users/search
+// Endpoint: GET /users/search
 // Request: { query: string }
 // Response: { users: Array<{ _id: string, name: string, email: string }> }
 export const searchUsers = async (query: string) => {
@@ -158,7 +158,7 @@ export const searchUsers = async (query: string) => {
 
   // When backend implements this endpoint, uncomment the code below
   // try {
-  //   const response = await api.get(`/api/users/search?query=${encodeURIComponent(query)}`);
+  //   const response = await api.get(`/users/search?query=${encodeURIComponent(query)}`);
   //   return response.data;
   // } catch (error) {
   //   throw new Error(error?.response?.data?.error || error.message);

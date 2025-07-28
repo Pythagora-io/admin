@@ -1,19 +1,15 @@
 const jwt = require("jsonwebtoken");
 
+// These functions are deprecated and should not be used
+// Authentication is now handled by Pythagora API
 const generateAccessToken = (user) => {
-  const payload = {
-    sub: user._id,
-  };
-  return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "15m" });
+  console.warn("DEPRECATED: generateAccessToken should not be used. Authentication is handled by Pythagora API.");
+  return null;
 };
 
 const generateRefreshToken = (user) => {
-  const payload = {
-    sub: user._id,
-  };
-  return jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET, {
-    expiresIn: "30d",
-  });
+  console.warn("DEPRECATED: generateRefreshToken should not be used. Authentication is handled by Pythagora API.");
+  return null;
 };
 
 module.exports = {

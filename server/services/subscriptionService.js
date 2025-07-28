@@ -3,7 +3,6 @@
  */
 const subscriptionPlans = require("../config/subscriptionPlans");
 const Subscription = require("../models/Subscription");
-const User = require("../models/User");
 const stripeService = require("./stripeService");
 
 /**
@@ -78,13 +77,9 @@ const updateSubscription = async (userId, planId) => {
       throw new Error("Invalid subscription plan");
     }
 
-    const user = await User.findById(userId);
-    if (!user) {
-      throw new Error("User not found");
-    }
-
-    // Get or create Stripe customer
-    const customerId = await stripeService.createOrGetCustomer(user);
+    // Since we're not managing users internally, we'll work with the userId from Pythagora
+    // Get or create Stripe customer using userId (this would be modified in stripeService)
+    const customerId = await stripeService.createOrGetCustomerByUserId(userId);
 
     // Create a new subscription in our database
     const subscription = new Subscription({
