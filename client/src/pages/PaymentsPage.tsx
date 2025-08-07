@@ -11,7 +11,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/useToast";
-import { Download, FileText } from "lucide-react";
+import { Download, FileText, Calendar, ExternalLink } from "lucide-react";
 import {
   getBillingInfo,
   getCompanyBillingInfo,
@@ -20,6 +20,8 @@ import {
 import { updateBillingInfo } from "@/api/user";
 import { Separator } from "@/components/ui/separator";
 import { getCustomerProfile } from "@/api/subscription";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import SpinnerShape from "@/components/SpinnerShape";
 
 // Interface Definitions
@@ -59,6 +61,18 @@ interface PrepaidPayment {
   };
 }
 
+interface MonthlyInvoice {
+  month_key: string;
+  month_name: string;
+  invoice_id: string;
+  period_start: number;
+  period_end: number;
+  amount_due: number;
+  currency: string;
+  status: string;
+  invoice_url: string;
+}
+
 interface SubscriptionHistory {
   id: string;
   customerId: string;
@@ -81,6 +95,7 @@ interface SubscriptionHistory {
       };
       product: string;
     }>;
+    monthly_invoices?: MonthlyInvoice[];
   };
 }
 
@@ -161,6 +176,19 @@ export function PaymentsPage() {
     }
   };
 
+  const formatDateFromTimestamp = (timestamp?: number) => {
+    if (!timestamp) return "-";
+    try {
+      return new Date(timestamp * 1000).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    } catch {
+      return "-";
+    }
+  };
+
   const formatCurrency = (amount?: number, currency?: string) => {
     if (typeof amount !== 'number') return "-";
     // Convert from cents to dollars for Stripe amounts
@@ -169,6 +197,58 @@ export function PaymentsPage() {
       style: "currency",
       currency: currency?.toUpperCase() || "USD",
     }).format(dollars);
+  };
+
+  const getStatusBadgeClass = (status?: string) => {
+    switch (status?.toLowerCase()) {
+      case "paid":
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
+      case "open":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
+      case "void":
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
+      case "draft":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
+      default:
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
+    }
+  };
+
+  const getPlanBadgeClass = (planType?: string) => {
+    switch (planType?.toLowerCase()) {
+      case "free":
+        return "bg-plan-starter text-warning-foreground";
+      case "pro":
+        return "bg-plan-pro text-warning-foreground";
+      case "premium":
+        return "bg-plan-premium text-warning-foreground";
+      case "enterprise":
+        return "bg-plan-enterprise text-warning-foreground";
+      default:
+        return "bg-muted text-muted-foreground";
+    }
+  };
+
+  // Collect all monthly invoices from all subscriptions
+  const getAllMonthlyInvoices = () => {
+    if (!subscriptionsHistory) return [];
+
+    const allInvoices: Array<MonthlyInvoice & { subscriptionId: string; planType: string }> = [];
+
+    subscriptionsHistory.forEach((subscription) => {
+      if (subscription.stripeData?.monthly_invoices) {
+        subscription.stripeData.monthly_invoices.forEach((invoice) => {
+          allInvoices.push({
+            ...invoice,
+            subscriptionId: subscription.id,
+            planType: subscription.planType,
+          });
+        });
+      }
+    });
+
+    // Sort by period_start descending (most recent first)
+    return allInvoices.sort((a, b) => b.period_start - a.period_start);
   };
 
   useEffect(() => {
@@ -197,6 +277,7 @@ export function PaymentsPage() {
         if (customerProfileData?.customer?.subscriptionsHistory) {
           const uniqueSubscriptions = getUniqueSubscriptions(customerProfileData.customer.subscriptionsHistory);
           console.log("PaymentsPage: Unique subscriptions history:", uniqueSubscriptions);
+          console.log("PaymentsPage: Monthly invoices data:", uniqueSubscriptions.map(sub => sub.stripeData?.monthly_invoices));
           setSubscriptionsHistory(uniqueSubscriptions);
         } else {
           console.log("PaymentsPage: No subscriptions history found");
@@ -514,50 +595,72 @@ export function PaymentsPage() {
             <h2 className="text-body-lg font-normal text-foreground">
               Subscription History
             </h2>
-            {subscriptionsHistory.length === 0 ? (
+            {getAllMonthlyInvoices().length === 0 ? (
               <p className="text-body-sm text-foreground/60">
                 No subscription history available.
               </p>
             ) : (
               <p className="text-body-sm text-foreground/60">
-                View and download invoices for your subscriptions
+                View and download invoices for your monthly subscription payments
               </p>
             )}
           </div>
-          <div className="space-y-2">
-            {subscriptionsHistory.length > 0 ? (
-              subscriptionsHistory.map((sub, index) => (
-                <div key={sub.id} className="flex justify-between items-center py-2 px-3 bg-muted/30 rounded-lg">
-                  <div>
-                    <p className="text-sm font-medium">Plan: {sub.planType}</p>
-                    <p className="text-xs text-muted-foreground">Subscription ID: {sub.id}</p>
-                    {sub.stripeData && (
-                      <p className="text-xs text-muted-foreground">
-                        Status: {sub.stripeData.status}
-                        {sub.stripeData.items?.[0]?.price && (
-                          <span className="ml-2">
-                            • {formatCurrency(sub.stripeData.items[0].price.unit_amount, sub.stripeData.items[0].price.currency)}/{sub.stripeData.items[0].price.recurring?.interval}
-                          </span>
-                        )}
-                      </p>
-                    )}
-                  </div>
-                  <div className="text-right flex flex-col gap-2">
-                    <p className="text-sm">{formatDate(sub.createdAt)}</p>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 px-2 text-xs"
-                      onClick={() => handleDownloadSubscriptionInvoice(sub.id)}
-                    >
-                      <FileText className="h-3 w-3 mr-1" />
-                      Get Invoice
-                    </Button>
-                  </div>
-                </div>
-              ))
+          <div>
+            {getAllMonthlyInvoices().length === 0 ? (
+              <div></div>
             ) : (
-              <p className="text-sm text-muted-foreground">No subscription history available</p>
+              <div className="rounded-lg overflow-hidden">
+                {/* Header Row */}
+                <div className="flex items-center py-3 border-border text-body-sm font-medium text-foreground/60">
+                  <div className="min-w-[140px] w-[25%]">Month</div>
+                  <div className="min-w-[100px] w-[20%]">Plan</div>
+                  <div className="min-w-[100px] w-[20%] text-right">Amount</div>
+                  <div className="min-w-[100px] w-[15%] text-center">Status</div>
+                  <div className="min-w-[130px] w-[20%] text-right"></div>
+                </div>
+                {/* Monthly Invoice Rows */}
+                {getAllMonthlyInvoices().map((invoice) => (
+                  <div
+                    key={`${invoice.subscriptionId}-${invoice.month_key}`}
+                    className="flex items-center py-3 text-body-sm text-foreground border-b border-border"
+                    tabIndex={0}
+                    aria-label={`Subscription invoice for ${invoice.month_name}: ${invoice.planType} plan, ${formatCurrency(invoice.amount_due, invoice.currency)}, Status: ${invoice.status}`}
+                  >
+                    <div className="min-w-[140px] w-[25%] font-medium">
+                      {invoice.month_name}
+                    </div>
+                    <div className="min-w-[100px] w-[20%]">
+                      <Badge className={getPlanBadgeClass(invoice.planType)}>
+                        {invoice.planType}
+                      </Badge>
+                    </div>
+                    <div className="min-w-[100px] w-[20%] text-right font-medium">
+                      {formatCurrency(invoice.amount_due, invoice.currency)}
+                    </div>
+                    <div className="min-w-[100px] w-[15%] text-center">
+                      <Badge className={getStatusBadgeClass(invoice.status)}>
+                        {invoice.status}
+                      </Badge>
+                    </div>
+                    <div className="min-w-[130px] w-[20%] text-right flex justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        className="rounded-lg h-9 px-3 text-xs font-medium flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        aria-label="View invoice"
+                        tabIndex={0}
+                        onClick={() => window.open(invoice.invoice_url, '_blank')}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ")
+                            window.open(invoice.invoice_url, '_blank');
+                        }}
+                      >
+                        <ExternalLink className="h-4 w-4 mr-1" aria-hidden="true" />
+                        View Invoice
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         </div>
