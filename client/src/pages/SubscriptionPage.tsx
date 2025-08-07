@@ -78,6 +78,17 @@ interface CustomerProfile {
         };
         product: string;
       }>;
+      monthly_invoices?: Array<{
+        month_key: string;
+        month_name: string;
+        invoice_id: string;
+        period_start: number;
+        period_end: number;
+        amount_due: number;
+        currency: string;
+        status: string;
+        invoice_url: string;
+      }>;
     };
   }>;
   isFreeTrial?: boolean;
@@ -145,7 +156,7 @@ export function SubscriptionPage() {
   }, [toast]);
 
   const handleContactForEnterprise = () => {
-    // Point to 
+    // Point to
     window.open("https://www.pythagora.ai/contact", "_blank");
   };
 
