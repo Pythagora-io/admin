@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useMatch } from "react-router-dom";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import DashboardBackground from "@/assets/dashboard-background.svg";
@@ -14,9 +14,6 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter as CustomSidebarFooter,
-  SidebarMenuSub,
-  SidebarMenuSubItem,
-  SidebarMenuSubButton,
 } from "./ui/sidebar";
 import {
   UserCircle,
@@ -27,13 +24,9 @@ import {
   Folder,
   Users,
   LogOut,
-  SquarePen,
-  ExternalLink,
   Menu,
-  ChevronDown,
 } from "lucide-react";
 import { Button } from "./ui/button";
-import { Avatar, AvatarFallback } from "./ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import {
@@ -44,85 +37,19 @@ import {
   SheetHeader,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { getCurrentUser } from "@/api/user";
-
-interface User {
-  _id: string;
-  name?: string;
-  email: string;
-  receiveUpdates?: boolean;
-}
 
 export function DashboardLayout() {
   const location = useLocation();
   const { logout } = useAuth();
   const navigate = useNavigate();
-  const [user, setUser] = useState<User | null>(null);
-  const [userLoading, setUserLoading] = useState(true);
-
-  // Open the projects submenu by default if we're on a projects page
-  const [openSubmenu, setOpenSubmenu] = useState<string | null>(
-    location.pathname.startsWith("/projects") ? "projects" : null,
-  );
-
-  useEffect(() => {
-    // Keep Projects submenu open if we're on a projects page
-    if (
-      location.pathname.startsWith("/projects") &&
-      openSubmenu !== "projects"
-    ) {
-      setOpenSubmenu("projects");
-    }
-    // Close the submenu when navigating away from projects pages
-    if (
-      !location.pathname.startsWith("/projects") &&
-      openSubmenu === "projects"
-    ) {
-      setOpenSubmenu(null);
-    }
-  }, [location.pathname, openSubmenu]);
-
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const { user } = await getCurrentUser();
-        setUser(user);
-      } catch (error) {
-        console.error("Failed to fetch user data:", error);
-      } finally {
-        setUserLoading(false);
-      }
-    };
-
-    fetchUserData();
-  }, []);
-
-  const getUserInitials = (): string => {
-    if (!user) return "U";
-
-    if (user.name && user.name.trim()) {
-      return user.name.trim().charAt(0).toUpperCase();
-    }
-
-    if (user.email) {
-      return user.email.charAt(0).toUpperCase();
-    }
-
-    return "U";
-  };
+  
+  // Use useMatch to check if we're on the projects page or any of its sub-routes
+  const isProjectsRoute = useMatch("/projects/*");
 
   const handleLogout = () => {
     logout();
     navigate("/login");
   };
-
-  const toggleSubmenu = (key: string) => {
-    setOpenSubmenu(openSubmenu === key ? null : key);
-  };
-
-  const isProjectsPage = location.pathname.startsWith("/projects");
-  const isProjectsDraftsPage = location.pathname === "/projects/drafts";
-  const isProjectsDeployedPage = location.pathname === "/projects/deployed";
 
   const navigateTo = (path: string) => {
     navigate(path);
@@ -139,7 +66,7 @@ export function DashboardLayout() {
   };
 
   const navButtonBaseClasses =
-    "w-full flex items-center rounded-lg py-2.5 text-sm font-medium transition-colors duration-150";
+    "w-full flex items-center rounded-lg px-4 py-2.5 text-sm font-medium transition-colors duration-150";
   const navButtonInactiveClasses =
     "text-sidebar-foreground hover:bg-sidebar-hover hover:text-sidebar-active-foreground";
   const navButtonActiveClasses = "bg-primary text-sidebar-active-foreground";
@@ -147,114 +74,32 @@ export function DashboardLayout() {
 
   const renderSidebarContent = () => (
     <>
-      <SidebarMenu className="px-2">
+      <SidebarMenu className="space-y-1 px-2">
         <SidebarMenuItem>
           <SidebarMenuButton
-            isActive={false}
+            isActive={!!isProjectsRoute}
             tooltip="Projects"
-            onClick={() => {
-              toggleSubmenu("projects");
-              if (!isProjectsPage) {
-                navigateTo("/projects/drafts");
-              }
-            }}
-            className={cn(navButtonBaseClasses, navButtonInactiveClasses)}
-          >
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center">
-                <Folder className={cn(iconClasses, "text-sidebar-muted")} />
-                <span>Projects</span>
-              </div>
-              <ChevronDown
-                className={cn(
-                  "h-5 w-5 text-sidebar-muted transition-transform duration-300 ease-in-out",
-                  openSubmenu === "projects" ? "rotate-180" : "rotate-0",
-                )}
-              />
-            </div>
-          </SidebarMenuButton>
-          <div
-            className={cn(
-              "overflow-hidden transition-all duration-300 ease-in-out",
-              openSubmenu === "projects"
-                ? "max-h-32 opacity-100"
-                : "max-h-0 opacity-0",
-            )}
-          >
-            <SidebarMenuSub className="">
-              <SidebarMenuSubItem>
-                <SidebarMenuSubButton
-                  isActive={isProjectsDraftsPage}
-                  onClick={() => navigateTo("/projects/drafts")}
-                  className={cn(
-                    navButtonBaseClasses,
-                    isProjectsDraftsPage
-                      ? navButtonActiveClasses
-                      : navButtonInactiveClasses,
-                  )}
-                >
-                  <SquarePen
-                    className={cn(
-                      iconClasses,
-                      isProjectsDraftsPage
-                        ? "text-white"
-                        : "text-sidebar-muted",
-                    )}
-                  />
-                  <span>Drafts</span>
-                </SidebarMenuSubButton>
-              </SidebarMenuSubItem>
-              <SidebarMenuSubItem>
-                <SidebarMenuSubButton
-                  isActive={isProjectsDeployedPage}
-                  onClick={() => navigateTo("/projects/deployed")}
-                  className={cn(
-                    navButtonBaseClasses,
-                    isProjectsDeployedPage
-                      ? navButtonActiveClasses
-                      : navButtonInactiveClasses,
-                  )}
-                >
-                  <ExternalLink
-                    className={cn(
-                      iconClasses,
-                      isProjectsDeployedPage
-                        ? "text-white"
-                        : "text-sidebar-muted",
-                    )}
-                  />
-                  <span>Deployed</span>
-                </SidebarMenuSubButton>
-              </SidebarMenuSubItem>
-            </SidebarMenuSub>
-          </div>
-        </SidebarMenuItem>
-
-        <SidebarMenuItem>
-          <SidebarMenuButton
-            isActive={location.pathname === "/team"}
-            tooltip="Team"
-            onClick={() => navigateTo("/team")}
+            onClick={() => navigateTo("/projects")}
             className={cn(
               navButtonBaseClasses,
-              location.pathname === "/team"
+              isProjectsRoute
                 ? navButtonActiveClasses
                 : navButtonInactiveClasses,
             )}
           >
-            <Users
+            <Folder
               className={cn(
                 iconClasses,
-                location.pathname === "/team"
+                isProjectsRoute
                   ? "text-white"
                   : "text-sidebar-muted",
               )}
             />
-            <span>Team</span>
+            <span>Projects</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
 
-        <SidebarMenuItem>
+        {/*<SidebarMenuItem>
           <SidebarMenuButton
             isActive={location.pathname === "/domains"}
             tooltip="Domains"
@@ -276,7 +121,7 @@ export function DashboardLayout() {
             />
             <span>Domains</span>
           </SidebarMenuButton>
-        </SidebarMenuItem>
+        </SidebarMenuItem>*/}
 
         <SidebarMenuItem>
           <SidebarMenuButton
@@ -348,7 +193,7 @@ export function DashboardLayout() {
           </SidebarMenuButton>
         </SidebarMenuItem>
 
-        <SidebarMenuItem>
+        {/*<SidebarMenuItem>
           <SidebarMenuButton
             isActive={location.pathname === "/settings"}
             tooltip="Settings"
@@ -370,8 +215,35 @@ export function DashboardLayout() {
             />
             <span>Settings</span>
           </SidebarMenuButton>
-        </SidebarMenuItem>
+        </SidebarMenuItem>*/}
       </SidebarMenu>
+
+      {/* Team menu item - commented out as requested */}
+        {/*
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            isActive={location.pathname === "/team"}
+            tooltip="Team"
+            onClick={() => navigateTo("/team")}
+            className={cn(
+              navButtonBaseClasses,
+              location.pathname === "/team"
+                ? navButtonActiveClasses
+                : navButtonInactiveClasses,
+            )}
+          >
+            <Users
+              className={cn(
+                iconClasses,
+                location.pathname === "/team"
+                  ? "text-white"
+                  : "text-sidebar-muted",
+              )}
+            />
+            <span>Team</span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+        */}
     </>
   );
 
@@ -389,7 +261,7 @@ export function DashboardLayout() {
               aria-label="Go to homepage"
             >
               <PythagoraIcon />
-              <span className="ml-1 text-lg font-semibold text-foreground">
+              <span className="ml-2 text-lg font-semibold text-foreground">
                 Pythagora
               </span>
             </div>
@@ -398,29 +270,18 @@ export function DashboardLayout() {
             {renderSidebarContent()}
           </SidebarContent>
           <CustomSidebarFooter className="mt-auto py-4 px-4">
-            <div className="flex items-center justify-around w-full">
-              <div className="flex items-center gap-2">
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback className="bg-[#FC8DDD] text-[#060218] font-medium text-xs">
-                    {userLoading ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-[#060218] border-t-transparent" />
-                    ) : (
-                      getUserInitials()
-                    )}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="text-sm font-medium text-sidebar-foreground">
-                  Log out
-                </span>
-              </div>
+            <div className="flex items-center justify-end px-5">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={handleLogout}
-                className="h-5 w-5 p-0 hover:bg-transparent cursor-pointer"
+                className="text-sidebar-active-foreground rounded-lg hover:bg-transparent flex items-center gap-2 cursor-pointer"
                 aria-label="Log out"
               >
-                <LogOut className="h-5 w-5 text-sidebar-foreground" />
+                <div className="flex items-center gap-2">
+                  <span>Logout</span>
+                  <LogOut className="h-5 w-5 stroke-current" />
+                </div>
               </Button>
             </div>
           </CustomSidebarFooter>
@@ -441,7 +302,7 @@ export function DashboardLayout() {
           </SheetTrigger>
           <SheetContent
             side="left"
-            className="w-48 bg-sidebar text-sidebar-foreground p-0 flex flex-col"
+            className="w-60 bg-sidebar text-sidebar-foreground p-0 flex flex-col"
           >
             <SidebarProvider>
               <SheetHeader className="pt-6 pb-4 px-4 border-sidebar-border">
@@ -465,30 +326,19 @@ export function DashboardLayout() {
                 {renderSidebarContent()}
               </div>
               <SheetFooter className="mt-auto py-4 px-4 border-sidebar-border">
-                <div className="flex items-center justify-around w-full">
-                  <div className="flex items-center gap-2">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback className="bg-[#FC8DDD] text-[#060218] font-medium text-xs">
-                        {userLoading ? (
-                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-[#060218] border-t-transparent" />
-                        ) : (
-                          getUserInitials()
-                        )}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="text-sm font-medium text-sidebar-foreground">
-                      Log out
-                    </span>
-                  </div>
+                <div className="flex items-center justify-end px-5">
                   <SheetClose asChild>
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={handleLogout}
-                      className="h-5 w-5 p-0 ml-4 hover:bg-transparent cursor-pointer"
+                      className="text-sidebar-active-foreground rounded-lg hover:bg-transparent flex items-center gap-2 cursor-pointer"
                       aria-label="Log out"
                     >
-                      <LogOut className="h-5 w-5 text-sidebar-foreground" />
+                      <div className="flex items-center gap-2">
+                        <span>Logout</span>
+                        <LogOut className="h-5 w-5 stroke-current cursor-pointer" />
+                      </div>
                     </Button>
                   </SheetClose>
                 </div>
@@ -499,7 +349,7 @@ export function DashboardLayout() {
       </div>
 
       <main className="h-screen flex flex-col md:ml-48 pt-4 pb-4 pr-4">
-        <div className="flex-1 max-h-full bg-window-blur border border-window-border rounded-2xl backdrop-blur-lg px-4 md:px-6 py-4 md:py-6">
+        <div className="flex-1 max-h-full bg-background-content-glassy/80 border border-border rounded-2xl backdrop-blur-lg px-4 md:px-6 py-4 md:py-6">
           <div className="mx-auto max-w-7xl h-full overflow-auto p-4 lg:p-14">
             <Outlet />
           </div>

@@ -1,6 +1,31 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/useToast";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Globe,
+  Lock,
+  Calendar,
+  Folder,
+  ExternalLink,
+  Trash2,
+  Link,
+  Copy,
+  CheckCircle,
+  Clock,
+  AlertCircle,
+} from "lucide-react";
+import { getProjects, deleteDeployedProject, setupCustomDomain, deleteCustomDomain } from "@/api/projects";
+import { getUserProfile } from "@/api/user";
+import SpinnerShape from "@/components/SpinnerShape";
+import { ProjectsPythagoraIcon, PremiumPlanIcon } from "@/components/icons/PlanIcons";
+import { cn } from "@/lib/utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,6 +35,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
   Dialog,
@@ -18,912 +44,822 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  MoreVertical,
-  Users,
-  Search,
-  Upload,
-  SquarePen,
-  Settings2,
-  ArrowUpRightSquare,
-  Trash2,
-  Link,
-  Copy,
-  FileEdit,
-  CloudOff,
-} from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  getUserProjects,
-  deleteProjects,
-  renameProject,
-  getProjectAccess,
-  updateProjectAccess,
-  createProjectDraft,
-  duplicateProject,
-  deployProject,
-} from "@/api/projects";
-import { searchUsers } from "@/api/team";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
-interface ProjectsPageProps {
-  type?: "drafts" | "deployed";
-}
 
 interface Project {
-  _id: string;
-  title: string;
-  lastEdited: string;
-  visibility: "public" | "private";
-  thumbnail?: string;
-  // Add other relevant project fields here
-}
-
-interface UserAccessInfo {
-  _id: string;
+  id: string;
   name: string;
-  email: string;
-  access: "view" | "edit";
+  folder_name: string;
+  updated_at?: string;
+  created_at?: string;
+  isPublic?: boolean;
+  status?: 'draft' | 'deployed';
+  deploymentUrl?: string;
 }
 
-interface SearchedUser {
-  _id: string;
-  name: string;
-  email: string;
+interface Deployment {
+  instanceName: string;
+  folderPath: string;
+  url: string;
+  projectId: string;
+  instanceId: string;
+  publicDnsName: string;
+  createdAt: { $date: string } | string;
+  updatedAt: { $date: string } | string;
+  customDomain?: string;
+  customDomainStatus?: string;
+  publicIp?: string;
+  customDomainRetryCount?: number;
+  customDomainLastChecked?: string;
 }
 
-export function ProjectsPage({ type = "drafts" }: ProjectsPageProps) {
+export function ProjectsPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [projects, setProjects] = useState<Project[]>([]);
+  const [deployments, setDeployments] = useState<Deployment[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
-  const [isSelecting, setIsSelecting] = useState(false);
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [renameDialogOpen, setRenameDialogOpen] = useState(false);
-  const [projectToRename, setProjectToRename] = useState<{
-    id: string;
-    title: string;
-  } | null>(null);
-  const [newProjectTitle, setNewProjectTitle] = useState("");
-  const [isRenaming, setIsRenaming] = useState(false);
-  const [isDeploying, setIsDeploying] = useState(false);
-  const [deployConfirmOpen, setDeployConfirmOpen] = useState(false);
-  const [projectToDeploy, setProjectToDeploy] = useState<string | null>(null);
-
-  // Manage access state
-  const [accessManagementOpen, setAccessManagementOpen] = useState(false);
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [projectUsers, setProjectUsers] = useState<UserAccessInfo[]>([]);
-  const [userSearchQuery, setUserSearchQuery] = useState("");
-  const [userSearchResults, setUserSearchResults] = useState<SearchedUser[]>(
-    [],
-  );
-  const [savingAccess, setSavingAccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [deletingDeployment, setDeletingDeployment] = useState<string | null>(null);
+  const [settingUpDomain, setSettingUpDomain] = useState<string | null>(null);
+  const [customDomainDialog, setCustomDomainDialog] = useState<{ open: boolean; deployment: Deployment | null }>({ open: false, deployment: null });
+  const [dnsInstructionsDialog, setDnsInstructionsDialog] = useState<{ open: boolean; deployment: Deployment | null }>({ open: false, deployment: null });
+  const [customDomain, setCustomDomain] = useState("");
+  const [activeTab, setActiveTab] = useState(() => {
+    const tab = searchParams.get('tab');
+    return (tab === 'deployed' || tab === 'projects') ? tab : 'projects';
+  });
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [deletingCustomDomain, setDeletingCustomDomain] = useState<string | null>(null);
 
   const { toast } = useToast();
 
-  // Set page title based on type
-  const pageTitle = type === "drafts" ? "Drafts" : "Deployed Projects";
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    setSearchParams({ tab: value });
+  };
 
-  useEffect(() => {
-    const fetchProjects = async () => {
-      setLoading(true); // Reset loading state when type changes
-      setProjects([]); // Clear projects immediately to prevent flash
-      try {
-        const response = await getUserProjects(type);
-        setProjects(response.projects);
-      } catch (error) {
-        toast({
-          variant: "error",
-          title: "Error",
-          description:
-            error instanceof Error ? error.message : "Failed to fetch projects",
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      console.log('ProjectsPage: Fetching projects and deployments...');
+
+      // Fetch both projects and user profile (which contains deployments)
+      const [projectsResponse, profileResponse] = await Promise.all([
+        getProjects(),
+        getUserProfile()
+      ]);
+
+      console.log("ProjectsPage: Projects response received:", projectsResponse);
+      console.log("ProjectsPage: Profile response received:", profileResponse);
+
+      // Handle projects
+      if (projectsResponse && projectsResponse.projects) {
+        const mappedProjects = projectsResponse.projects.map((project: any) => ({
+          id: project.id,
+          name: project.name,
+          folder_name: project.folder_name,
+          updated_at: project.updated_at,
+          created_at: project.created_at,
+          isPublic: project.isPublic || false,
+          status: 'draft' as const,
+          deploymentUrl: project.deploymentUrl || `https://${project.id}.deployments.pythagora.ai`
+        }));
+
+        // Sort projects by time (most recent first)
+        const sortedProjects = mappedProjects.sort((a, b) => {
+          const dateA = new Date(a.updated_at || a.created_at || 0);
+          const dateB = new Date(b.updated_at || b.created_at || 0);
+          return dateB.getTime() - dateA.getTime(); // Descending order (newest first)
         });
-      } finally {
-        setLoading(false);
-      }
-    };
 
-    fetchProjects();
-  }, [toast, type]);
-
-  const toggleProjectSelection = (projectId: string) => {
-    if (selectedProjects.includes(projectId)) {
-      setSelectedProjects(selectedProjects.filter((id) => id !== projectId));
-    } else {
-      setSelectedProjects([...selectedProjects, projectId]);
-    }
-  };
-
-  const handleSelectMode = () => {
-    setIsSelecting(!isSelecting);
-    setSelectedProjects([]);
-  };
-
-  const handleDeleteSelected = async () => {
-    if (selectedProjects.length === 0) return;
-
-    try {
-      await deleteProjects({ projectIds: selectedProjects });
-
-      // Update local state
-      setProjects(
-        projects.filter((project) => !selectedProjects.includes(project._id)),
-      );
-
-      toast({
-        variant: "success",
-        title: "Success",
-        description: `Successfully deleted ${selectedProjects.length} project(s)`,
-      });
-
-      setSelectedProjects([]);
-      setIsSelecting(false);
-      setDeleteConfirmOpen(false);
-    } catch (error) {
-      toast({
-        variant: "error",
-        title: "Error",
-        description:
-          error instanceof Error ? error.message : "Failed to delete projects",
-      });
-    }
-  };
-
-  const handleNewProject = async () => {
-    try {
-      const response = await createProjectDraft({
-        title: "New Project",
-        description: "Enter project description here",
-        visibility: "private",
-      });
-
-      // Ensure response is used or handled if needed, e.g., for navigation or specific feedback
-      console.log("New project created:", response.project._id);
-
-      // Refresh the projects list
-      const updatedResponse = await getUserProjects(type);
-      setProjects(updatedResponse.projects);
-
-      toast({
-        variant: "success",
-        title: "Success",
-        description: "New project created successfully",
-      });
-
-      // You could also navigate to an editor with the new project ID
-      // navigate(`/editor/${response.project._id}`);
-    } catch (error) {
-      toast({
-        variant: "error",
-        title: "Error",
-        description:
-          error instanceof Error
-            ? error.message
-            : "Failed to create new project",
-      });
-    }
-  };
-
-  const handleRename = async () => {
-    if (!projectToRename || !newProjectTitle.trim()) return;
-
-    setIsRenaming(true);
-    try {
-      const response = await renameProject(projectToRename.id, {
-        title: newProjectTitle,
-      });
-
-      // Update local state
-      setProjects(
-        projects.map((project) =>
-          project._id === projectToRename.id
-            ? { ...project, title: newProjectTitle }
-            : project,
-        ),
-      );
-
-      toast({
-        variant: "success",
-        title: "Success",
-        description: response.message || "Project renamed successfully",
-      });
-
-      setRenameDialogOpen(false);
-      setProjectToRename(null);
-      setNewProjectTitle("");
-    } catch (error) {
-      toast({
-        variant: "error",
-        title: "Error",
-        description:
-          error instanceof Error ? error.message : "Failed to rename project",
-      });
-    } finally {
-      setIsRenaming(false);
-    }
-  };
-
-  const handleDeploy = async () => {
-    if (!projectToDeploy) return;
-
-    setIsDeploying(true);
-    try {
-      const response = await deployProject(projectToDeploy);
-
-      toast({
-        variant: "success",
-        title: "Success",
-        description: response.message || "Project deployed successfully",
-      });
-
-      // If we're on the drafts page, remove the project from the list
-      if (type === "drafts") {
-        setProjects(
-          projects.filter((project) => project._id !== projectToDeploy),
-        );
+        console.log("ProjectsPage: Mapped and sorted projects:", sortedProjects);
+        setProjects(sortedProjects);
+      } else {
+        console.warn("ProjectsPage: No projects found in response");
+        setProjects([]);
       }
 
-      setDeployConfirmOpen(false);
-      setProjectToDeploy(null);
-    } catch (error) {
+      // Handle deployments
+      if (profileResponse && profileResponse.deployments) {
+        console.log("ProjectsPage: Deployments found:", profileResponse.deployments);
+
+        // Sort deployments by time (most recent first)
+        const sortedDeployments = [...profileResponse.deployments].sort((a, b) => {
+          const getDateString = (dateObj: { $date: string } | string) => {
+            return typeof dateObj === 'object' && dateObj.$date ? dateObj.$date : dateObj;
+          };
+
+          const dateA = new Date(getDateString(a.updatedAt) || getDateString(a.createdAt) || 0);
+          const dateB = new Date(getDateString(b.updatedAt) || getDateString(b.createdAt) || 0);
+          return dateB.getTime() - dateA.getTime(); // Descending order (newest first)
+        });
+
+        setDeployments(sortedDeployments);
+      } else {
+        console.warn("ProjectsPage: No deployments found in profile response");
+        setDeployments([]);
+      }
+
+    } catch (error: unknown) {
+      console.error("ProjectsPage: Error fetching data:", error);
+      let errorMessage = "Failed to load data. Please try again later.";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === "string") {
+        errorMessage = error;
+      }
+      setError(errorMessage);
       toast({
-        variant: "error",
+        variant: "destructive",
         title: "Error",
-        description:
-          error instanceof Error ? error.message : "Failed to deploy project",
+        description: errorMessage,
       });
     } finally {
-      setIsDeploying(false);
+      setLoading(false);
     }
   };
 
-  const openAccessManagement = async (project: Project) => {
-    setSelectedProject(project);
-    setAccessManagementOpen(true);
-    setUserSearchQuery("");
-    setUserSearchResults([]);
-
+  const handleDeleteDeployment = async (deployment: Deployment) => {
     try {
-      const response = await getProjectAccess(project._id);
-      setProjectUsers(response.users);
-    } catch (error) {
+      setDeletingDeployment(deployment.projectId);
+      console.log('ProjectsPage: Deleting deployment:', deployment);
+
+      await deleteDeployedProject(deployment.projectId, deployment.folderPath);
+
       toast({
-        variant: "error",
-        title: "Error",
-        description:
-          error instanceof Error
-            ? error.message
-            : "Failed to fetch project access",
+        title: "Success",
+        description: "Deployment deleted successfully",
       });
+
+      // Refresh the data to reflect the changes
+      await fetchData();
+    } catch (error: unknown) {
+      console.error("ProjectsPage: Error deleting deployment:", error);
+      let errorMessage = "Failed to delete deployment. Please try again.";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === "string") {
+        errorMessage = error;
+      }
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: errorMessage,
+      });
+    } finally {
+      setDeletingDeployment(null);
     }
   };
 
-  const handleUserSearch = async (query: string) => {
-    setUserSearchQuery(query);
-
-    if (!query.trim()) {
-      setUserSearchResults([]);
+  const handleDeleteCustomDomain = async (deployment: Deployment) => {
+    if (!deployment.customDomain) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No custom domain found for this deployment",
+      });
       return;
     }
 
     try {
-      const response = await searchUsers(query);
-      // Filter out users that are already in projectUsers
-      const existingUserIds = projectUsers.map((p) => p._id);
-      setUserSearchResults(
-        (response as { users: SearchedUser[] }).users.filter(
-          (user) => !existingUserIds.includes(user._id),
-        ),
-      );
-    } catch (error) {
+      setDeletingCustomDomain(deployment.projectId);
+      console.log('ProjectsPage: Deleting custom domain:', {
+        deployment: deployment,
+        domain: deployment.customDomain
+      });
+
+      await deleteCustomDomain(deployment.customDomain);
+
       toast({
-        variant: "error",
+        title: "Success",
+        description: `Custom domain ${deployment.customDomain} deleted successfully`,
+      });
+
+      // Refresh the data to reflect the changes
+      await fetchData();
+    } catch (error: unknown) {
+      console.error("ProjectsPage: Error deleting custom domain:", error);
+      let errorMessage = "Failed to delete custom domain. Please try again.";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === "string") {
+        errorMessage = error;
+      }
+      toast({
+        variant: "destructive",
         title: "Error",
-        description:
-          error instanceof Error ? error.message : "Failed to search users",
+        description: errorMessage,
+      });
+    } finally {
+      setDeletingCustomDomain(null);
+    }
+  };
+
+  const handleSetupCustomDomain = async () => {
+    if (!customDomainDialog.deployment || !customDomain.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Please enter a valid domain name",
+      });
+      return;
+    }
+
+    try {
+      setSettingUpDomain(customDomainDialog.deployment.projectId);
+      console.log('ProjectsPage: Setting up custom domain:', {
+        deployment: customDomainDialog.deployment,
+        domain: customDomain
+      });
+
+      const response = await setupCustomDomain(
+        customDomainDialog.deployment.projectId,
+        customDomainDialog.deployment.folderPath,
+        customDomain.trim()
+      );
+
+      console.log('ProjectsPage: Custom domain setup response:', response);
+
+      toast({
+        title: "Custom Domain Setup Initiated",
+        description: response.dnsInstructions?.instructions || `Custom domain setup for ${customDomain} has been initiated`,
+      });
+
+      // Close dialog and reset form
+      setCustomDomainDialog({ open: false, deployment: null });
+      setCustomDomain("");
+
+      // Refresh data to get updated deployment info
+      await fetchData();
+
+    } catch (error: unknown) {
+      console.error("ProjectsPage: Error setting up custom domain:", error);
+      let errorMessage = "Failed to setup custom domain. Please try again.";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === "string") {
+        errorMessage = error;
+      }
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: errorMessage,
+      });
+    } finally {
+      setSettingUpDomain(null);
+    }
+  };
+
+  const copyToClipboard = async (text: string, field: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedField(field);
+      setTimeout(() => setCopiedField(null), 2000);
+      toast({
+        title: "Copied",
+        description: `${field} copied to clipboard`,
+      });
+    } catch (error) {
+      console.error('Failed to copy to clipboard:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to copy to clipboard",
       });
     }
   };
 
-  const addUserToProject = (user: SearchedUser) => {
-    // Add user to projectUsers with 'view' access as default
-    setProjectUsers([...projectUsers, { ...user, access: "view" }]);
-    // Clear search results
-    setUserSearchResults([]);
-    setUserSearchQuery("");
-  };
+  const getCustomDomainStatusBadge = (status?: string) => {
+    if (!status) return null;
 
-  const handleAccessChange = (userId: string, access: "view" | "edit") => {
-    setProjectUsers(
-      projectUsers.map((user) =>
-        user._id === userId ? { ...user, access } : user,
-      ),
+    const statusConfig = {
+      pending: { color: "bg-yellow-100 text-yellow-800 border-yellow-200", icon: Clock },
+      active: { color: "bg-green-100 text-green-800 border-green-200", icon: CheckCircle },
+      failed: { color: "bg-red-100 text-red-800 border-red-200", icon: AlertCircle },
+      default: { color: "bg-gray-100 text-gray-800 border-gray-200", icon: Clock }
+    };
+
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.default;
+    const IconComponent = config.icon;
+
+    return (
+      <Badge variant="outline" className={`text-xs ${config.color}`}>
+        <IconComponent className="h-3 w-3 mr-1" />
+        {status.charAt(0).toUpperCase() + status.slice(1)}
+      </Badge>
     );
   };
 
-  const saveAccessChanges = async () => {
-    if (!selectedProject) return;
+  useEffect(() => {
+    fetchData();
+  }, []);
 
-    setSavingAccess(true);
+  const formatDate = (dateString?: string | { $date: string }) => {
+    if (!dateString) return "Unknown";
+
     try {
-      const usersToUpdate = projectUsers.map((u) => ({
-        id: u._id,
-        access: u.access,
-      }));
+      let dateToFormat: string;
+      if (typeof dateString === 'object' && dateString.$date) {
+        dateToFormat = dateString.$date;
+      } else if (typeof dateString === 'string') {
+        dateToFormat = dateString;
+      } else {
+        return "Unknown";
+      }
 
-      await updateProjectAccess(selectedProject._id, { users: usersToUpdate });
+      const date = new Date(dateToFormat);
+      const now = new Date();
+      const diffTime = Math.abs(now.getTime() - date.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-      toast({
-        variant: "success",
-        title: "Success",
-        description: "Project access updated successfully",
-      });
-      setAccessManagementOpen(false);
-    } catch (error) {
-      toast({
-        variant: "error",
-        title: "Error",
-        description:
-          error instanceof Error
-            ? error.message
-            : "Failed to update project access",
-      });
-    } finally {
-      setSavingAccess(false);
+      if (diffDays === 1) return "1 day ago";
+      if (diffDays < 7) return `${diffDays} days ago`;
+      if (diffDays < 30) return `${Math.ceil(diffDays / 7)} weeks ago`;
+      if (diffDays < 365) return `${Math.ceil(diffDays / 30)} months ago`;
+      return `${Math.ceil(diffDays / 365)} years ago`;
+    } catch {
+      return "Unknown";
     }
   };
 
-  const handleProjectAction = (action: string, projectId: string) => {
-    const project = projects.find((p) => p._id === projectId);
-
-    if (!project) return;
-
-    switch (action) {
-      case "open":
-        window.open(`/editor/${projectId}`, "_blank");
-        break;
-      case "copy-link":
-        navigator.clipboard.writeText(
-          `${window.location.origin}/p/${projectId}`,
-        );
-        toast({
-          variant: "success",
-          title: "Link Copied",
-          description: "Project link copied to clipboard",
-        });
-        break;
-      case "duplicate":
-        // Show toast immediately
-        toast({
-          title: "Duplicating Project",
-          description: "Creating a copy of your project...",
-        });
-
-        // Use Promise chaining instead of await
-        duplicateProject(projectId)
-          .then((response) => {
-            // Refresh the projects list
-            return getUserProjects(type).then((updatedResponse) => {
-              setProjects(updatedResponse.projects);
-
-              toast({
-                variant: "success",
-                title: "Success",
-                description:
-                  response.message || "Project duplicated successfully",
-              });
-            });
-          })
-          .catch((error) => {
-            toast({
-              variant: "error",
-              title: "Error",
-              description:
-                error instanceof Error
-                  ? error.message
-                  : "Failed to duplicate project",
-            });
-          });
-        break;
-      case "rename":
-        setProjectToRename({ id: projectId, title: project.title });
-        setNewProjectTitle(project.title);
-        setRenameDialogOpen(true);
-        break;
-      case "deploy":
-        setProjectToDeploy(projectId);
-        setDeployConfirmOpen(true);
-        break;
-      case "unpublish":
-        toast({
-          variant: "success",
-          title: "Feature Coming Soon",
-          description: "Project unpublishing will be available shortly",
-        });
-        break;
-      case "manage-access":
-        openAccessManagement(project);
-        break;
-      case "delete":
-        setSelectedProjects([projectId]);
-        setDeleteConfirmOpen(true);
-        break;
-    }
+  const openDeployment = (url: string) => {
+    const fullUrl = url.startsWith('http') ? url : `https://${url}`;
+    window.open(fullUrl, '_blank');
   };
 
-  const formatTimeAgo = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <SpinnerShape className="w-16 h-16" />
+      </div>
+    );
+  }
 
-    if (diffInSeconds < 60) {
-      return "just now";
-    }
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="space-y-2">
+          <h1 className="text-heading-3 text-foreground tracking-wide">
+            My Projects
+          </h1>
+          <p className="text-body-sm text-muted-foreground">
+            View and manage your projects and deployments
+          </p>
+        </div>
 
-    const diffInMinutes = Math.floor(diffInSeconds / 60);
-    if (diffInMinutes < 60) {
-      return `${diffInMinutes} minute${diffInMinutes > 1 ? "s" : ""} ago`;
-    }
-
-    const diffInHours = Math.floor(diffInMinutes / 60);
-    if (diffInHours < 24) {
-      return `${diffInHours} hour${diffInHours > 1 ? "s" : ""} ago`;
-    }
-
-    const diffInDays = Math.floor(diffInHours / 24);
-    if (diffInDays < 30) {
-      return `${diffInDays} day${diffInDays > 1 ? "s" : ""} ago`;
-    }
-
-    const diffInMonths = Math.floor(diffInDays / 30);
-    return `${diffInMonths} month${diffInMonths > 1 ? "s" : ""} ago`;
-  };
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <Folder className="h-12 w-12 text-muted-foreground mb-4" />
+            <h2 className="text-lg font-semibold mb-2">Failed to load data</h2>
+            <p className="text-muted-foreground text-center mb-4">{error}</p>
+            <Button onClick={() => fetchData()}>
+              Retry
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-2xl font-medium">{pageTitle}</h1>
-          <p className="text-body-sm text-muted-foreground">
-            Manage your {type} projects
-          </p>
-        </div>
-        <div className="flex gap-2">
-          {isSelecting ? (
-            <>
-              <Button variant="outline" onClick={handleSelectMode}>
-                Cancel
-              </Button>
-              <Button
-                variant="destructive"
-                disabled={selectedProjects.length === 0}
-                onClick={() => setDeleteConfirmOpen(true)}
-              >
-                Delete
-                {selectedProjects.length > 0
-                  ? ` (${selectedProjects.length})`
-                  : " checked"}
-              </Button>
-            </>
-          ) : (
-            <>
-              {!loading && projects.length > 0 && (
-                <Button variant="ghost" onClick={handleSelectMode}>
-                  Select
-                </Button>
-              )}
-              <Button onClick={handleNewProject}>New Project</Button>
-            </>
-          )}
-        </div>
+      {/* Header */}
+      <div className="space-y-2">
+        <h1 className="text-heading-3 text-foreground tracking-wide">
+          My Projects
+        </h1>
+        <p className="text-body-sm text-muted-foreground">
+          View and manage your projects and deployments
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {loading ? (
-          <div className="flex justify-center items-center h-60">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          </div>
-        ) : projects.length === 0 ? (
-          type === "drafts" ? (
-            <div className="relative overflow-hidden transition-all h-60 w-[356px]">
-              <div
-                className="relative rounded-2xl"
-                style={{
-                  backgroundImage:
-                    "url(\"data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='16' ry='16' stroke='rgba(247,248,252,0.15)' stroke-width='1' stroke-dasharray='11,11'/%3e%3c/svg%3e\")",
-                }}
-              >
-                <div className="h-60 w-full flex flex-col gap-4 items-center justify-center rounded-2xl">
-                  <SquarePen className="h-5 w-5 text-foreground" />
-                  <p className="text-body-sm font-medium text-foreground/80 text-center max-w-[176px]">
-                    No projects yet. Start your first project to get going.
-                  </p>
-                  <Button
-                    onClick={handleNewProject}
-                    className="bg-primary text-primary-foreground text-caption-strong px-3 py-2 h-9 rounded-md"
-                  >
-                    New project
-                  </Button>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="relative transition-all">
-              <div
-                className="relative rounded-2xl overflow-hidden h-60 w-[356px] flex flex-col items-center justify-center"
-                style={{
-                  backgroundImage:
-                    "url(\"data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='16' ry='16' stroke='rgba(247,248,252,0.15)' stroke-width='1' stroke-dasharray='11,11'/%3e%3c/svg%3e\")",
-                }}
-              >
-                <p className="text-body-md text-foreground/80 text-center max-w-[176px]">
-                  Your deployed apps will appear here.
-                </p>
-              </div>
-            </div>
-          )
-        ) : (
-          <>
-            {projects.map((project) => (
-              <div
-                key={project._id}
-                className={`relative overflow-hidden transition-all ${
-                  isSelecting ? "cursor-pointer" : "cursor-pointer"
-                }`}
-                onClick={() => {
-                  if (isSelecting) {
-                    toggleProjectSelection(project._id);
-                  } else {
-                    // Default action for non-select mode, e.g., open project
-                    // window.open(`/editor/${project._id}`, "_blank");
-                  }
-                }}
-              >
-                {/* Image Container */}
-                <div className="relative rounded-2xl overflow-hidden border border-border">
-                  {/* Thumbnail Image */}
-                  <div
-                    className="h-60 w-full bg-cover bg-center flex items-center justify-center"
-                    style={{
-                      backgroundImage: project.thumbnail
-                        ? `url(${project.thumbnail})`
-                        : "none",
-                    }}
-                  >
-                    {!project.thumbnail && (
-                      <Settings2 className="h-16 w-16 text-muted-foreground/30" />
-                    )}
-                  </div>
+      {/* Tabs for Projects and Deployments */}
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="projects" className="flex items-center gap-2">
+            <ProjectsPythagoraIcon className="h-4 w-4" />
+            Projects ({projects.length})
+          </TabsTrigger>
+          <TabsTrigger value="deployed" className="flex items-center gap-2">
+            <PremiumPlanIcon className="h-4 w-4" />
+            Deployed ({deployments.length})
+          </TabsTrigger>
+        </TabsList>
 
-                  {/* Checkbox for selection (only visible when isSelecting is true) */}
-                  {isSelecting && (
-                    <div
-                      className="absolute top-3 left-3 z-10"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <Checkbox
-                        checked={selectedProjects.includes(project._id)}
-                        onCheckedChange={() =>
-                          toggleProjectSelection(project._id)
-                        }
-                        className="border-2 border-checkbox-check bg-white data-[state=checked]:text-checkbox-check data-[state=checked]:bg-white size-5"
-                      />
-                    </div>
-                  )}
-
-                  {/* More Options Button (three vertical dots) */}
-                  {!isSelecting && (
-                    <div className="absolute top-3 right-3 z-10">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 rounded-md bg-background/80 hover:bg-background/80 backdrop-blur-sm data-[state=open]:bg-background/90"
-                            onClick={(e) => e.stopPropagation()} // Prevent card click
-                          >
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent
-                          align="end"
-                          className="w-[180px] px-2 py-2.5 rounded-2xl"
-                        >
-                          <DropdownMenuItem
-                            className="group"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleProjectAction("open", project._id);
-                            }}
-                          >
-                            <ArrowUpRightSquare className="h-4 w-4 text-muted-foreground group-hover:text-accent-foreground group-focus:text-accent-foreground" />
-                            Open
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="group"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleProjectAction("copy-link", project._id);
-                            }}
-                          >
-                            <Link className="h-4 w-4 text-muted-foreground group-hover:text-accent-foreground group-focus:text-accent-foreground" />
-                            Copy Link
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="group"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleProjectAction("duplicate", project._id);
-                            }}
-                          >
-                            <Copy className="h-4 w-4 text-muted-foreground group-hover:text-accent-foreground group-focus:text-accent-foreground" />
-                            Duplicate Project
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="group"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleProjectAction("rename", project._id);
-                            }}
-                          >
-                            <FileEdit className="h-4 w-4 text-muted-foreground group-hover:text-accent-foreground group-focus:text-accent-foreground" />
-                            Rename
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="group"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleProjectAction("manage-access", project._id);
-                            }}
-                          >
-                            <Users className="h-4 w-4 text-muted-foreground group-hover:text-accent-foreground group-focus:text-accent-foreground" />
-                            Manage Access
-                          </DropdownMenuItem>
-                          {type === "drafts" && (
-                            <DropdownMenuItem
-                              className="group"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleProjectAction("deploy", project._id);
-                              }}
-                            >
-                              <Upload className="h-4 w-4 text-muted-foreground group-hover:text-accent-foreground group-focus:text-accent-foreground" />
-                              Deploy
-                            </DropdownMenuItem>
-                          )}
-                          {type === "deployed" && (
-                            <DropdownMenuItem
-                              className="group"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleProjectAction("unpublish", project._id);
-                              }}
-                            >
-                              <CloudOff className="h-4 w-4 text-muted-foreground group-hover:text-accent-foreground group-focus:text-accent-foreground" />
-                              Unpublish
-                            </DropdownMenuItem>
-                          )}
-                          <DropdownMenuItem
-                            className="group"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleProjectAction("delete", project._id);
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4 text-muted-foreground group-hover:text-accent-foreground group-focus:text-accent-foreground" />
-                            Delete Project
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  )}
-                </div>
-
-                {/* Text Content Area */}
-                <div className="flex flex-col gap-0 px-4 pt-4">
-                  <h3 className="text-body-md truncate" title={project.title}>
-                    {project.title}
-                  </h3>
-                  <p className="text-xs text-foreground/80">
-                    Edited {formatTimeAgo(project.lastEdited)}
+        {/* Projects Tab Content */}
+        <TabsContent value="projects" className="space-y-4">
+          <Card>
+            <CardContent className="pt-6">
+              {projects.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <Folder className="h-12 w-12 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No projects found</h3>
+                  <p className="text-muted-foreground text-center">
+                    You don't have any projects yet.
                   </p>
                 </div>
-              </div>
-            ))}
-          </>
-        )}
-      </div>
-
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              Delete Project{selectedProjects.length > 1 ? "s" : ""}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete{" "}
-              {selectedProjects.length === 0
-                ? "the selected projects"
-                : selectedProjects.length === 1
-                  ? "this project"
-                  : `these ${selectedProjects.length} projects`}
-              ? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setDeleteConfirmOpen(false)}>
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-red-500 hover:bg-red-600 text-white"
-              onClick={handleDeleteSelected}
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Rename Dialog */}
-      <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Rename Project</DialogTitle>
-            <DialogDescription>
-              Enter a new name for your project.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="project-name">Project Name</Label>
-              <Input
-                id="project-name"
-                value={newProjectTitle}
-                onChange={(e) => setNewProjectTitle(e.target.value)}
-                placeholder="Enter project name"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setRenameDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleRename}
-              disabled={isRenaming || !newProjectTitle.trim()}
-            >
-              {isRenaming ? "Saving..." : "Save"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Deploy Confirmation Dialog */}
-      <AlertDialog open={deployConfirmOpen} onOpenChange={setDeployConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Deploy Project</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to deploy this project? The project will be
-              accessible to others based on your visibility settings.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setDeployConfirmOpen(false)}>
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeploy} disabled={isDeploying}>
-              {isDeploying ? "Deploying..." : "Deploy"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Access Management Dialog */}
-      <Dialog
-        open={accessManagementOpen}
-        onOpenChange={setAccessManagementOpen}
-      >
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Manage Project Access</DialogTitle>
-            <DialogDescription>
-              Configure who can access this project and their permission level.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4 space-y-4">
-            <div className="relative">
-              <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search users..."
-                className="pl-8"
-                value={userSearchQuery}
-                onChange={(e) => handleUserSearch(e.target.value)}
-              />
-              {userSearchResults.length > 0 && (
-                <div className="absolute z-10 w-full mt-1 bg-background border rounded-md shadow-lg max-h-60 overflow-auto">
-                  {userSearchResults.map((user) => (
-                    <div
-                      key={user._id}
-                      className="p-2 hover:bg-accent cursor-pointer"
-                      onClick={() => addUserToProject(user)}
-                    >
-                      {user.name} ({user.email})
+              ) : (
+                <div className="space-y-4">
+                  {projects.map((project, index) => (
+                    <div key={project.id}>
+                      <div className="flex items-center justify-between py-4">
+                        <div className="flex-1 space-y-1">
+                          <div className="flex items-center gap-3">
+                            <h3 className="font-semibold text-foreground">
+                              {project.name}
+                            </h3>
+                            <Badge
+                              variant={project.isPublic ? "default" : "secondary"}
+                              className="text-xs"
+                            >
+                              {project.isPublic ? (
+                                <>
+                                  <Globe className="h-3 w-3 mr-1" />
+                                  Public
+                                </>
+                              ) : (
+                                <>
+                                  <Lock className="h-3 w-3 mr-1" />
+                                  Private
+                                </>
+                              )}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              {formatDate(project.updated_at || project.created_at)}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Folder className="h-3 w-3" />
+                              {project.folder_name}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      {index < projects.length - 1 && <Separator />}
                     </div>
                   ))}
                 </div>
               )}
-            </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-            <div className="space-y-3 max-h-60 overflow-auto">
-              {projectUsers.length === 0 ? (
-                <p className="text-center text-muted-foreground py-4">
-                  No users have access to this project yet. Search and add users
-                  above.
-                </p>
+        {/* Deployed Tab Content */}
+        <TabsContent value="deployed" className="space-y-4">
+          <Card>
+            <CardContent className="pt-6">
+              {deployments.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <PremiumPlanIcon className="h-12 w-12 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No deployments found</h3>
+                  <p className="text-muted-foreground text-center">
+                    You don't have any deployed projects yet.
+                  </p>
+                </div>
               ) : (
-                projectUsers.map((user) => (
-                  <div
-                    key={user._id}
-                    className="flex items-center justify-between p-2 rounded border"
-                  >
-                    <div>
-                      <p className="font-medium">{user.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {user.email}
-                      </p>
+                <div className="space-y-4">
+                  {deployments.map((deployment, index) => (
+                    <div key={deployment.instanceId}>
+                      <div className="flex items-center justify-between py-4">
+                        <div className="flex-1 space-y-1">
+                          <div className="flex items-center gap-3">
+                            <h3 className="font-semibold text-foreground">
+                              {deployment.folderPath}
+                            </h3>
+                            <Badge variant="default" className="text-xs">
+                              <Globe className="h-3 w-3 mr-1" />
+                              Live
+                            </Badge>
+                            {deployment.customDomain && getCustomDomainStatusBadge(deployment.customDomainStatus)}
+                          </div>
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              {formatDate(deployment.updatedAt)}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Folder className="h-3 w-3" />
+                              {deployment.instanceName}
+                            </span>
+                            <span className="truncate max-w-[200px]" title={deployment.url}>
+                              {deployment.url}
+                            </span>
+                          </div>
+                          {deployment.customDomain && (
+                            <div className="flex items-center gap-2 text-sm">
+                              <span className="text-muted-foreground">Custom Domain:</span>
+                              <span className="font-medium text-foreground">{deployment.customDomain}</span>
+                              {deployment.customDomainStatus === 'pending' && (
+                                <span className="text-yellow-600 text-xs">
+                                  (Propagation pending)
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openDeployment(deployment.url)}
+                            className="flex items-center gap-2"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                            Open
+                          </Button>
+
+                          {deployment.customDomain && deployment.publicIp && (
+                            <Dialog
+                              open={dnsInstructionsDialog.open && dnsInstructionsDialog.deployment?.projectId === deployment.projectId}
+                              onOpenChange={(open) => {
+                                if (!open) {
+                                  setDnsInstructionsDialog({ open: false, deployment: null });
+                                }
+                              }}
+                            >
+                              <DialogTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setDnsInstructionsDialog({ open: true, deployment })}
+                                  className="flex items-center gap-2"
+                                >
+                                  <Link className="h-4 w-4" />
+                                  DNS Info
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-md">
+                                <DialogHeader>
+                                  <DialogTitle>DNS Configuration</DialogTitle>
+                                  <DialogDescription>
+                                    Configure your DNS settings to point your custom domain to your deployment.
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <div className="space-y-4">
+                                  <div className="space-y-2">
+                                    <Label>Record Type</Label>
+                                    <div className="flex items-center gap-2">
+                                      <Input value="A" readOnly className="flex-1" />
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => copyToClipboard("A", "Record Type")}
+                                      >
+                                        {copiedField === "Record Type" ? (
+                                          <CheckCircle className="h-4 w-4" />
+                                        ) : (
+                                          <Copy className="h-4 w-4" />
+                                        )}
+                                      </Button>
+                                    </div>
+                                  </div>
+                                  <div className="space-y-2">
+                                    <Label>Name/Host</Label>
+                                    <div className="flex items-center gap-2">
+                                      <Input value={deployment.customDomain} readOnly className="flex-1" />
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => copyToClipboard(deployment.customDomain!, "Domain")}
+                                      >
+                                        {copiedField === "Domain" ? (
+                                          <CheckCircle className="h-4 w-4" />
+                                        ) : (
+                                          <Copy className="h-4 w-4" />
+                                        )}
+                                      </Button>
+                                    </div>
+                                  </div>
+                                  <div className="space-y-2">
+                                    <Label>Value/Points to</Label>
+                                    <div className="flex items-center gap-2">
+                                      <Input value={deployment.publicIp} readOnly className="flex-1" />
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => copyToClipboard(deployment.publicIp!, "IP Address")}
+                                      >
+                                        {copiedField === "IP Address" ? (
+                                          <CheckCircle className="h-4 w-4" />
+                                        ) : (
+                                          <Copy className="h-4 w-4" />
+                                        )}
+                                      </Button>
+                                    </div>
+                                  </div>
+                                  <div className="space-y-2">
+                                    <Label>TTL</Label>
+                                    <div className="flex items-center gap-2">
+                                      <Input value="300" readOnly className="flex-1" />
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => copyToClipboard("300", "TTL")}
+                                      >
+                                        {copiedField === "TTL" ? (
+                                          <CheckCircle className="h-4 w-4" />
+                                        ) : (
+                                          <Copy className="h-4 w-4" />
+                                        )}
+                                      </Button>
+                                    </div>
+                                  </div>
+                                  <div className="p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
+                                    <p className="text-sm text-blue-800 dark:text-blue-200">
+                                      <strong>Instructions:</strong> Create an A record for {deployment.customDomain} pointing to {deployment.publicIp}.
+                                      DNS propagation may take up to 48 hours.
+                                    </p>
+                                  </div>
+                                </div>
+                                <DialogFooter>
+                                  <Button
+                                    onClick={() => setDnsInstructionsDialog({ open: false, deployment: null })}
+                                  >
+                                    Close
+                                  </Button>
+                                </DialogFooter>
+                              </DialogContent>
+                            </Dialog>
+                          )}
+
+                          {deployment.customDomain && (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className={cn(
+                                    "flex items-center gap-2 border-orange-200 text-orange-600 hover:text-orange-700",
+                                    "hover:bg-orange-50 hover:border-orange-300 transition-all duration-200",
+                                    "focus:ring-2 focus:ring-orange-200 focus:ring-offset-1",
+                                    "dark:border-orange-800 dark:text-orange-400 dark:hover:text-orange-300",
+                                    "dark:hover:bg-orange-950 dark:hover:border-orange-700",
+                                    "disabled:opacity-50 disabled:cursor-not-allowed"
+                                  )}
+                                  disabled={deletingCustomDomain === deployment.projectId}
+                                >
+                                  {deletingCustomDomain === deployment.projectId ? (
+                                    <SpinnerShape className="h-4 w-4" />
+                                  ) : (
+                                    <Link className="h-4 w-4" />
+                                  )}
+                                  Delete Domain
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Custom Domain</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to delete the custom domain "{deployment.customDomain}"?
+                                    This will remove the custom domain configuration but won't delete the deployment itself.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDeleteCustomDomain(deployment)}
+                                    className={cn(
+                                      "bg-orange-600 hover:bg-orange-700 focus:ring-orange-500",
+                                      "dark:bg-orange-600 dark:hover:bg-orange-700"
+                                    )}
+                                  >
+                                    Delete Domain
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          )}
+
+                          <Dialog
+                            open={customDomainDialog.open && customDomainDialog.deployment?.projectId === deployment.projectId}
+                            onOpenChange={(open) => {
+                              if (!open) {
+                                setCustomDomainDialog({ open: false, deployment: null });
+                                setCustomDomain("");
+                              }
+                            }}
+                          >
+                            <DialogTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setCustomDomainDialog({ open: true, deployment })}
+                                className="flex items-center gap-2"
+                                disabled={settingUpDomain === deployment.projectId || !!deployment.customDomain}
+                              >
+                                {settingUpDomain === deployment.projectId ? (
+                                  <SpinnerShape className="h-4 w-4" />
+                                ) : (
+                                  <Link className="h-4 w-4" />
+                                )}
+                                {deployment.customDomain ? "Domain Set" : "Custom Domain"}
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Setup Custom Domain</DialogTitle>
+                                <DialogDescription>
+                                  Connect a custom domain to your deployment "{deployment.folderPath}".
+                                  You'll receive DNS instructions after setup.
+                                </DialogDescription>
+                              </DialogHeader>
+                              <div className="space-y-4">
+                                <div className="space-y-2">
+                                  <Label htmlFor="domain">Domain Name</Label>
+                                  <Input
+                                    id="domain"
+                                    placeholder="example.com"
+                                    value={customDomain}
+                                    onChange={(e) => setCustomDomain(e.target.value)}
+                                  />
+                                </div>
+                              </div>
+                              <DialogFooter>
+                                <Button
+                                  variant="outline"
+                                  onClick={() => {
+                                    setCustomDomainDialog({ open: false, deployment: null });
+                                    setCustomDomain("");
+                                  }}
+                                >
+                                  Cancel
+                                </Button>
+                                <Button
+                                  onClick={handleSetupCustomDomain}
+                                  disabled={!customDomain.trim() || settingUpDomain === deployment.projectId}
+                                >
+                                  {settingUpDomain === deployment.projectId ? (
+                                    <>
+                                      <SpinnerShape className="h-4 w-4 mr-2" />
+                                      Setting up...
+                                    </>
+                                  ) : (
+                                    "Setup Domain"
+                                  )}
+                                </Button>
+                              </DialogFooter>
+                            </DialogContent>
+                          </Dialog>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className={cn(
+                                  "flex items-center gap-2 border-red-200 text-red-600 hover:text-red-700",
+                                  "hover:bg-red-50 hover:border-red-300 transition-all duration-200",
+                                  "focus:ring-2 focus:ring-red-200 focus:ring-offset-1",
+                                  "dark:border-red-800 dark:text-red-400 dark:hover:text-red-300",
+                                  "dark:hover:bg-red-950 dark:hover:border-red-700",
+                                  "disabled:opacity-50 disabled:cursor-not-allowed"
+                                )}
+                                disabled={deletingDeployment === deployment.projectId}
+                              >
+                                {deletingDeployment === deployment.projectId ? (
+                                  <SpinnerShape className="h-4 w-4" />
+                                ) : (
+                                  <Trash2 className="h-4 w-4" />
+                                )}
+                                Delete
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete Deployment</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete the deployment "{deployment.folderPath}"?
+                                  This action cannot be undone and will permanently remove the deployed application.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDeleteDeployment(deployment)}
+                                  className={cn(
+                                    "bg-red-600 hover:bg-red-700 focus:ring-red-500",
+                                    "dark:bg-red-600 dark:hover:bg-red-700"
+                                  )}
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </div>
+                      {index < deployments.length - 1 && <Separator />}
                     </div>
-                    <Select
-                      defaultValue={user.access}
-                      onValueChange={(value) =>
-                        handleAccessChange(user._id, value as "view" | "edit")
-                      }
-                    >
-                      <SelectTrigger className="w-[100px]">
-                        <SelectValue placeholder="Access" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="view">View</SelectItem>
-                        <SelectItem value="edit">Edit</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                ))
+                  ))}
+                </div>
               )}
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setAccessManagementOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button onClick={saveAccessChanges} disabled={savingAccess}>
-              {savingAccess ? "Saving..." : "Save Changes"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

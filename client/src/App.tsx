@@ -9,6 +9,7 @@ import { Toaster } from "./components/ui/toaster";
 import { AuthProvider } from "./contexts/AuthContext";
 import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
+import { AcceptInvitePage } from "./pages/AcceptInvitePage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { DashboardLayout } from "./components/DashboardLayout";
 import { AccountPage } from "./pages/AccountPage";
@@ -28,6 +29,14 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route
+              path="/accept-invite"
+              element={
+                <ProtectedRoute>
+                  <AcceptInvitePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/"
               element={
                 <ProtectedRoute>
@@ -40,17 +49,7 @@ function App() {
               <Route path="payments" element={<PaymentsPage />} />
               <Route path="domains" element={<DomainsPage />} />
               <Route path="settings" element={<SettingsPage />} />
-              <Route path="projects">
-                <Route
-                  index
-                  element={<Navigate to="/projects/drafts" replace />}
-                />
-                <Route path="drafts" element={<ProjectsPage type="drafts" />} />
-                <Route
-                  path="deployed"
-                  element={<ProjectsPage type="deployed" />}
-                />
-              </Route>
+              <Route path="projects" element={<ProjectsPage />} />
               <Route path="team" element={<TeamPage />} />
             </Route>
           </Routes>

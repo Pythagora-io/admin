@@ -11,14 +11,18 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/useToast";
-import { Download, FileText } from "lucide-react";
+import { Download, FileText, Calendar, ExternalLink } from "lucide-react";
 import {
-  getPaymentHistory,
   getBillingInfo,
   getCompanyBillingInfo,
+  generateInvoice,
 } from "@/api/payments";
 import { updateBillingInfo } from "@/api/user";
 import { Separator } from "@/components/ui/separator";
+import { getCustomerProfile } from "@/api/subscription";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import SpinnerShape from "@/components/SpinnerShape";
 
 // Interface Definitions
 interface Payment {
@@ -42,8 +46,62 @@ interface CompanyInfo extends BillingInfo {
   taxId?: string; // taxId is optional as per current usage
 }
 
+interface PrepaidPayment {
+  id: string;
+  customerId: string;
+  createdAt: string;
+  stripeData?: {
+    amount: number;
+    currency: string;
+    status: string;
+    created: number;
+    description?: string;
+    receipt_email?: string;
+    payment_method_types: string[];
+  };
+}
+
+interface MonthlyInvoice {
+  month_key: string;
+  month_name: string;
+  invoice_id: string;
+  period_start: number;
+  period_end: number;
+  amount_due: number;
+  currency: string;
+  status: string;
+  invoice_url: string;
+}
+
+interface SubscriptionHistory {
+  id: string;
+  customerId: string;
+  createdAt: string | { $date: string };
+  planType: string;
+  stripeData?: {
+    status: string;
+    current_period_start: number;
+    current_period_end: number;
+    cancel_at_period_end: boolean;
+    canceled_at?: number;
+    items: Array<{
+      price: {
+        unit_amount: number;
+        currency: string;
+        recurring: {
+          interval: string;
+          interval_count: number;
+        };
+      };
+      product: string;
+    }>;
+    monthly_invoices?: MonthlyInvoice[];
+  };
+}
+
 export function PaymentsPage() {
   const [payments, setPayments] = useState<Payment[]>([]);
+  const [subscriptionsHistory, setSubscriptionsHistory] = useState<SubscriptionHistory[]>([]);
   const [billingInfo, setBillingInfo] = useState<BillingInfo>({
     name: "",
     address: "",
@@ -53,12 +111,12 @@ export function PaymentsPage() {
     country: "",
   });
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo>({
-    name: "",
-    address: "",
-    city: "",
-    state: "",
-    zip: "",
-    country: "",
+    name: "Pythagora AI Inc.",
+    address: "548 Market St.",
+    city: "San Francisco",
+    state: "CA",
+    zip: "94104",
+    country: "USA",
     taxId: "",
   });
   const [loading, setLoading] = useState(true);
@@ -73,37 +131,199 @@ export function PaymentsPage() {
   });
   const { toast } = useToast();
 
+  const transformPrepaidPaymentsToPayments = (prepaidPayments: PrepaidPayment[]): Payment[] => {
+    return prepaidPayments
+      .filter(payment => payment.stripeData) // Only include payments with stripe data
+      .map(payment => ({
+        id: payment.id,
+        date: payment.createdAt,
+        description: payment.stripeData?.description || `Payment via ${payment.stripeData?.payment_method_types?.[0] || 'card'}`,
+        amount: payment.stripeData?.amount || 0, // Amount is already in dollars, don't divide by 100
+        currency: (payment.stripeData?.currency || 'usd').toUpperCase(),
+      }));
+  };
+
+  // Filter unique subscriptions by ID
+  const getUniqueSubscriptions = (subscriptions?: Array<any>) => {
+    if (!subscriptions) return [];
+
+    const uniqueSubscriptions = subscriptions.filter((subscription, index, self) =>
+      index === self.findIndex(s => s.id === subscription.id)
+    );
+
+    return uniqueSubscriptions;
+  };
+
+  const formatDate = (dateInput?: string | { $date: string }) => {
+    if (!dateInput) return "-";
+    try {
+      let dateString: string;
+      if (typeof dateInput === 'object' && dateInput.$date) {
+        dateString = dateInput.$date;
+      } else if (typeof dateInput === 'string') {
+        dateString = dateInput;
+      } else {
+        return "-";
+      }
+
+      return new Date(dateString).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    } catch {
+      return "-";
+    }
+  };
+
+  const formatDateFromTimestamp = (timestamp?: number) => {
+    if (!timestamp) return "-";
+    try {
+      return new Date(timestamp * 1000).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    } catch {
+      return "-";
+    }
+  };
+
+  const formatCurrency = (amount?: number, currency?: string) => {
+    if (typeof amount !== 'number') return "-";
+    // Convert from cents to dollars for Stripe amounts
+    const dollars = amount / 100;
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: currency?.toUpperCase() || "USD",
+    }).format(dollars);
+  };
+
+  const getStatusBadgeClass = (status?: string) => {
+    switch (status?.toLowerCase()) {
+      case "paid":
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
+      case "open":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
+      case "void":
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
+      case "draft":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
+      default:
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
+    }
+  };
+
+  const getPlanBadgeClass = (planType?: string) => {
+    switch (planType?.toLowerCase()) {
+      case "free":
+        return "bg-plan-starter text-warning-foreground";
+      case "pro":
+        return "bg-plan-pro text-warning-foreground";
+      case "premium":
+        return "bg-plan-premium text-warning-foreground";
+      case "enterprise":
+        return "bg-plan-enterprise text-warning-foreground";
+      default:
+        return "bg-muted text-muted-foreground";
+    }
+  };
+
+  // Collect all monthly invoices from all subscriptions
+  const getAllMonthlyInvoices = () => {
+    if (!subscriptionsHistory) return [];
+
+    const allInvoices: Array<MonthlyInvoice & { subscriptionId: string; planType: string }> = [];
+
+    subscriptionsHistory.forEach((subscription) => {
+      if (subscription.stripeData?.monthly_invoices) {
+        subscription.stripeData.monthly_invoices.forEach((invoice) => {
+          allInvoices.push({
+            ...invoice,
+            subscriptionId: subscription.id,
+            planType: subscription.planType,
+          });
+        });
+      }
+    });
+
+    // Sort by period_start descending (most recent first)
+    return allInvoices.sort((a, b) => b.period_start - a.period_start);
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [paymentsData, billingData, companyData] = await Promise.all([
-          getPaymentHistory(),
-          getBillingInfo(),
-          getCompanyBillingInfo(),
-        ]);
+        console.log("PaymentsPage: Fetching customer profile data...");
 
-        console.log("Payments data:", paymentsData);
-        console.log("Billing data:", billingData);
-        console.log("Company data:", companyData);
+        // Only call getCustomerProfile - all data comes from here
+        const customerProfileData = await getCustomerProfile();
 
-        setPayments((paymentsData.payments || []) as Payment[]);
+        console.log("PaymentsPage: Customer profile data:", customerProfileData);
 
-        if (billingData && billingData.billingInfo) {
-          setBillingInfo(billingData.billingInfo as BillingInfo);
-          setFormBillingInfo(billingData.billingInfo as BillingInfo);
+        // Transform prepaid payments history to payments format
+        if (customerProfileData?.customer?.prepaidPaymentsHistory) {
+          const transformedPayments = transformPrepaidPaymentsToPayments(
+            customerProfileData.customer.prepaidPaymentsHistory
+          );
+          console.log("PaymentsPage: Transformed payments:", transformedPayments);
+          setPayments(transformedPayments);
+        } else {
+          console.log("PaymentsPage: No prepaid payments history found");
+          setPayments([]);
         }
 
-        if (companyData && companyData.companyInfo) {
-          setCompanyInfo(companyData.companyInfo as CompanyInfo);
+        // Set subscriptions history
+        if (customerProfileData?.customer?.subscriptionsHistory) {
+          const uniqueSubscriptions = getUniqueSubscriptions(customerProfileData.customer.subscriptionsHistory);
+          console.log("PaymentsPage: Unique subscriptions history:", uniqueSubscriptions);
+          console.log("PaymentsPage: Monthly invoices data:", uniqueSubscriptions.map(sub => sub.stripeData?.monthly_invoices));
+          setSubscriptionsHistory(uniqueSubscriptions);
+        } else {
+          console.log("PaymentsPage: No subscriptions history found");
+          setSubscriptionsHistory([]);
         }
+
+        // Handle billing info from customer profile or use empty values
+        let finalBillingInfo = {
+          name: "",
+          address: "",
+          city: "",
+          state: "",
+          zip: "",
+          country: "",
+        };
+
+        if (customerProfileData?.customer?.billingAddress) {
+          // If billing address exists in customer profile, use it
+          const billingAddress = customerProfileData.customer.billingAddress;
+          finalBillingInfo = {
+            name: billingAddress.name || "",
+            address: billingAddress.address || "",
+            city: billingAddress.city || "",
+            state: billingAddress.state || "",
+            zip: billingAddress.zip || "",
+            country: billingAddress.country || "",
+          };
+          console.log("PaymentsPage: Using billing info from customer profile");
+        } else {
+          console.log("PaymentsPage: No billing address in customer profile, using empty values");
+        }
+
+        setBillingInfo(finalBillingInfo);
+        setFormBillingInfo(finalBillingInfo);
+
+        // Company info is static/hardcoded
+        console.log("PaymentsPage: Using static company info");
+
       } catch (error: unknown) {
-        console.error("Error fetching data:", error);
+        console.error("PaymentsPage: Error fetching data:", error);
         const errorMessage =
           error instanceof Error
             ? error.message
             : "Failed to fetch payment data";
         toast({
-          variant: "error",
+          variant: "destructive",
           title: "Error",
           description: errorMessage,
         });
@@ -115,13 +335,60 @@ export function PaymentsPage() {
     fetchData();
   }, [toast]);
 
-  const handleDownloadReceipt = (paymentId: string) => {
-    console.log("Attempting to download receipt for payment ID:", paymentId);
-    toast({
-      variant: "success",
-      title: "Download Started",
-      description: "Your receipt is being generated and will download shortly.",
-    });
+  const handleDownloadReceipt = async (paymentId: string) => {
+    try {
+      console.log("PaymentsPage: Generating invoice for payment ID:", paymentId);
+
+      const response = await generateInvoice('payment', paymentId);
+
+      if (response.success && response.url) {
+        // Open the invoice URL in a new window/tab
+        window.open(response.url, '_blank');
+        toast({
+          variant: "default",
+          title: "Invoice Generated",
+          description: "Your invoice has been generated and opened in a new tab.",
+        });
+      } else {
+        throw new Error('Invalid response from server');
+      }
+    } catch (error: unknown) {
+      console.error("PaymentsPage: Error generating invoice:", error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to generate invoice";
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: errorMessage,
+      });
+    }
+  };
+
+  const handleDownloadSubscriptionInvoice = async (subscriptionId: string) => {
+    try {
+      console.log("PaymentsPage: Generating invoice for subscription ID:", subscriptionId);
+
+      const response = await generateInvoice('subscription', subscriptionId);
+
+      if (response.success && response.url) {
+        // Open the invoice URL in a new window/tab
+        window.open(response.url, '_blank');
+        toast({
+          variant: "default",
+          title: "Invoice Generated",
+          description: "Your subscription invoice has been generated and opened in a new tab.",
+        });
+      } else {
+        throw new Error('Invalid response from server');
+      }
+    } catch (error: unknown) {
+      console.error("PaymentsPage: Error generating invoice:", error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to generate invoice";
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: errorMessage,
+      });
+    }
   };
 
   const handleUpdateBillingInfo = async () => {
@@ -139,7 +406,7 @@ export function PaymentsPage() {
 
     if (missingFields.length > 0) {
       toast({
-        variant: "error",
+        variant: "destructive",
         title: "Error",
         description: `Please fill in all required fields: ${missingFields.join(", ")}`,
       });
@@ -147,24 +414,24 @@ export function PaymentsPage() {
     }
 
     try {
-      const response = await updateBillingInfo({
-        billingInfo: formBillingInfo,
-      });
-      setBillingInfo(response.billingInfo as BillingInfo);
+      console.log("PaymentsPage: Updating billing information:", formBillingInfo);
+      // Note: This would need to be implemented via Pythagora API
+      // For now, just update local state and show success
+      setBillingInfo(formBillingInfo);
       toast({
-        variant: "success",
+        variant: "default",
         title: "Success",
-        description:
-          response.message || "Billing information updated successfully",
+        description: "Billing information updated successfully",
       });
       setEditBillingOpen(false);
     } catch (error: unknown) {
+      console.error("PaymentsPage: Error updating billing info:", error);
       const errorMessage =
         error instanceof Error
           ? error.message
           : "Failed to update billing information";
       toast({
-        variant: "error",
+        variant: "destructive",
         title: "Error",
         description: errorMessage,
       });
@@ -182,25 +449,10 @@ export function PaymentsPage() {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-[calc(100vh-4rem)]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <SpinnerShape className="w-12 h-12" />
       </div>
     );
   }
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
-
-  const formatCurrency = (amount: number, currency: string = "USD") => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: currency,
-    }).format(amount);
-  };
 
   return (
     <div className="mx-auto flex flex-col gap-14 text-foreground">
@@ -212,8 +464,8 @@ export function PaymentsPage() {
       </div>
 
       <div className="flex flex-col gap-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Your Billing Information Section */}
+        {/* Your Billing Information Section */}
+        {/*<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="flex flex-col space-y-5">
             <div className="space-y-1.5">
               <h2 className="text-body-lg font-normal text-foreground">
@@ -224,13 +476,13 @@ export function PaymentsPage() {
               </p>
             </div>
             <div className="space-y-1 text-body-md text-foreground">
-              <p className="font-medium">{billingInfo.name || "N/A"}</p>
-              <p>{billingInfo.address || "-"}</p>
+              <p className="font-medium">{billingInfo.name || "Not provided"}</p>
+              <p>{billingInfo.address || "Not provided"}</p>
               <p>
-                {billingInfo.city || "-"}, {billingInfo.state || "-"}{" "}
-                {billingInfo.zip || "-"}
+                {billingInfo.city || "Not provided"}, {billingInfo.state || "Not provided"}{" "}
+                {billingInfo.zip || "Not provided"}
               </p>
-              <p>{billingInfo.country || "-"}</p>
+              <p>{billingInfo.country || "Not provided"}</p>
             </div>
             <div>
               <Button
@@ -240,9 +492,10 @@ export function PaymentsPage() {
                 Edit
               </Button>
             </div>
-          </div>
+          </div>*/}
 
           {/* Pythagora Billing Information Section */}
+          {/*
           <div className="flex flex-col space-y-5">
             <div className="space-y-1.5">
               <h2 className="text-body-lg font-normal text-foreground">
@@ -254,17 +507,17 @@ export function PaymentsPage() {
             </div>
             <div className="space-y-1 text-body-md text-foreground">
               <p className="font-medium">
-                {companyInfo.name || "Pythagora AI Inc."}
+                {companyInfo.name}
               </p>
-              <p>{companyInfo.address || "548 Market St."}</p>
+              <p>{companyInfo.address}</p>
               <p>
-                {companyInfo.city || "San Francisco"},{" "}
-                {companyInfo.state || "CA"} {companyInfo.zip || "94104"}
+                {companyInfo.city}, {companyInfo.state} {companyInfo.zip}
               </p>
-              <p>{companyInfo.country || "USA"}</p>
+              <p>{companyInfo.country}</p>
             </div>
           </div>
-        </div>
+        </div>*
+        */}
 
         <Separator className="bg-border" />
 
@@ -276,11 +529,11 @@ export function PaymentsPage() {
             </h2>
             {payments.length === 0 ? (
               <p className="text-body-sm text-foreground/60">
-                No invoices available.
+                No payment history available.
               </p>
             ) : (
               <p className="text-body-sm text-foreground/60">
-                View and download receipts for your payments
+                View and download invoices for your payments
               </p>
             )}
           </div>
@@ -314,8 +567,8 @@ export function PaymentsPage() {
                     <div className="min-w-[130px] w-[15%] text-right flex justify-end">
                       <Button
                         variant="ghost"
-                        className="rounded-lg h-9 px-3 text-xs font-medium flex items-center gap-1 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                        aria-label="Download PDF receipt"
+                        className="rounded-lg h-9 px-3 text-xs font-medium flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        aria-label="Download invoice"
                         tabIndex={0}
                         onClick={() => handleDownloadReceipt(payment.id)}
                         onKeyDown={(e) => {
@@ -323,8 +576,86 @@ export function PaymentsPage() {
                             handleDownloadReceipt(payment.id);
                         }}
                       >
-                        <Download className="h-4 w-4 mr-1" aria-hidden="true" />
-                        Download pdf
+                        <FileText className="h-4 w-4 mr-1" aria-hidden="true" />
+                        Get Invoice
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <Separator className="bg-border" />
+
+        {/* Subscription History Section */}
+        <div className="flex flex-col space-y-5">
+          <div className="space-y-1.5">
+            <h2 className="text-body-lg font-normal text-foreground">
+              Subscription History
+            </h2>
+            {getAllMonthlyInvoices().length === 0 ? (
+              <p className="text-body-sm text-foreground/60">
+                No subscription history available.
+              </p>
+            ) : (
+              <p className="text-body-sm text-foreground/60">
+                View and download invoices for your monthly subscription payments
+              </p>
+            )}
+          </div>
+          <div>
+            {getAllMonthlyInvoices().length === 0 ? (
+              <div></div>
+            ) : (
+              <div className="rounded-lg overflow-hidden">
+                {/* Header Row */}
+                <div className="flex items-center py-3 border-border text-body-sm font-medium text-foreground/60">
+                  <div className="min-w-[140px] w-[25%]">Month</div>
+                  <div className="min-w-[100px] w-[20%]">Plan</div>
+                  <div className="min-w-[100px] w-[20%] text-right">Amount</div>
+                  <div className="min-w-[100px] w-[15%] text-center">Status</div>
+                  <div className="min-w-[130px] w-[20%] text-right"></div>
+                </div>
+                {/* Monthly Invoice Rows */}
+                {getAllMonthlyInvoices().map((invoice) => (
+                  <div
+                    key={`${invoice.subscriptionId}-${invoice.month_key}`}
+                    className="flex items-center py-3 text-body-sm text-foreground border-b border-border"
+                    tabIndex={0}
+                    aria-label={`Subscription invoice for ${invoice.month_name}: ${invoice.planType} plan, ${formatCurrency(invoice.amount_due, invoice.currency)}, Status: ${invoice.status}`}
+                  >
+                    <div className="min-w-[140px] w-[25%] font-medium">
+                      {invoice.month_name}
+                    </div>
+                    <div className="min-w-[100px] w-[20%]">
+                      <Badge className={getPlanBadgeClass(invoice.planType)}>
+                        {invoice.planType}
+                      </Badge>
+                    </div>
+                    <div className="min-w-[100px] w-[20%] text-right font-medium">
+                      {formatCurrency(invoice.amount_due, invoice.currency)}
+                    </div>
+                    <div className="min-w-[100px] w-[15%] text-center">
+                      <Badge className={getStatusBadgeClass(invoice.status)}>
+                        {invoice.status}
+                      </Badge>
+                    </div>
+                    <div className="min-w-[130px] w-[20%] text-right flex justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        className="rounded-lg h-9 px-3 text-xs font-medium flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        aria-label="View invoice"
+                        tabIndex={0}
+                        onClick={() => window.open(invoice.invoice_url, '_blank')}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ")
+                            window.open(invoice.invoice_url, '_blank');
+                        }}
+                      >
+                        <ExternalLink className="h-4 w-4 mr-1" aria-hidden="true" />
+                        View Invoice
                       </Button>
                     </div>
                   </div>

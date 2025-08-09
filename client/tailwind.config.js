@@ -82,10 +82,6 @@ module.exports = {
         ring: "hsl(var(--ring))",
         placeholder: "hsl(var(--placeholder))", // Added placeholder color utility
         "background-content-glassy": "hsl(var(--background-content-glassy))", // Added for main content
-        "window-blur": "var(--Window-blur, #111016CC)", // Exact background specification
-        "window-border": "#F7F8F81A", // Exact border specification
-        "frosted-black": "var(--Frosted-Black, rgba(24, 21, 35, 0.8))", // Content area background
-        "frosted-border": "rgba(247, 248, 248, 0.1)", // Content area border
 
         // Preserving chart and sidebar from original config if they are used elsewhere
         chart: {
@@ -175,7 +171,9 @@ module.exports = {
         ],
       },
       backdropBlur: {
-        lg: "32px",
+        // Add specific value from Figma if needed, or use closest default like lg
+        // '70px': '70px', // Example for arbitrary value
+        lg: "16px", // Default lg might be sufficient visually
       },
       keyframes: {
         "accordion-down": {

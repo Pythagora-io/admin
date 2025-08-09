@@ -9,208 +9,141 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  StarterPlanIcon,
-  ProPlanIcon,
-  PremiumPlanIcon,
-  EnterprisePlanIcon,
-} from "@/components/icons/PlanIcons";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Check, ExternalLink, Zap, AlertCircle } from "lucide-react";
-import { Label } from "@/components/ui/label";
-import { Progress } from "@/components/ui/progress";
+import { Check, ExternalLink, AlertCircle, Key, ShieldAlert, CreditCard, ArrowRight, Coins } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import { Textarea } from "@/components/ui/textarea";
 import {
-  getUserSubscription,
-  getSubscriptionPlans,
-  updateSubscription,
-  getTopUpPackages,
-  purchaseTopUp,
-  cancelSubscription,
+  getCustomerProfile,
 } from "@/api/subscription";
-import {
-  getStripeConfig,
-  createPaymentIntent,
-  createTopUpPaymentIntent,
-  getPaymentMethods,
-} from "@/api/stripe";
+import { getCurrentUser } from "@/api/user";
+import { cancelSubscription } from "@/api/stripe";
 import { Badge } from "@/components/ui/badge";
-import { Alert } from "@/components/ui/alert";
-import { Elements } from "@stripe/react-stripe-js";
-import { loadStripe } from "@stripe/stripe-js";
-import { PaymentMethodForm } from "@/components/stripe/PaymentMethodForm";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { PAYMENT_LINKS, TOPUP_TOKENS, PLAN_LINKS } from "@/constants/plans";
+import SpinnerShape from "@/components/SpinnerShape";
+import { PlanSummary } from "@/components/subscription/PlanSummary";
+import { PlanUpgrade } from "@/components/subscription/PlanUpgrade";
+import { TokenUsage } from "@/components/subscription/TokenUsage";
+import { PremiumPlanIcon } from "@/components/icons/PlanIcons";
 
-interface SubscriptionPlan {
-  id: string;
-  name: string;
-  price: number | null;
-  currency: string;
-  tokens: number | null;
-  features: string[];
-  isEnterprise?: boolean;
-  description?: string;
-}
-
-interface UserSubscription {
-  id: string;
-  plan: string;
-  amount: number;
-  currency: string;
-  status: "active" | "canceled" | "past_due" | string;
-  tokens: number;
-  tokensLimit?: number;
-  nextBillingDate: string;
-  startDate?: string;
-}
-
-interface TopUpPackage {
-  id: string;
-  name: string;
-  tokens: number;
-  price: number;
-  currency: string;
-}
-
-interface PaymentMethod {
-  id: string;
-  type: string;
-  card?: {
-    brand: string;
-    last4: string;
-    exp_month: number;
-    exp_year: number;
+interface CustomerProfile {
+  id?: string;
+  _id?: string;
+  bksApiKey?: string;
+  bksKeyId?: string;
+  billingAddress?: any;
+  subscription?: {
+    stripeId?: string;
+    planType?: string;
   };
+  currentSubscription?: {
+    id: string;
+    customerId: string;
+    createdAt: string;
+    planType: string;
+  };
+  prepaidPaymentsHistory?: Array<{
+    id: string;
+    customerId: string;
+    createdAt: string | { $date: string };
+    stripeData?: {
+      amount: number;
+      currency: string;
+      status: string;
+      created: number;
+      description?: string;
+      receipt_email?: string;
+      payment_method_types: string[];
+    };
+  }>;
+  subscriptionsHistory?: Array<{
+    id: string;
+    customerId: string;
+    createdAt: string | { $date: string };
+    planType: string;
+    stripeData?: {
+      status: string;
+      current_period_start: number;
+      current_period_end: number;
+      cancel_at_period_end: boolean;
+      canceled_at?: number;
+      items: Array<{
+        price: {
+          unit_amount: number;
+          currency: string;
+          recurring: {
+            interval: string;
+            interval_count: number;
+          };
+        };
+        product: string;
+      }>;
+      monthly_invoices?: Array<{
+        month_key: string;
+        month_name: string;
+        invoice_id: string;
+        period_start: number;
+        period_end: number;
+        amount_due: number;
+        currency: string;
+        status: string;
+        invoice_url: string;
+      }>;
+    };
+  }>;
+  isFreeTrial?: boolean;
+  usageThisPeriod?: number;
+  usagePreviousPeriods?: number;
+  usageWarningSent?: boolean;
+  isKeyRevoked?: boolean;
+  tokensLeft?: number;
+  customerId?: string;
+  createdAt?: string | { $date: string };
+  updatedAt?: string | { $date: string };
 }
-
-const DISPLAY_TOTAL_TOKENS = 600000;
 
 export function SubscriptionPage() {
-  const [subscription, setSubscription] = useState<UserSubscription | null>(
-    null,
-  );
-  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
-  const [topUpPackages, setTopUpPackages] = useState<TopUpPackage[]>([]);
+  const [customerProfile, setCustomerProfile] = useState<CustomerProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [changePlanOpen, setChangePlanOpen] = useState(false);
-  const [topUpOpen, setTopUpOpen] = useState(false);
-  const [confirmTopUpOpen, setConfirmTopUpOpen] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
-  const [selectedTopUp, setSelectedTopUp] = useState<string | null>(null);
-  // Used in handlePaymentMethodSuccess
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
-  const [hasPaymentMethod, setHasPaymentMethod] = useState(false);
-  const [showPaymentForm, setShowPaymentForm] = useState(false);
-  const [processingPayment, setProcessingPayment] = useState(false);
-  const [stripePublicKey, setStripePublicKey] = useState<string | null>(null);
-
-  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
-  const [cancelReason, setCancelReason] = useState("");
-  const [isCancelling, setIsCancelling] = useState(false);
-
-  const [confirmPlanChangeOpen, setConfirmPlanChangeOpen] = useState(false);
-  const [planToChange, setPlanToChange] = useState<SubscriptionPlan | null>(
-    null,
-  );
+  const [error, setError] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [showTopUpModal, setShowTopUpModal] = useState(false);
+  const [cancellingSubscription, setCancellingSubscription] = useState(false);
 
   const { toast } = useToast();
-
-  useEffect(() => {
-    const loadStripeConfig = async () => {
-      try {
-        const config = await getStripeConfig();
-        setStripePublicKey(config.publicKey);
-      } catch (error: unknown) {
-        let errorMessage =
-          "Failed to load payment configuration. Please try again later.";
-        if (error instanceof Error) {
-          errorMessage = error.message;
-        } else if (typeof error === "string") {
-          errorMessage = error;
-        }
-        toast({
-          variant: "error",
-          title: "Configuration Error",
-          description: errorMessage,
-        });
-      }
-    };
-
-    loadStripeConfig();
-  }, [toast]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
+        setError(null);
 
-        console.log("Fetching subscription data...");
-        const [subscriptionData, plansData, packagesData, paymentMethodsData] =
-          await Promise.all([
-            getUserSubscription(),
-            getSubscriptionPlans(),
-            getTopUpPackages(),
-            getPaymentMethods(),
-          ]);
-        console.log("Subscription data received:", subscriptionData);
-        console.log("Plans data received:", plansData);
+        console.log("SubscriptionPage: Fetching customer profile data...");
+        const customerProfileResponse = await getCustomerProfile();
+        console.log("SubscriptionPage: Customer profile response received:", customerProfileResponse);
 
-        const currentSub = subscriptionData.subscription as UserSubscription;
-        const allPlans = plansData.plans as SubscriptionPlan[];
+        // Extract the customer data from the response
+        const customerProfileData = customerProfileResponse.customer;
+        console.log("SubscriptionPage: Extracted customer profile data:", customerProfileData);
 
-        let determinedTokensLimit = 600000;
-        if (currentSub && currentSub.plan) {
-          const currentPlanDetails = allPlans.find(
-            (p) => p.name.toLowerCase() === currentSub.plan.toLowerCase(),
-          );
-          if (
-            currentPlanDetails &&
-            currentPlanDetails.tokens &&
-            currentPlanDetails.tokens > 0
-          ) {
-            determinedTokensLimit = currentPlanDetails.tokens;
-          }
-        }
-        if (currentSub) {
-          currentSub.tokensLimit = determinedTokensLimit;
-        }
+        setCustomerProfile(customerProfileData);
 
-        setSubscription(currentSub);
-        setPlans(allPlans);
-        setTopUpPackages(packagesData.packages as TopUpPackage[]);
-        setPaymentMethods(paymentMethodsData.paymentMethods || []);
-        setHasPaymentMethod(paymentMethodsData.paymentMethods?.length > 0);
-
-        if (currentSub?.plan) {
-          const currentPlanId = allPlans.find(
-            (p: SubscriptionPlan) =>
-              p.name.toLowerCase() === currentSub.plan.toLowerCase(),
-          )?.id;
-          if (currentPlanId) {
-            setSelectedPlan(currentPlanId);
-          }
-        }
+        // Get current user data for email and customer ID
+        console.log("SubscriptionPage: Getting current user data...");
+        const userData = getCurrentUser();
+        console.log("SubscriptionPage: Current user data:", userData);
+        setCurrentUser(userData);
       } catch (error: unknown) {
-        let errorMessage =
-          "Failed to load subscription data. Please try again later.";
+        console.error("SubscriptionPage: Error fetching subscription data:", error);
+        let errorMessage = "Failed to load subscription data. Please try again later.";
         if (error instanceof Error) {
           errorMessage = error.message;
         } else if (typeof error === "string") {
           errorMessage = error;
         }
+        setError(errorMessage);
         toast({
-          variant: "error",
+          variant: "destructive",
           title: "Error",
           description: errorMessage,
         });
@@ -222,798 +155,365 @@ export function SubscriptionPage() {
     fetchData();
   }, [toast]);
 
-  const handleInitiatePlanChange = async (plan: SubscriptionPlan) => {
-    setPlanToChange(plan);
-
-    if (plan.price === 0) {
-      setConfirmPlanChangeOpen(true);
-      return;
-    }
-
-    if (!hasPaymentMethod) {
-      setShowPaymentForm(true);
-      setConfirmPlanChangeOpen(true);
-      return;
-    }
-
-    setConfirmPlanChangeOpen(true);
+  const handleContactForEnterprise = () => {
+    // Point to
+    window.open("https://www.pythagora.ai/contact", "_blank");
   };
 
-  const handlePlanChange = async () => {
-    if (!planToChange) {
-      toast({
-        variant: "error",
-        title: "Error",
-        description: "No plan selected to change to",
-      });
-      return;
-    }
+  const handleShowTopUp = () => {
+    setShowTopUpModal(true);
+  };
 
-    if (planToChange.price === 0) {
-      try {
-        setProcessingPayment(true);
-        const response = await updateSubscription({ planId: planToChange.id });
-        setSubscription(response.subscription);
+  const handleTopUpPurchase = (amount: string) => {
+    try {
+      console.log(`SubscriptionPage: Purchasing ${amount} top-up`);
+      console.log("SubscriptionPage: Current user for top-up:", currentUser);
+
+      if (!currentUser?.email) {
+        console.error("SubscriptionPage: User email not found. Current user data:", currentUser);
         toast({
-          variant: "success",
-          title: "Success",
-          description: response.message || "Subscription updated successfully",
-        });
-        setConfirmPlanChangeOpen(false);
-        setChangePlanOpen(false);
-      } catch (error: unknown) {
-        let errorMessage = "Failed to update subscription";
-        if (error instanceof Error) {
-          errorMessage = error.message;
-        } else if (typeof error === "string") {
-          errorMessage = error;
-        }
-        toast({
-          variant: "error",
+          variant: "destructive",
           title: "Error",
-          description: errorMessage,
+          description: "User email not found. Please try refreshing the page.",
         });
-      } finally {
-        setProcessingPayment(false);
+        return;
       }
-      return;
-    }
 
-    if (!hasPaymentMethod && showPaymentForm) {
+      // Use the id field from customer profile as client_reference_id
+      const customerReferenceId = customerProfile?.id;
+      if (!customerReferenceId) {
+        console.error("SubscriptionPage: Customer ID not found. Customer profile:", customerProfile);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Customer ID not found. Please try refreshing the page.",
+        });
+        return;
+      }
+
+      // Generate the Stripe checkout URL with user data
+      const checkoutUrl = PAYMENT_LINKS[amount as keyof typeof PAYMENT_LINKS]
+        .replace('RECIPIENT_EMAIL', encodeURIComponent(currentUser.email))
+        .replace('CUSTOMER_ID', encodeURIComponent(customerReferenceId));
+
+      console.log(`SubscriptionPage: Opening Stripe checkout for ${amount} top-up:`, checkoutUrl);
+      console.log(`SubscriptionPage: Using customer reference ID: ${customerReferenceId}`);
+      console.log(`SubscriptionPage: Using user email: ${currentUser.email}`);
+
+      // Close the modal
+      setShowTopUpModal(false);
+
+      // Open Stripe checkout in a new tab
+      window.open(checkoutUrl, '_blank');
+
       toast({
-        variant: "error",
-        title: "Payment Required",
-        description: "Please add a payment method to continue",
+        variant: "default",
+        title: "Redirecting to Checkout",
+        description: `Opening ${amount} top-up checkout in a new tab.`,
       });
-      return;
-    }
-
-    try {
-      setProcessingPayment(true);
-
-      await createPaymentIntent({
-        planId: planToChange.id,
-      });
-
-      const response = await updateSubscription({ planId: planToChange.id });
-      setSubscription(response.subscription);
-
-      toast({
-        variant: "success",
-        title: "Success",
-        description: response.message || "Subscription updated successfully",
-      });
-
-      setConfirmPlanChangeOpen(false);
-      setChangePlanOpen(false);
     } catch (error: unknown) {
-      let errorMessage = "Failed to update subscription";
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      } else if (typeof error === "string") {
-        errorMessage = error;
-      }
+      console.error("SubscriptionPage: Error purchasing top-up:", error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to purchase top-up";
       toast({
-        variant: "error",
+        variant: "destructive",
         title: "Error",
         description: errorMessage,
       });
-    } finally {
-      setProcessingPayment(false);
     }
   };
 
-  const handlePaymentMethodSuccess = async () => {
-    setHasPaymentMethod(true);
-    setShowPaymentForm(false);
-
-    toast({
-      variant: "success",
-      title: "Payment Method Added",
-      description: "Your payment method has been saved",
-    });
-
+  const handleUpgradePlan = (planType: 'Pro' | 'Premium') => {
     try {
-      const paymentMethodsData = await getPaymentMethods();
-      setPaymentMethods(paymentMethodsData.paymentMethods || []);
-    } catch (error: unknown) {
-      console.error(
-        "Error refreshing payment methods:",
-        error instanceof Error ? error.message : error,
-      );
-    }
-  };
+      console.log(`SubscriptionPage: Upgrading to ${planType} plan`);
+      console.log("SubscriptionPage: Current user data for upgrade:", currentUser);
 
-  const handleInitiateTopUp = (packageId: string) => {
-    setSelectedTopUp(packageId);
-
-    if (!hasPaymentMethod) {
-      setShowPaymentForm(true);
-    }
-
-    setConfirmTopUpOpen(true);
-  };
-
-  const handleTopUpPurchase = async () => {
-    if (!selectedTopUp) {
-      toast({
-        variant: "error",
-        title: "Error",
-        description: "Please select a token package to continue",
-      });
-      return;
-    }
-
-    if (!hasPaymentMethod && showPaymentForm) {
-      toast({
-        variant: "error",
-        title: "Payment Required",
-        description: "Please add a payment method to continue",
-      });
-      return;
-    }
-
-    try {
-      setProcessingPayment(true);
-
-      await createTopUpPaymentIntent({
-        packageId: selectedTopUp,
-      });
-
-      const response = await purchaseTopUp({ packageId: selectedTopUp });
-
-      if (subscription) {
-        setSubscription({
-          ...subscription,
-          tokens: (subscription.tokens || 0) + response.tokens,
+      if (!currentUser?.email) {
+        console.error("SubscriptionPage: User email not found for upgrade. Current user data:", currentUser);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "User email not found. Please try refreshing the page.",
         });
+        return;
       }
 
+      // Use the id field from customer profile as client_reference_id
+      const customerReferenceId = customerProfile?.id;
+      if (!customerReferenceId) {
+        console.error("SubscriptionPage: Customer ID not found for upgrade. Customer profile:", customerProfile);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Customer ID not found. Please try refreshing the page.",
+        });
+        return;
+      }
+
+      // Generate the Stripe checkout URL with user data
+      const checkoutUrl = PLAN_LINKS[planType]
+        .replace('RECIPIENT_EMAIL', encodeURIComponent(currentUser.email))
+        .replace('CUSTOMER_ID', encodeURIComponent(customerReferenceId));
+
+      console.log(`SubscriptionPage: Opening Stripe checkout for ${planType}:`, checkoutUrl);
+      console.log(`SubscriptionPage: Using customer reference ID: ${customerReferenceId}`);
+      console.log(`SubscriptionPage: Using user email: ${currentUser.email}`);
+
+      // Open Stripe checkout in a new tab
+      window.open(checkoutUrl, '_blank');
+
       toast({
-        variant: "success",
-        title: "Success",
-        description: response.message || "Token top-up purchased successfully",
+        variant: "default",
+        title: "Redirecting to Checkout",
+        description: `Opening ${planType} plan checkout in a new tab.`,
       });
-
-      setConfirmTopUpOpen(false);
-      setTopUpOpen(false);
     } catch (error: unknown) {
-      let errorMessage = "Failed to purchase token top-up";
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      } else if (typeof error === "string") {
-        errorMessage = error;
-      }
+      console.error("SubscriptionPage: Error upgrading plan:", error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to upgrade plan";
       toast({
-        variant: "error",
+        variant: "destructive",
         title: "Error",
         description: errorMessage,
       });
-    } finally {
-      setProcessingPayment(false);
     }
   };
 
   const handleCancelSubscription = async () => {
     try {
-      setIsCancelling(true);
+      setCancellingSubscription(true);
+      console.log("SubscriptionPage: Cancelling subscription...");
 
-      const response = await cancelSubscription({ reason: cancelReason });
-
-      setSubscription(response.subscription);
+      await cancelSubscription();
 
       toast({
-        variant: "success",
-        title: "Subscription Canceled",
-        description:
-          "Your subscription has been canceled and will end at the end of the current billing period.",
+        variant: "default",
+        title: "Subscription Cancelled",
+        description: "Your subscription has been cancelled successfully.",
       });
 
-      setCancelDialogOpen(false);
+      // Refresh the customer profile data
+      const customerProfileResponse = await getCustomerProfile();
+      const customerProfileData = customerProfileResponse.customer;
+      setCustomerProfile(customerProfileData);
+
     } catch (error: unknown) {
-      let errorMessage = "Failed to cancel subscription";
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      } else if (typeof error === "string") {
-        errorMessage = error;
-      }
+      console.error("SubscriptionPage: Error cancelling subscription:", error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to cancel subscription";
       toast({
-        variant: "error",
+        variant: "destructive",
         title: "Error",
         description: errorMessage,
       });
     } finally {
-      setIsCancelling(false);
+      setCancellingSubscription(false);
     }
   };
 
-  const handleContactForEnterprise = () => {
-    window.open("https://pythagora.io/contact", "_blank");
+  const maskApiKey = (apiKey?: string) => {
+    if (!apiKey) return "No API key";
+    const prefix = apiKey.substring(0, 12);
+    const suffix = apiKey.substring(apiKey.length - 8);
+    return `${prefix}...${suffix}`;
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-[calc(100vh-4rem)]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  const formatCurrency = (amount: number | null, currency: string = "USD") => {
-    if (amount === null) return "Custom";
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: currency,
-    }).format(amount);
-  };
-
-  const formatTokens = (tokens: number | null) => {
-    if (tokens === null) return "Custom";
+  const formatTokens = (tokens?: number) => {
+    if (typeof tokens !== 'number') return "0";
     if (tokens >= 1000000) {
-      return `${(tokens / 1000000).toFixed(1).replace(/\.0$/, "")}M`;
+      const formatted = (tokens / 1000000).toFixed(1);
+      return `${formatted.replace(/\.0$/, "")}M`;
     }
     if (tokens >= 1000) {
-      return `${(tokens / 1000).toFixed(1).replace(/\.0$/, "")}K`;
+      const formatted = (tokens / 1000).toFixed(1);
+      return `${formatted.replace(/\.0$/, "")}K`;
     }
     return tokens.toLocaleString();
   };
 
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return "-";
-    try {
-      return new Date(dateString).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      });
-    } catch {
-      return "-";
-    }
-  };
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-[calc(100vh-200px)]">
+        <SpinnerShape className="w-16 h-16" />
+      </div>
+    );
+  }
 
-  const isOutOfTokens = subscription?.tokens === 0;
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-96 gap-4">
+        <AlertCircle className="h-12 w-12 text-destructive" />
+        <div className="text-center">
+          <h2 className="text-lg font-semibold">Failed to load subscription data</h2>
+          <p className="text-muted-foreground">{error}</p>
+          <Button onClick={() => window.location.reload()} className="mt-4">
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
-  const hasPaidSubscription = subscription
-    ? subscription.amount > 0 && subscription.status === "active"
-    : false;
-  const isSubscriptionCanceled = subscription?.status === "canceled";
-
-  const getPlanBadgeClass = (planName?: string) => {
-    if (!planName) return "bg-warning text-warning-foreground";
-
-    switch (planName.toLowerCase()) {
-      case "free":
-        return "bg-plan-starter text-warning-foreground";
-      case "pro":
-        return "bg-plan-pro text-warning-foreground";
-      case "premium":
-        return "bg-plan-premium text-warning-foreground";
-      case "enterprise":
-        return "bg-plan-enterprise text-warning-foreground";
-      default:
-        return "bg-warning text-warning-foreground";
-    }
-  };
+  const isOutOfTokens = (customerProfile?.tokensLeft || 0) === 0;
+  const isKeyRevoked = customerProfile?.isKeyRevoked || false;
 
   return (
-    <div className="flex flex-col gap-14">
-      <div>
-        <h1 className="text-heading-3 text-foreground tracking-wide">
-          Subscription
-        </h1>
-        <p className="text-body-sm text-foreground/60">
-          Manage your subscription and token usage
-        </p>
-      </div>
-
-      {isOutOfTokens && (
-        <Alert className="bg-token-alert-background border-none flex items-center py-3 px-4 rounded-lg">
-          <div className="flex items-center gap-2">
-            <AlertCircle className="h-5 w-5 flex-shrink-0 text-token-alert" />
-            <p className="text-[14px] font-medium leading-[1.3em] tracking-[-0.02em] text-token-alert">
-              You've run out of tokens. To continue building your apps, please
-              top up your tokens or upgrade your plan.
-            </p>
-          </div>
-        </Alert>
-      )}
-
-      <div className="flex flex-col gap-10">
-        <div className="flex flex-col gap-5">
-          <div className="flex items-center space-x-2">
-            <h2 className="text-body-lg font-medium">Plan Summary</h2>
-            <Badge
-              className={`${getPlanBadgeClass(subscription?.plan)} hover:${getPlanBadgeClass(subscription?.plan)} font-medium rounded-lg`}
-            >
-              {subscription?.plan
-                ? `${subscription.plan} plan`
-                : "Starter plan"}
-            </Badge>
-          </div>
-
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-8 gap-y-4 text-sm">
-              <div>
-                <p className="text-muted-foreground opacity-60">Price/month</p>
-                <p className="font-medium">
-                  {subscription && subscription.amount > 0
-                    ? `${formatCurrency(subscription.amount, subscription.currency)}`
-                    : "Free"}
-                </p>
-              </div>
-              <div>
-                <p className="text-muted-foreground opacity-60">Start date</p>
-                <p className="font-medium">
-                  {formatDate(subscription?.startDate)}
-                </p>
-              </div>
-              <div>
-                <p className="text-muted-foreground opacity-60">
-                  Next Billing date
-                </p>
-                <p className="font-medium">
-                  {isSubscriptionCanceled ||
-                  (subscription &&
-                    subscription.amount === 0 &&
-                    subscription.plan.toLowerCase() === "free")
-                    ? "-"
-                    : formatDate(subscription?.nextBillingDate)}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 mt-4 md:mt-0 self-start md:self-center">
-              {isSubscriptionCanceled && subscription && (
-                <Badge
-                  variant="outline"
-                  className="py-1 px-2 order-first sm:order-none mb-2 sm:mb-0 sm:mr-2"
-                >
-                  Cancels on {formatDate(subscription.nextBillingDate)}
-                </Badge>
-              )}
-              <Button
-                onClick={() => setChangePlanOpen(true)}
-                className="w-full sm:w-auto"
-              >
-                Change Plan
-              </Button>
-              {hasPaidSubscription && !isSubscriptionCanceled && (
-                <Button
-                  variant="outline"
-                  onClick={() => setCancelDialogOpen(true)}
-                  className="w-full sm:w-auto"
-                >
-                  Cancel Subscription
-                </Button>
-              )}
-            </div>
-          </div>
+    <div className="w-full max-w-none overflow-hidden">
+      <div className="flex flex-col gap-14">
+        <div>
+          <h1 className="text-heading-3 text-foreground tracking-wide">
+            Subscription
+          </h1>
+          <p className="text-body-sm text-foreground/60">
+            Manage your subscription and token usage
+          </p>
         </div>
 
-        <Separator />
-
-        <div className="space-y-3">
-          <div className="flex justify-between items-center">
-            <div>
-              <h3 className="text-body-lg font-medium">Token Usage</h3>
+        {isOutOfTokens && (
+          <Alert className="bg-token-alert-background border-none flex items-center py-3 px-4 rounded-lg">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 flex-shrink-0 text-token-alert" />
+              <p className="text-[14px] font-medium leading-[1.3em] tracking-[-0.02em] text-token-alert">
+                You've run out of tokens. To continue building your apps, please
+                top up your tokens or upgrade your plan.
+              </p>
             </div>
-            <Button
-              variant="outline"
-              onClick={() => setTopUpOpen(true)}
-              className="h-9 px-3 border border-foreground rounded-lg text-body-md text-foreground hover:text-accent-foreground items-center"
-            >
-              <Zap className="h-4 w-4 mr-2" />
-              Top Up
-            </Button>
+          </Alert>
+        )}
+
+        {isKeyRevoked && (
+          <Alert className="bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800">
+            <ShieldAlert className="h-4 w-4 text-red-600 dark:text-red-400" />
+            <AlertDescription className="text-red-800 dark:text-red-200">
+              <strong>API Key Revoked:</strong> Your API key has been revoked. Please contact support to resolve this issue.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        <div className="flex flex-col gap-10">
+          {/* API Key Section */}
+          {customerProfile?.bksApiKey && (
+            <>
+              <div className="flex flex-col space-y-3">
+                <h2 className="text-body-lg font-medium">API Key</h2>
+                <div className="flex items-center gap-2">
+                  <Key className="h-4 w-4 text-muted-foreground" />
+                  <code className="bg-muted px-2 py-1 rounded text-sm">
+                    {maskApiKey(customerProfile.bksApiKey)}
+                  </code>
+                  {customerProfile.bksKeyId && (
+                    <Badge variant="outline" className="text-xs">
+                      ID: {customerProfile.bksKeyId}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+
+              <Separator />
+            </>
+          )}
+
+          {/* Free Trial Status */}
+          <div className="flex flex-col space-y-3">
+            <h2 className="text-body-lg font-medium">Free Trial Status</h2>
+            <div className="flex items-center gap-2">
+              <Badge variant={customerProfile?.isFreeTrial ? "default" : "outline"}>
+                {customerProfile?.isFreeTrial ? "On Free Trial" : "Not on Free Trial"}
+              </Badge>
+            </div>
           </div>
-          <div className="mb-1">
-            <p className="text-body-sm text-muted-foreground opacity-60">
-              Available tokens
-            </p>
-            <p className="text-body-sm font-medium">
-              {formatTokens(subscription?.tokens || 0)} /{" "}
-              {formatTokens(DISPLAY_TOTAL_TOKENS)}
-            </p>
-          </div>
-          <Progress
-            value={
-              subscription && subscription.tokens > 0
-                ? (subscription.tokens /
-                    Math.max(subscription.tokens, DISPLAY_TOTAL_TOKENS)) *
-                  100
-                : 0
-            }
-            className={`h-2 ${
-              subscription && subscription.tokens > 0
-                ? (subscription.tokens /
-                    Math.max(subscription.tokens, DISPLAY_TOTAL_TOKENS)) *
-                    100 >=
-                  50
-                  ? "bg-success/20 [&>div]:bg-success"
-                  : "bg-destructive/20 [&>div]:bg-destructive"
-                : "bg-destructive/20 [&>div]:bg-destructive"
-            }`}
+
+          <Separator />
+
+          {/* Plan Summary */}
+          <PlanSummary
+            customerProfile={customerProfile}
+            cancellingSubscription={cancellingSubscription}
+            onContactSales={handleContactForEnterprise}
+            onCancelSubscription={handleCancelSubscription}
+          />
+
+          {/* Plan Upgrade Section */}
+          <PlanUpgrade
+            customerProfile={customerProfile}
+            onUpgradePlan={handleUpgradePlan}
+          />
+
+          {/* Token Usage */}
+          <TokenUsage
+            customerProfile={customerProfile}
+            onShowTopUp={handleShowTopUp}
           />
         </div>
-      </div>
 
-      {/* Change Plan Dialog */}
-      <Dialog open={changePlanOpen} onOpenChange={setChangePlanOpen}>
-        <DialogContent className="sm:max-w-7xl w-[95vw] max-h-[90vh] overflow-auto">
-          <DialogHeader className="relative">
-            <DialogTitle>Change Subscription Plan</DialogTitle>
-            <DialogDescription>
-              Select a new plan. Your billing cycle will update immediately.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {plans.map((plan) => {
-                const isCurrentPlan =
-                  plan.name.toLowerCase() === subscription?.plan?.toLowerCase();
-                const isEnterprisePlan = plan.isEnterprise;
+        {/* Top Up Modal */}
+        <Dialog open={showTopUpModal} onOpenChange={setShowTopUpModal}>
+          <DialogContent className="sm:max-w-4xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Coins className="h-5 w-5 text-primary" />
+                Top Up Tokens
+              </DialogTitle>
+              <DialogDescription>
+                Choose a top-up package to add tokens to your account. Each package includes a different amount of tokens for various usage needs.
+              </DialogDescription>
+            </DialogHeader>
 
-                // Get the correct icon based on plan name
-                let planIcon = null;
-                let planBgColor = "bg-background";
-
-                if (
-                  plan.name.toLowerCase() === "starter" ||
-                  plan.name.toLowerCase() === "free"
-                ) {
-                  planIcon = <StarterPlanIcon className="h-7 w-7" />;
-                } else if (plan.name.toLowerCase() === "pro") {
-                  planIcon = <ProPlanIcon className="h-7 w-5" />;
-                } else if (plan.name.toLowerCase() === "premium") {
-                  planIcon = <PremiumPlanIcon className="h-7 w-7" />;
-                } else if (
-                  isEnterprisePlan ||
-                  plan.name.toLowerCase() === "enterprise"
-                ) {
-                  planIcon = <EnterprisePlanIcon className="h-7 w-7" />;
-                }
-
-                // Set different background colors based on selection state
-                if (isCurrentPlan) {
-                  planBgColor = "bg-[#393744]";
-                } else if (selectedPlan === plan.id) {
-                  planBgColor = "bg-primary/5 border-primary";
-                } else {
-                  planBgColor = "bg-black/60 dark:bg-[#0b0912]/60";
-                }
-
-                // We use the features that come from the backend API
-                const planFeatures = plan.features || [];
-
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 py-4">
+              {Object.entries(PAYMENT_LINKS).map(([amount, link]) => {
+                const tokens = TOPUP_TOKENS[amount as keyof typeof TOPUP_TOKENS];
+                const price = parseInt(amount.replace('$', ''));
                 return (
-                  <div
-                    key={plan.id}
-                    className={`rounded-2xl border border-border ${planBgColor} p-6 flex flex-col h-full ${
-                      isEnterprisePlan ? "border-dashed" : ""
-                    } transition-colors duration-200 cursor-pointer`}
-                    onClick={() =>
-                      !isEnterprisePlan && setSelectedPlan(plan.id)
-                    }
+                  <Card
+                    key={amount}
+                    className="relative overflow-hidden border-2 border-transparent hover:border-primary/20 transition-all duration-200 cursor-pointer hover:shadow-md"
+                    onClick={() => handleTopUpPurchase(amount)}
                   >
-                    <div className="flex justify-between items-start mb-4">
-                      {planIcon && <div className="mb-2">{planIcon}</div>}
-
-                      {isCurrentPlan && (
-                        <span className="text-xs font-medium bg-foreground/15 text-foreground rounded-md px-3 py-1">
-                          Current plan
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="space-y-4 mb-6">
-                      <div>
-                        <h3 className="text-body-lg font-normal">
-                          {plan.name}
-                        </h3>
-                        <p className="text-heading-3 font-medium -tracking-[0.02em] mt-3">
-                          {plan.price === 0
-                            ? "Free"
-                            : plan.price === null
-                              ? "Custom"
-                              : `${formatCurrency(plan.price, plan.currency)}/month`}
-                        </p>
-                      </div>
-
-                      {plan.description && (
-                        <div className="border-t border-foreground/10 pt-4">
-                          <p className="text-sm text-foreground/80 mb-2">
-                            {plan.description}
-                          </p>
+                    <CardHeader className="pb-4">
+                      <div className="flex items-center gap-3">
+                        <PremiumPlanIcon className="w-7 h-7" />
+                        <div>
+                          <CardTitle className="text-lg">{amount} Top-up</CardTitle>
+                          <CardDescription className="text-2xl font-bold text-foreground">
+                            {formatTokens(tokens)} tokens
+                          </CardDescription>
                         </div>
-                      )}
-
-                      <div className="space-y-2">
-                        {planFeatures.map((feature, index) => {
-                          // Check if this is a heading (e.g., "Everything in X, plus:")
-                          const isHeading =
-                            feature.includes("Everything in") &&
-                            feature.includes("plus:");
-
-                          return (
-                            <div
-                              key={index}
-                              className={`flex items-start gap-2 ${isHeading ? "pt-2" : ""}`}
-                            >
-                              {!isHeading && (
-                                <Check className="h-4 w-4 text-foreground mt-1 flex-shrink-0" />
-                              )}
-                              <span
-                                className={`text-sm ${isHeading ? "font-medium" : "text-foreground/80"}`}
-                              >
-                                {feature}
-                              </span>
-                            </div>
-                          );
-                        })}
                       </div>
-                    </div>
-
-                    <div className="mt-auto">
-                      {isEnterprisePlan ? (
-                        <Button
-                          className="w-full rounded-lg"
-                          variant="outline"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleContactForEnterprise();
-                          }}
-                        >
-                          <ExternalLink className="h-4 w-4 mr-2" />
-                          Get in Touch
-                        </Button>
-                      ) : isCurrentPlan ? (
-                        <Button
-                          className="w-full rounded-lg bg-foreground/10 hover:bg-foreground/20 text-foreground"
-                          disabled
-                        >
-                          Current Plan
-                        </Button>
-                      ) : (
-                        <Button
-                          className="w-full rounded-lg"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleInitiatePlanChange(plan);
-                          }}
-                        >
-                          {plan.price === 0 &&
-                          (subscription ? subscription.amount > 0 : false)
-                            ? "Downgrade to Free"
-                            : `Upgrade to ${plan.name}`}
-                        </Button>
-                      )}
-                    </div>
-                  </div>
+                    </CardHeader>
+                    <CardContent className="pb-4">
+                      <ul className="space-y-2">
+                        <li className="flex items-center gap-2 text-sm">
+                          <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                          <span>{formatTokens(tokens)} tokens instantly</span>
+                        </li>
+                        <li className="flex items-center gap-2 text-sm">
+                          <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                          <span>$3.00 per million tokens</span>
+                        </li>
+                      </ul>
+                    </CardContent>
+                    <CardFooter className="pt-2">
+                      <Button
+                        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleTopUpPurchase(amount);
+                        }}
+                      >
+                        <CreditCard className="h-4 w-4 mr-2" />
+                        Purchase {amount}
+                        <ArrowRight className="h-4 w-4 ml-2" />
+                      </Button>
+                    </CardFooter>
+                  </Card>
                 );
               })}
             </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Plan Change Confirmation Dialog */}
-      <AlertDialog
-        open={confirmPlanChangeOpen}
-        onOpenChange={setConfirmPlanChangeOpen}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {planToChange?.price === 0 &&
-              (subscription ? subscription.amount > 0 : false)
-                ? "Switch to Free Plan?"
-                : `Upgrade to ${planToChange?.name} Plan`}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {planToChange?.price === 0 &&
-              (subscription ? subscription.amount > 0 : false)
-                ? `You will be switched to our Free plan on ${formatDate(subscription?.nextBillingDate)}. You’ll still be able to access your projects after that. If you change your mind, you can always renew your subscription.`
-                : `Are you sure you want to upgrade to the ${planToChange?.name} plan? Your billing cycle will update immediately.`}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-
-          {showPaymentForm && !hasPaymentMethod && stripePublicKey && (
-            <div className="py-4">
-              <h3 className="font-medium mb-2">Payment Information</h3>
-              <Elements stripe={loadStripe(stripePublicKey)}>
-                <PaymentMethodForm
-                  onSuccess={handlePaymentMethodSuccess}
-                  buttonText="Save Payment Method"
-                  isProcessing={processingPayment}
-                />
-              </Elements>
-            </div>
-          )}
-
-          <AlertDialogFooter>
-            <AlertDialogCancel
-              onClick={() => {
-                setConfirmPlanChangeOpen(false);
-                setShowPaymentForm(false);
-              }}
-            >
-              Cancel
-            </AlertDialogCancel>
-            {(!showPaymentForm || hasPaymentMethod) && (
-              <AlertDialogAction
-                onClick={handlePlanChange}
-                disabled={processingPayment}
-                className={
-                  planToChange?.price === 0 &&
-                  (subscription ? subscription.amount > 0 : false)
-                    ? "bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    : ""
-                }
-              >
-                {processingPayment ? "Processing..." : "Confirm"}
-              </AlertDialogAction>
-            )}
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Top Up Dialog */}
-      <Dialog open={topUpOpen} onOpenChange={setTopUpOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Top Up Pythagora</DialogTitle>
-            <DialogDescription>
-              Select a token package to add to your account.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {topUpPackages.map((pkg: TopUpPackage) => (
-                <div
-                  key={pkg.id}
-                  className={`rounded-lg border p-4 cursor-pointer transition-colors ${
-                    selectedTopUp === pkg.id ? "bg-highlight" : "border-border"
-                  }`}
-                  onClick={() => setSelectedTopUp(pkg.id)}
-                >
-                  <div className="text-center">
-                    <div className="text-subheading">
-                      {formatCurrency(pkg.price, pkg.currency)}
-                    </div>
-                    <div className="mt-2 text-body-md">
-                      {formatTokens(pkg.tokens)} tokens
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setTopUpOpen(false)}>
-              Cancel
-            </Button>
-            <AlertDialog
-              open={confirmTopUpOpen}
-              onOpenChange={setConfirmTopUpOpen}
-            >
-              <AlertDialogTrigger asChild>
-                <Button
-                  disabled={!selectedTopUp}
-                  onClick={() =>
-                    selectedTopUp && handleInitiateTopUp(selectedTopUp)
-                  }
-                >
-                  Save Changes
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Confirm Token Purchase</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Are you sure you want to purchase this token package? Your
-                    payment method on file will be charged immediately.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-
-                {showPaymentForm && !hasPaymentMethod && stripePublicKey && (
-                  <div className="py-4">
-                    <h3 className="font-medium mb-2">Payment Information</h3>
-                    <Elements stripe={loadStripe(stripePublicKey)}>
-                      <PaymentMethodForm
-                        onSuccess={handlePaymentMethodSuccess}
-                        buttonText="Save Payment Method"
-                        isProcessing={processingPayment}
-                      />
-                    </Elements>
-                  </div>
-                )}
-
-                <AlertDialogFooter>
-                  <AlertDialogCancel
-                    className="bg-transparent text-foreground border-none"
-                    onClick={() => {
-                      setConfirmTopUpOpen(false);
-                      setShowPaymentForm(false);
-                    }}
-                  >
-                    Back
-                  </AlertDialogCancel>
-                  {(!showPaymentForm || hasPaymentMethod) && (
-                    <AlertDialogAction
-                      onClick={handleTopUpPurchase}
-                      disabled={processingPayment}
-                    >
-                      {processingPayment ? "Processing..." : "Confirm Purchase"}
-                    </AlertDialogAction>
-                  )}
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Cancel Subscription Dialog */}
-      <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Cancel Subscription</DialogTitle>
-            <DialogDescription>
-              Your subscription will remain active until the end of the current
-              billing period.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4 space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="cancelReason">
-                Reason for cancellation (optional)
-              </Label>
-              <Textarea
-                id="cancelReason"
-                placeholder="Please let us know why you're canceling..."
-                value={cancelReason}
-                onChange={(e) => setCancelReason(e.target.value)}
-                className="resize-none bg-card focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-border focus:outline-none"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setCancelDialogOpen(false)}
-            >
-              Back
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleCancelSubscription}
-              disabled={isCancelling}
-            >
-              {isCancelling ? "Cancelling..." : "Cancel Subscription"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowTopUpModal(false)}>
+                Cancel
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 }

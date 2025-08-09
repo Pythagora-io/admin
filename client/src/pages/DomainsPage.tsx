@@ -239,159 +239,79 @@ export function DomainsPage() {
         </Card>
       ) : (
         <div className="rounded-lg overflow-hidden">
-          {/* Desktop Table Layout - Hidden on mobile */}
-          <div className="hidden md:block">
-            <div className="overflow-x-auto">
-              {/* Header Row */}
-              <div className="flex items-center py-3 border-border text-body-sm font-medium text-foreground/60 min-w-[600px]">
-                <div className="min-w-[200px] w-[40%]">Domain name</div>
-                <div className="min-w-[120px] w-[20%]">Date</div>
-                <div className="min-w-[120px] w-[20%]">Status</div>
-                <div className="min-w-[160px] w-[20%] text-right">Actions</div>
-              </div>
-
-              {/* Domain Rows */}
-              <div className="flex flex-col">
-                {domains.map((domain) => (
-                  <div
-                    key={domain._id}
-                    className="flex items-center py-3 text-body-sm text-foreground border-b min-w-[600px]"
-                    tabIndex={0}
-                    aria-label={`Domain ${domain.domain}, added on ${formatDate(domain.createdAt)}, status: ${domain.verified ? "Verified" : "Pending Verification"}`}
-                  >
-                    <div className="min-w-[200px] w-[40%] flex items-center gap-2">
-                      <Globe className="h-5 w-5 flex-shrink-0" />
-                      <span className="font-medium tracking-wider truncate">
-                        {domain.domain}
-                      </span>
-                    </div>
-                    <div className="min-w-[120px] w-[20%] font-medium">
-                      {formatDate(domain.createdAt)}
-                    </div>
-                    <div className="min-w-[120px] w-[20%]">
-                      {domain.verified ? (
-                        <div className="inline-flex items-center justify-center px-2 py-1 rounded-lg bg-success text-warning-foreground text-xs font-medium tracking-wide">
-                          Verified
-                        </div>
-                      ) : (
-                        <div className="inline-flex items-center justify-center px-2 py-1 rounded-lg bg-warning text-warning-foreground text-xs font-medium tracking-wide">
-                          Pending Verification
-                        </div>
-                      )}
-                    </div>
-                    <div className="min-w-[160px] w-[20%] flex justify-end gap-2">
-                      {!domain.verified && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleVerifyDomain(domain._id)}
-                          disabled={verifyingDomain === domain._id}
-                          className="text-green-600 border-green-200 hover:bg-green-50 hover:text-green-700 dark:border-green-800 dark:hover:bg-green-900/20"
-                        >
-                          {verifyingDomain === domain._id ? (
-                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-green-500 border-t-transparent" />
-                          ) : (
-                            <CheckCircle className="h-4 w-4 mr-2" />
-                          )}
-                          Verify
-                        </Button>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => openInNewTab(domain.domain)}
-                        title="Open domain"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => openDeleteDomainDialog(domain._id)}
-                        className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50"
-                        title="Delete domain"
-                      >
-                        <Trash className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+          {/* Header Row */}
+          <div className="flex items-center py-3 border-border text-body-sm font-medium text-foreground/60">
+            <div className="min-w-[400px] w-[40%]">Domain name</div>
+            <div className="min-w-[140px] w-[20%]">Date</div>
+            <div className="min-w-[100px] w-[20%]">Status</div>
+            <div className="min-w-[130px] w-[20%] text-right"></div>
           </div>
 
-          {/* Mobile Card Layout - Visible on mobile only */}
-          <div className="block md:hidden space-y-3">
+          {/* Domain Rows */}
+          <div className="flex flex-col">
             {domains.map((domain) => (
-              <Card key={domain._id} className="p-4">
-                <div className="space-y-3">
-                  {/* Domain Info */}
-                  <div className="flex items-center gap-2">
-                    <Globe className="h-5 w-5 flex-shrink-0" />
-                    <span className="font-medium tracking-wider text-sm break-all">
-                      {domain.domain}
-                    </span>
-                  </div>
-
-                  {/* Status and Date */}
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <div className="text-xs text-foreground/60">Added on</div>
-                      <div className="text-sm font-medium">
-                        {formatDate(domain.createdAt)}
-                      </div>
-                    </div>
-                    <div>
-                      {domain.verified ? (
-                        <div className="inline-flex items-center justify-center px-2 py-1 rounded-lg bg-success text-warning-foreground text-xs font-medium tracking-wide">
-                          Verified
-                        </div>
-                      ) : (
-                        <div className="inline-flex items-center justify-center px-2 py-1 rounded-lg bg-warning text-warning-foreground text-xs font-medium tracking-wide">
-                          Pending Verification
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center gap-2 pt-2 border-t">
-                    {!domain.verified && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleVerifyDomain(domain._id)}
-                        disabled={verifyingDomain === domain._id}
-                        className="text-green-600 border-green-200 hover:bg-green-50 hover:text-green-700 dark:border-green-800 dark:hover:bg-green-900/20 flex-1"
-                      >
-                        {verifyingDomain === domain._id ? (
-                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-green-500 border-t-transparent" />
-                        ) : (
-                          <CheckCircle className="h-4 w-4 mr-2" />
-                        )}
-                        Verify
-                      </Button>
-                    )}
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => openInNewTab(domain.domain)}
-                      title="Open domain"
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => openDeleteDomainDialog(domain._id)}
-                      className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50"
-                      title="Delete domain"
-                    >
-                      <Trash className="h-4 w-4" />
-                    </Button>
-                  </div>
+              <div
+                key={domain._id}
+                className="flex items-center py-3 text-body-sm text-foreground border-b"
+                tabIndex={0}
+                aria-label={`Domain ${domain.domain}, added on ${formatDate(domain.createdAt)}, status: ${domain.verified ? "Verified" : "Pending Verification"}`}
+              >
+                <div className="min-w-[400px] w-[40%] flex items-center gap-2">
+                  <Globe className="h-5 w-5" />
+                  <span className="font-medium tracking-wider">
+                    {domain.domain}
+                  </span>
                 </div>
-              </Card>
+                <div className="min-w-[140px] w-[20%] font-medium">
+                  {formatDate(domain.createdAt)}
+                </div>
+                <div className="min-w-[100px] w-[20%]">
+                  {domain.verified ? (
+                    <div className="inline-flex items-center justify-center px-2 py-1 rounded-lg bg-success text-success-foreground text-xs font-medium tracking-wide">
+                      Verified
+                    </div>
+                  ) : (
+                    <div className="inline-flex items-center justify-center px-2 py-1 rounded-lg bg-warning text-warning-foreground text-xs font-medium tracking-wide">
+                      Pending Verification
+                    </div>
+                  )}
+                </div>
+                <div className="min-w-[130px] w-[20%] flex justify-end gap-2">
+                  {!domain.verified && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleVerifyDomain(domain._id)}
+                      disabled={verifyingDomain === domain._id}
+                      className="text-green-600 border-green-200 hover:bg-green-50 hover:text-green-700 dark:border-green-800 dark:hover:bg-green-900/20"
+                    >
+                      {verifyingDomain === domain._id ? (
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-green-500 border-t-transparent" />
+                      ) : (
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                      )}
+                      Verify
+                    </Button>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => openInNewTab(domain.domain)}
+                    title="Open domain"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => openDeleteDomainDialog(domain._id)}
+                    className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50"
+                    title="Delete domain"
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
             ))}
           </div>
         </div>
