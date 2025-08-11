@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/useToast";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { Card, CardContent } from "@/components/ui/card";
+// import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,19 +13,20 @@ import {
   Lock,
   Calendar,
   Folder,
-  ExternalLink,
   Trash2,
   Link,
-  Copy,
   CheckCircle,
+  Copy,
+  MoreVertical,
   Clock,
   AlertCircle,
+  ArrowUpRightSquare,
 } from "lucide-react";
 import { getProjects, deleteDeployedProject, setupCustomDomain, deleteCustomDomain } from "@/api/projects";
 import { getUserProfile } from "@/api/user";
 import SpinnerShape from "@/components/SpinnerShape";
 import { ProjectsPythagoraIcon, PremiumPlanIcon } from "@/components/icons/PlanIcons";
-import { cn } from "@/lib/utils";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -44,8 +45,13 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface Project {
   id: string;
@@ -80,7 +86,6 @@ export function ProjectsPage() {
   const [deployments, setDeployments] = useState<Deployment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [deletingDeployment, setDeletingDeployment] = useState<string | null>(null);
   const [settingUpDomain, setSettingUpDomain] = useState<string | null>(null);
   const [customDomainDialog, setCustomDomainDialog] = useState<{ open: boolean; deployment: Deployment | null }>({ open: false, deployment: null });
   const [dnsInstructionsDialog, setDnsInstructionsDialog] = useState<{ open: boolean; deployment: Deployment | null }>({ open: false, deployment: null });
@@ -90,7 +95,7 @@ export function ProjectsPage() {
     return (tab === 'deployed' || tab === 'projects') ? tab : 'projects';
   });
   const [copiedField, setCopiedField] = useState<string | null>(null);
-  const [deletingCustomDomain, setDeletingCustomDomain] = useState<string | null>(null);
+  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
 
   const { toast } = useToast();
 
@@ -99,7 +104,7 @@ export function ProjectsPage() {
     setSearchParams({ tab: value });
   };
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -116,7 +121,17 @@ export function ProjectsPage() {
 
       // Handle projects
       if (projectsResponse && projectsResponse.projects) {
-        const mappedProjects = projectsResponse.projects.map((project: any) => ({
+        type ApiProject = {
+          id: string;
+          name: string;
+          folder_name: string;
+          updated_at?: string;
+          created_at?: string;
+          isPublic?: boolean;
+          deploymentUrl?: string;
+        };
+
+        const mappedProjects = projectsResponse.projects.map((project: ApiProject) => ({
           id: project.id,
           name: project.name,
           folder_name: project.folder_name,
@@ -128,7 +143,7 @@ export function ProjectsPage() {
         }));
 
         // Sort projects by time (most recent first)
-        const sortedProjects = mappedProjects.sort((a, b) => {
+        const sortedProjects = mappedProjects.sort((a: Project, b: Project) => {
           const dateA = new Date(a.updated_at || a.created_at || 0);
           const dateB = new Date(b.updated_at || b.created_at || 0);
           return dateB.getTime() - dateA.getTime(); // Descending order (newest first)
@@ -146,13 +161,19 @@ export function ProjectsPage() {
         console.log("ProjectsPage: Deployments found:", profileResponse.deployments);
 
         // Sort deployments by time (most recent first)
-        const sortedDeployments = [...profileResponse.deployments].sort((a, b) => {
-          const getDateString = (dateObj: { $date: string } | string) => {
-            return typeof dateObj === 'object' && dateObj.$date ? dateObj.$date : dateObj;
+        const sortedDeployments = [...profileResponse.deployments].sort((a: Deployment, b: Deployment) => {
+          const getDateString = (dateObj: { $date: string } | string | undefined): string | undefined => {
+            if (!dateObj) return undefined;
+            if (typeof dateObj === 'object' && (dateObj as { $date?: string }).$date) {
+              return (dateObj as { $date: string }).$date;
+            }
+            return dateObj as string;
           };
 
-          const dateA = new Date(getDateString(a.updatedAt) || getDateString(a.createdAt) || 0);
-          const dateB = new Date(getDateString(b.updatedAt) || getDateString(b.createdAt) || 0);
+          const aStr = getDateString(a.updatedAt) || getDateString(a.createdAt) || undefined;
+          const bStr = getDateString(b.updatedAt) || getDateString(b.createdAt) || undefined;
+          const dateA = aStr ? new Date(aStr) : new Date(0);
+          const dateB = bStr ? new Date(bStr) : new Date(0);
           return dateB.getTime() - dateA.getTime(); // Descending order (newest first)
         });
 
@@ -179,11 +200,10 @@ export function ProjectsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
   const handleDeleteDeployment = async (deployment: Deployment) => {
     try {
-      setDeletingDeployment(deployment.projectId);
       console.log('ProjectsPage: Deleting deployment:', deployment);
 
       await deleteDeployedProject(deployment.projectId, deployment.folderPath);
@@ -208,8 +228,6 @@ export function ProjectsPage() {
         title: "Error",
         description: errorMessage,
       });
-    } finally {
-      setDeletingDeployment(null);
     }
   };
 
@@ -224,7 +242,6 @@ export function ProjectsPage() {
     }
 
     try {
-      setDeletingCustomDomain(deployment.projectId);
       console.log('ProjectsPage: Deleting custom domain:', {
         deployment: deployment,
         domain: deployment.customDomain
@@ -252,8 +269,6 @@ export function ProjectsPage() {
         title: "Error",
         description: errorMessage,
       });
-    } finally {
-      setDeletingCustomDomain(null);
     }
   };
 
@@ -354,7 +369,7 @@ export function ProjectsPage() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   const formatDate = (dateString?: string | { $date: string }) => {
     if (!dateString) return "Unknown";
@@ -450,8 +465,7 @@ export function ProjectsPage() {
 
         {/* Projects Tab Content */}
         <TabsContent value="projects" className="space-y-4">
-          <Card>
-            <CardContent className="pt-6">
+          <div className="max-h-[70vh] overflow-y-auto overscroll-contain pr-1 pt-2 md:pt-3 pb-12 md:pb-16">
               {projects.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12">
                   <Folder className="h-12 w-12 text-muted-foreground mb-4" />
@@ -461,18 +475,17 @@ export function ProjectsPage() {
                   </p>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  {projects.map((project, index) => (
-                    <div key={project.id}>
-                      <div className="flex items-center justify-between py-4">
-                        <div className="flex-1 space-y-1">
-                          <div className="flex items-center gap-3">
-                            <h3 className="font-semibold text-foreground">
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                {projects.map((project) => (
+                  <Card key={project.id} className="hover:shadow-sm transition-shadow">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between gap-3">
+                        <h3 className="font-semibold text-foreground truncate" title={project.name}>
                               {project.name}
                             </h3>
                             <Badge
                               variant={project.isPublic ? "default" : "secondary"}
-                              className="text-xs"
+                          className="text-xs whitespace-nowrap"
                             >
                               {project.isPublic ? (
                                 <>
@@ -487,31 +500,29 @@ export function ProjectsPage() {
                               )}
                             </Badge>
                           </div>
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                            <span className="flex items-center gap-1">
+                      <div className="mt-2 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-1">
                               <Calendar className="h-3 w-3" />
                               {formatDate(project.updated_at || project.created_at)}
-                            </span>
-                            <span className="flex items-center gap-1">
+                        </div>
+                        <div className="mt-1 flex items-center gap-1 min-w-0">
                               <Folder className="h-3 w-3" />
+                          <span className="truncate max-w-[220px] md:max-w-[260px]" title={project.folder_name}>
                               {project.folder_name}
                             </span>
-                          </div>
                         </div>
                       </div>
-                      {index < projects.length - 1 && <Separator />}
-                    </div>
+                    </CardContent>
+                  </Card>
                   ))}
                 </div>
               )}
-            </CardContent>
-          </Card>
+          </div>
         </TabsContent>
 
         {/* Deployed Tab Content */}
         <TabsContent value="deployed" className="space-y-4">
-          <Card>
-            <CardContent className="pt-6">
+          <div className="max-h-[70vh] overflow-y-auto overscroll-contain pr-1 pt-2 md:pt-3 pb-12 md:pb-16">
               {deployments.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12">
                   <PremiumPlanIcon className="h-12 w-12 text-muted-foreground mb-4" />
@@ -521,13 +532,14 @@ export function ProjectsPage() {
                   </p>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  {deployments.map((deployment, index) => (
-                    <div key={deployment.instanceId}>
-                      <div className="flex items-center justify-between py-4">
-                        <div className="flex-1 space-y-1">
-                          <div className="flex items-center gap-3">
-                            <h3 className="font-semibold text-foreground">
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                {deployments.map((deployment) => (
+                  <Card key={deployment.instanceId} className="hover:shadow-sm transition-shadow">
+                    <CardContent className="p-4">
+                      <div className="space-y-3 min-w-0">
+                        <div className="flex items-center justify-between gap-3 min-w-0">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <h3 className="font-semibold text-foreground truncate" title={deployment.folderPath}>
                               {deployment.folderPath}
                             </h3>
                             <Badge variant="default" className="text-xs">
@@ -536,23 +548,122 @@ export function ProjectsPage() {
                             </Badge>
                             {deployment.customDomain && getCustomDomainStatusBadge(deployment.customDomainStatus)}
                           </div>
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                          <DropdownMenu 
+                            open={openDropdownId === deployment.instanceId}
+                            onOpenChange={(open) => setOpenDropdownId(open ? deployment.instanceId : null)}
+                          >
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 rounded-md bg-[#0B091299] hover:bg-[#0B091299] backdrop-blur-sm"
+                                aria-label={`Menu for ${deployment.folderPath}`}
+                              >
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-[180px] px-2 py-2.5 rounded-2xl">
+                              <DropdownMenuItem className="group" onSelect={() => openDeployment(deployment.url)}>
+                                <ArrowUpRightSquare className="h-4 w-4 text-muted-foreground group-hover:text-accent-foreground group-focus:text-accent-foreground" />
+                                Open
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="group"
+                                disabled={!!deployment.customDomain}
+                                onSelect={() => {
+                                  if (!deployment.customDomain) {
+                                    setCustomDomainDialog({ open: true, deployment });
+                                    setOpenDropdownId(null);
+                                  }
+                                }}
+                              >
+                                <Link className="h-4 w-4 text-muted-foreground group-hover:text-accent-foreground group-focus:text-accent-foreground" />
+                                {deployment.customDomain ? "Domain Set" : "Custom Domain"}
+                              </DropdownMenuItem>
+                              {deployment.customDomain && (
+                                <DropdownMenuItem className="group" onSelect={() => {
+                                  setDnsInstructionsDialog({ open: true, deployment });
+                                  setOpenDropdownId(null);
+                                }}>
+                                  <Link className="h-4 w-4 text-muted-foreground group-hover:text-accent-foreground group-focus:text-accent-foreground" />
+                                  DNS Info
+                                </DropdownMenuItem>
+                              )}
+                              {deployment.customDomain && (
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <DropdownMenuItem 
+                                      className="group"
+                                      onSelect={(e) => e.preventDefault()}
+                                    >
+                                      <Link className="h-4 w-4 text-muted-foreground group-hover:text-accent-foreground group-focus:text-accent-foreground" />
+                                      Delete Domain
+                                    </DropdownMenuItem>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Delete Custom Domain</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Are you sure you want to delete the custom domain "{deployment.customDomain}"?
+                                        This will remove the custom domain configuration but won't delete the deployment itself.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                      <AlertDialogAction 
+                                        onClick={() => handleDeleteCustomDomain(deployment)}
+                                        className="bg-orange-600 hover:bg-orange-700 text-white"
+                                      >
+                                        Delete Domain
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              )}
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <DropdownMenuItem 
+                                    className="group"
+                                    onSelect={(e) => e.preventDefault()}
+                                  >
+                                    <Trash2 className="h-4 w-4 text-muted-foreground group-hover:text-accent-foreground group-focus:text-accent-foreground" />
+                                    Delete Project
+                                  </DropdownMenuItem>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete Project</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Are you sure you want to delete the project "{deployment.folderPath}"?
+                                      This action cannot be undone and will permanently remove the deployed application.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction 
+                                      onClick={() => handleDeleteDeployment(deployment)}
+                                      className="bg-red-600 hover:bg-red-700 text-white"
+                                    >
+                                      Delete
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
                             <span className="flex items-center gap-1">
                               <Calendar className="h-3 w-3" />
-                              {formatDate(deployment.updatedAt)}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Folder className="h-3 w-3" />
-                              {deployment.instanceName}
-                            </span>
-                            <span className="truncate max-w-[200px]" title={deployment.url}>
-                              {deployment.url}
+                            {formatDate(deployment.createdAt)}
                             </span>
                           </div>
                           {deployment.customDomain && (
                             <div className="flex items-center gap-2 text-sm">
                               <span className="text-muted-foreground">Custom Domain:</span>
-                              <span className="font-medium text-foreground">{deployment.customDomain}</span>
+                            <span className="font-medium text-foreground truncate max-w-[240px] md:max-w-[320px]" title={deployment.customDomain}>
+                              {deployment.customDomain}
+                            </span>
                               {deployment.customDomainStatus === 'pending' && (
                                 <span className="text-yellow-600 text-xs">
                                   (Propagation pending)
@@ -560,18 +671,6 @@ export function ProjectsPage() {
                               )}
                             </div>
                           )}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => openDeployment(deployment.url)}
-                            className="flex items-center gap-2"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                            Open
-                          </Button>
-
                           {deployment.customDomain && deployment.publicIp && (
                             <Dialog
                               open={dnsInstructionsDialog.open && dnsInstructionsDialog.deployment?.projectId === deployment.projectId}
@@ -581,17 +680,7 @@ export function ProjectsPage() {
                                 }
                               }}
                             >
-                              <DialogTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => setDnsInstructionsDialog({ open: true, deployment })}
-                                  className="flex items-center gap-2"
-                                >
-                                  <Link className="h-4 w-4" />
-                                  DNS Info
-                                </Button>
-                              </DialogTrigger>
+
                               <DialogContent className="max-w-md">
                                 <DialogHeader>
                                   <DialogTitle>DNS Configuration</DialogTitle>
@@ -685,55 +774,7 @@ export function ProjectsPage() {
                               </DialogContent>
                             </Dialog>
                           )}
-
-                          {deployment.customDomain && (
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className={cn(
-                                    "flex items-center gap-2 border-orange-200 text-orange-600 hover:text-orange-700",
-                                    "hover:bg-orange-50 hover:border-orange-300 transition-all duration-200",
-                                    "focus:ring-2 focus:ring-orange-200 focus:ring-offset-1",
-                                    "dark:border-orange-800 dark:text-orange-400 dark:hover:text-orange-300",
-                                    "dark:hover:bg-orange-950 dark:hover:border-orange-700",
-                                    "disabled:opacity-50 disabled:cursor-not-allowed"
-                                  )}
-                                  disabled={deletingCustomDomain === deployment.projectId}
-                                >
-                                  {deletingCustomDomain === deployment.projectId ? (
-                                    <SpinnerShape className="h-4 w-4" />
-                                  ) : (
-                                    <Link className="h-4 w-4" />
-                                  )}
-                                  Delete Domain
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Delete Custom Domain</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Are you sure you want to delete the custom domain "{deployment.customDomain}"?
-                                    This will remove the custom domain configuration but won't delete the deployment itself.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => handleDeleteCustomDomain(deployment)}
-                                    className={cn(
-                                      "bg-orange-600 hover:bg-orange-700 focus:ring-orange-500",
-                                      "dark:bg-orange-600 dark:hover:bg-orange-700"
-                                    )}
-                                  >
-                                    Delete Domain
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          )}
-
+                          
                           <Dialog
                             open={customDomainDialog.open && customDomainDialog.deployment?.projectId === deployment.projectId}
                             onOpenChange={(open) => {
@@ -743,22 +784,6 @@ export function ProjectsPage() {
                               }
                             }}
                           >
-                            <DialogTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setCustomDomainDialog({ open: true, deployment })}
-                                className="flex items-center gap-2"
-                                disabled={settingUpDomain === deployment.projectId || !!deployment.customDomain}
-                              >
-                                {settingUpDomain === deployment.projectId ? (
-                                  <SpinnerShape className="h-4 w-4" />
-                                ) : (
-                                  <Link className="h-4 w-4" />
-                                )}
-                                {deployment.customDomain ? "Domain Set" : "Custom Domain"}
-                              </Button>
-                            </DialogTrigger>
                             <DialogContent>
                               <DialogHeader>
                                 <DialogTitle>Setup Custom Domain</DialogTitle>
@@ -804,60 +829,13 @@ export function ProjectsPage() {
                               </DialogFooter>
                             </DialogContent>
                           </Dialog>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className={cn(
-                                  "flex items-center gap-2 border-red-200 text-red-600 hover:text-red-700",
-                                  "hover:bg-red-50 hover:border-red-300 transition-all duration-200",
-                                  "focus:ring-2 focus:ring-red-200 focus:ring-offset-1",
-                                  "dark:border-red-800 dark:text-red-400 dark:hover:text-red-300",
-                                  "dark:hover:bg-red-950 dark:hover:border-red-700",
-                                  "disabled:opacity-50 disabled:cursor-not-allowed"
-                                )}
-                                disabled={deletingDeployment === deployment.projectId}
-                              >
-                                {deletingDeployment === deployment.projectId ? (
-                                  <SpinnerShape className="h-4 w-4" />
-                                ) : (
-                                  <Trash2 className="h-4 w-4" />
-                                )}
-                                Delete
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Delete Deployment</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Are you sure you want to delete the deployment "{deployment.folderPath}"?
-                                  This action cannot be undone and will permanently remove the deployed application.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => handleDeleteDeployment(deployment)}
-                                  className={cn(
-                                    "bg-red-600 hover:bg-red-700 focus:ring-red-500",
-                                    "dark:bg-red-600 dark:hover:bg-red-700"
-                                  )}
-                                >
-                                  Delete
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
                       </div>
-                      {index < deployments.length - 1 && <Separator />}
-                    </div>
+                    </CardContent>
+                  </Card>
                   ))}
                 </div>
               )}
-            </CardContent>
-          </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

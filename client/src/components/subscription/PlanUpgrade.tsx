@@ -24,7 +24,7 @@ export function PlanUpgrade({ customerProfile, onUpgradePlan }: PlanUpgradeProps
   const getAvailableUpgrades = () => {
     // Prioritize currentSubscription over subscription
     const currentPlan = customerProfile?.currentSubscription?.planType?.toLowerCase() || 
-                       customerProfile?.subscription?.planType?.toLowerCase();
+    customerProfile?.subscription?.planType?.toLowerCase();
     console.log("PlanUpgrade: Current plan type for upgrades:", currentPlan);
 
     if (!currentPlan || currentPlan === 'free' || currentPlan === 'prepaid') {

@@ -12,7 +12,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { X } from "lucide-react";
+
 import SpinnerShape from "@/components/SpinnerShape";
 
 interface CustomerProfile {
@@ -58,14 +58,14 @@ interface CustomerProfile {
 interface PlanSummaryProps {
   customerProfile: CustomerProfile | null;
   cancellingSubscription: boolean;
-  onContactSales: () => void;
+  onChangePlan: () => void;
   onCancelSubscription: () => void;
 }
 
 export function PlanSummary({
   customerProfile,
   cancellingSubscription,
-  onContactSales,
+  onChangePlan,
   onCancelSubscription,
 }: PlanSummaryProps) {
   const formatDate = (dateInput?: string | { $date: string }) => {
@@ -235,26 +235,14 @@ export function PlanSummary({
                 </p>
               )}
             </div>
-            <div>
-              <p className="text-muted-foreground opacity-60">Customer ID</p>
-              <p className="font-medium text-xs">
-                {customerProfile?.id || customerProfile?.currentSubscription?.customerId || "-"}
-              </p>
-            </div>
-            <div>
-              <p className="text-muted-foreground opacity-60">Account Created</p>
-              <p className="font-medium">
-                {formatDate(customerProfile?.createdAt)}
-              </p>
-            </div>
           </div>
 
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 mt-4 md:mt-0 self-start md:self-center">
             <Button
-              onClick={onContactSales}
+              onClick={onChangePlan}
               className="w-full sm:w-auto"
             >
-              Contact Sales
+              Change Plan
             </Button>
             {hasActiveSubscription() && (
               <AlertDialog>
@@ -270,10 +258,7 @@ export function PlanSummary({
                         Cancelling...
                       </>
                     ) : (
-                      <>
-                        <X className="h-4 w-4 mr-2" />
-                        Cancel Subscription
-                      </>
+                      "Cancel Subscription"
                     )}
                   </Button>
                 </AlertDialogTrigger>

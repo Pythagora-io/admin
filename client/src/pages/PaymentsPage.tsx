@@ -557,7 +557,8 @@ export function PaymentsPage() {
                 </div>
               ))
             ) : (
-              <p className="text-sm text-muted-foreground">No subscription history available</p>
+              // <p className="text-sm text-muted-foreground">No subscription history available</p>
+              <></>
             )}
           </div>
         </div>

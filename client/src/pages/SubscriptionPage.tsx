@@ -9,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Check, ExternalLink, AlertCircle, Key, ShieldAlert, CreditCard, ArrowRight, Coins } from "lucide-react";
+import { Check, AlertCircle, Key, ShieldAlert, CreditCard, ArrowRight, Coins } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import {
   getCustomerProfile,
@@ -19,12 +19,11 @@ import { cancelSubscription } from "@/api/stripe";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { PAYMENT_LINKS, TOPUP_TOKENS, PLAN_LINKS } from "@/constants/plans";
+import { PAYMENT_LINKS, TOPUP_TOKENS, PLAN_LINKS, PLAN_FEATURES, PLAN_PRICES } from "@/constants/plans";
 import SpinnerShape from "@/components/SpinnerShape";
 import { PlanSummary } from "@/components/subscription/PlanSummary";
-import { PlanUpgrade } from "@/components/subscription/PlanUpgrade";
 import { TokenUsage } from "@/components/subscription/TokenUsage";
-import { PremiumPlanIcon } from "@/components/icons/PlanIcons";
+import { FreePlanIcon, ProPlanIcon, PremiumPlanIcon } from "@/components/icons/PlanIcons";
 
 interface CustomerProfile {
   id?: string;
@@ -97,6 +96,7 @@ export function SubscriptionPage() {
   const [error, setError] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [showTopUpModal, setShowTopUpModal] = useState(false);
+  const [showChangePlanModal, setShowChangePlanModal] = useState(false);
   const [cancellingSubscription, setCancellingSubscription] = useState(false);
 
   const { toast } = useToast();
@@ -144,9 +144,8 @@ export function SubscriptionPage() {
     fetchData();
   }, [toast]);
 
-  const handleContactForEnterprise = () => {
-    // Point to 
-    window.open("https://www.pythagora.ai/contact", "_blank");
+  const handleChangePlan = () => {
+    setShowChangePlanModal(true);
   };
 
   const handleShowTopUp = () => {
@@ -399,30 +398,12 @@ export function SubscriptionPage() {
             </>
           )}
 
-          {/* Free Trial Status */}
-          <div className="flex flex-col space-y-3">
-            <h2 className="text-body-lg font-medium">Free Trial Status</h2>
-            <div className="flex items-center gap-2">
-              <Badge variant={customerProfile?.isFreeTrial ? "default" : "outline"}>
-                {customerProfile?.isFreeTrial ? "On Free Trial" : "Not on Free Trial"}
-              </Badge>
-            </div>
-          </div>
-
-          <Separator />
-
           {/* Plan Summary */}
           <PlanSummary
             customerProfile={customerProfile}
             cancellingSubscription={cancellingSubscription}
-            onContactSales={handleContactForEnterprise}
+            onChangePlan={handleChangePlan}
             onCancelSubscription={handleCancelSubscription}
-          />
-
-          {/* Plan Upgrade Section */}
-          <PlanUpgrade
-            customerProfile={customerProfile}
-            onUpgradePlan={handleUpgradePlan}
           />
 
           {/* Token Usage */}
@@ -431,6 +412,206 @@ export function SubscriptionPage() {
             onShowTopUp={handleShowTopUp}
           />
         </div>
+
+        {/* Change Plan Modal */}
+        <Dialog open={showChangePlanModal} onOpenChange={setShowChangePlanModal}>
+          <DialogContent className="sm:max-w-6xl">
+            <DialogHeader>
+              <DialogTitle>Change Plan</DialogTitle>
+            </DialogHeader>
+
+            <div className="mt-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Free Plan */}
+                <Card className={`relative overflow-hidden border-2 border-transparent transition-colors flex flex-col ${
+                  (!customerProfile?.currentSubscription?.planType || 
+                   customerProfile?.currentSubscription?.planType?.toLowerCase() === 'free') 
+                  ? 'bg-[#393744]' : 'bg-[#0B091299]'
+                }`}>
+                  {(!customerProfile?.currentSubscription?.planType || 
+                    customerProfile?.currentSubscription?.planType?.toLowerCase() === 'free') && (
+                    <div className="absolute top-2 right-2">
+                      <div className="flex items-center justify-center gap-2 h-[30px] px-3 py-0 bg-[#F7F8FC26] rounded-lg">
+                        <span className="text-[#F7F8F8] text-base font-normal leading-[1.4em]">Current plan</span>
+                      </div>
+                    </div>
+                  )}
+                  <CardHeader className="pb-4">
+                    <div className="flex flex-col items-start text-left">
+                      <FreePlanIcon className="w-7 h-7" />
+                      <div className="mt-4">
+                        <CardTitle className="text-base font-normal text-white">Free Plan</CardTitle>
+                        <CardDescription className="text-2xl font-bold text-white mt-4">
+                          $0<span className="text-sm font-normal text-gray-300">/month</span>
+                        </CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pb-8 flex-1">
+                    <ul className="space-y-2 h-[120px]">
+                      <li className="flex items-center gap-2 text-sm">
+                        <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                        <span className="text-white">Use your own API keys</span>
+                      </li>
+                      <li className="flex items-center gap-2 text-sm">
+                        <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                        <span className="text-white">Build frontend-only apps</span>
+                      </li>
+                      <li className="flex items-center gap-2 text-sm">
+                        <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                        <span className="text-white">1 deployed app</span>
+                      </li>
+                      <li className="flex items-center gap-2 text-sm">
+                        <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                        <span className="text-white">Watermark on deployed apps</span>
+                      </li>
+                    </ul>
+                  </CardContent>
+                  <CardFooter className="pt-6">
+                    {(!customerProfile?.currentSubscription?.planType || 
+                      customerProfile?.currentSubscription?.planType?.toLowerCase() === 'free') ? (
+                      <Button
+                        className="w-full bg-[#3057E1] hover:bg-[#3057E1]/90 text-white"
+                        disabled
+                      >
+                        Current Plan
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={() => {
+                          toast({
+                            title: "Downgrade to Free",
+                            description: "Please cancel your current subscription to return to the free plan.",
+                          });
+                        }}
+                        className="w-full"
+                        variant="outline"
+                      >
+                        Downgrade to Free
+                      </Button>
+                    )}
+                  </CardFooter>
+                </Card>
+
+                {/* Pro Plan */}
+                <Card className={`relative overflow-hidden border-2 border-transparent transition-colors flex flex-col ${
+                  customerProfile?.currentSubscription?.planType?.toLowerCase() === 'pro' 
+                  ? 'bg-[#393744]' : 'bg-[#0B091299]'
+                }`}>
+                  {customerProfile?.currentSubscription?.planType?.toLowerCase() === 'pro' && (
+                    <div className="absolute top-2 right-2">
+                      <div className="flex items-center justify-center gap-2 h-[30px] px-3 py-0 bg-[#F7F8FC26] rounded-lg">
+                        <span className="text-[#F7F8F8] text-base font-normal leading-[1.4em]">Current plan</span>
+                      </div>
+                    </div>
+                  )}
+                  <CardHeader className="pb-4">
+                    <div className="flex flex-col items-start text-left">
+                      <ProPlanIcon className="w-5 h-7" />
+                      <div className="mt-4">
+                        <CardTitle className="text-base font-normal text-white">Pro Plan</CardTitle>
+                        <CardDescription className="text-2xl font-bold text-white mt-4">
+                          ${PLAN_PRICES.Pro}<span className="text-sm font-normal text-gray-300">/month</span>
+                        </CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pb-8 flex-1">
+                    <ul className="space-y-2 h-[120px]">
+                      {PLAN_FEATURES.Pro.map((feature, index) => (
+                        <li key={index} className="flex items-center gap-2 text-sm">
+                          <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                          <span className="text-white">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                  <CardFooter className="pt-6">
+                    {customerProfile?.currentSubscription?.planType?.toLowerCase() === 'pro' ? (
+                      <Button
+                        className="w-full bg-[#3057E1] hover:bg-[#3057E1]/90 text-white"
+                        disabled
+                      >
+                        Current Plan
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={() => {
+                          setShowChangePlanModal(false);
+                          handleUpgradePlan('Pro');
+                        }}
+                        className="w-full bg-pink-500 hover:bg-pink-600 text-white"
+                      >
+                        <CreditCard className="h-4 w-4 mr-2" />
+                        {(customerProfile?.currentSubscription?.planType?.toLowerCase() === 'premium') ? 'Downgrade' : 'Upgrade'} to Pro
+                        <ArrowRight className="h-4 w-4 ml-2" />
+                      </Button>
+                    )}
+                  </CardFooter>
+                </Card>
+
+                {/* Premium Plan */}
+                <Card className={`relative overflow-hidden border-2 border-transparent transition-colors flex flex-col ${
+                  customerProfile?.currentSubscription?.planType?.toLowerCase() === 'premium' 
+                  ? 'bg-[#393744]' : 'bg-[#0B091299]'
+                }`}>
+                  {customerProfile?.currentSubscription?.planType?.toLowerCase() === 'premium' && (
+                    <div className="absolute top-2 right-2">
+                      <div className="flex items-center justify-center gap-2 h-[30px] px-3 py-0 bg-[#F7F8FC26] rounded-lg">
+                        <span className="text-[#F7F8F8] text-base font-normal leading-[1.4em]">Current plan</span>
+                      </div>
+                    </div>
+                  )}
+                  <CardHeader className="pb-4">
+                    <div className="flex flex-col items-start text-left">
+                      <PremiumPlanIcon className="w-7 h-7" />
+                      <div className="mt-4">
+                        <CardTitle className="text-base font-normal text-white">Premium Plan</CardTitle>
+                        <CardDescription className="text-2xl font-bold text-white mt-4">
+                          ${PLAN_PRICES.Premium}<span className="text-sm font-normal text-gray-300">/month</span>
+                        </CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pb-8 flex-1">
+                    <ul className="space-y-2 h-[120px]">
+                      {PLAN_FEATURES.Premium.map((feature, index) => (
+                        <li key={index} className="flex items-center gap-2 text-sm">
+                          <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                          <span className="text-white">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                  <CardFooter className="pt-6">
+                    {customerProfile?.currentSubscription?.planType?.toLowerCase() === 'premium' ? (
+                      <Button
+                        className="w-full bg-[#3057E1] hover:bg-[#3057E1]/90 text-white"
+                        disabled
+                      >
+                        Current Plan
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={() => {
+                          setShowChangePlanModal(false);
+                          handleUpgradePlan('Premium');
+                        }}
+                        className="w-full bg-teal-600 hover:bg-teal-700 text-white"
+                      >
+                        <CreditCard className="h-4 w-4 mr-2" />
+                        Upgrade to Premium
+                        <ArrowRight className="h-4 w-4 ml-2" />
+                      </Button>
+                    )}
+                  </CardFooter>
+                </Card>
+              </div>
+            </div>
+
+
+          </DialogContent>
+        </Dialog>
 
         {/* Top Up Modal */}
         <Dialog open={showTopUpModal} onOpenChange={setShowTopUpModal}>
